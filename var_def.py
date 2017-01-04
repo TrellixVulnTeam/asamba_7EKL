@@ -77,7 +77,7 @@ class tracks:
     self.n_dirs_M_ini = 0
     self.list_dirs_M_ini = []
     self.n_tracks = 0
-    self.list_dic_tracks = []
+    self.list_tracks = []
 
   # Setters
   def set_dir_repos(self, dir_repos):
@@ -92,8 +92,8 @@ class tracks:
   def set_n_tracks(self, n_tracks):
     self.n_tracks = n_tracks
 
-  def set_list_dic_tracks(self, list_dic_tracks):
-    self.list_dic_tracks = list_dic_tracks
+  def set_list_tracks(self, list_dic_tracks):
+    self.list_tracks = list_tracks
 
   # Getters
   def get_dir_repos(self):
@@ -108,8 +108,8 @@ class tracks:
   def get_n_tracks(self):
     return self.n_tracks
 
-  def get_list_dic_tracks(self):
-    return self.list_dic_tracks
+  def get_list_tracks(self):
+    return self.list_tracks
 
   def get_mass_directories(self):
     """
@@ -150,13 +150,9 @@ class tracks:
         logging.error('var_def: no history files found in the path: "{0}"'.format(hist_search))
       list_track_paths += hists[:]
 
-    print list_track_paths
-    print dr, hist_search, n_hists, len(list_track_paths)
-    sys.exit()
-
     # Extract parameters from history file paths
     # Store info the class objects
-    list_dic_tracks  = []
+    list_tracks  = []
     n_tracks = len(list_track_paths)
 
     for i, trck in enumerate(list_track_paths):
@@ -174,11 +170,11 @@ class tracks:
       logD      = float(params[3][4:])
 
       one_track = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
-      list_dic_tracks.append(one_track)
+      list_tracks.append(one_track)
 
     # Store the data into the "tracks" object
     self.set_n_tracks = n_tracks
-    self.set_list_dic_tracks = list_dic_tracks
+    self.set_list_tracks = list_tracks
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
