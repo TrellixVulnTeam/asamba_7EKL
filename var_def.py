@@ -17,6 +17,7 @@ class tracks:
     @type dir_repos: string
     """
     # mandatory attribute
+    if dir_repos[-1] != '/': dir_repos += '/'
     self.dir_repos = dir_repos
 
     # extra attributes
