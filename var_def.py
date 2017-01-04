@@ -175,8 +175,8 @@ class tracks:
     print i, trck, n_params, params
     print one_track
     # Store the data into the "tracks" object
-    self.set_n_tracks = n_tracks
-    self.set_list_tracks = list_tracks
+    self.set_n_tracks(n_tracks)
+    self.set_list_tracks(list_tracks)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
