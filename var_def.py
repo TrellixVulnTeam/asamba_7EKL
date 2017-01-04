@@ -172,6 +172,8 @@ class tracks:
       one_track = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
       list_tracks.append(one_track)
 
+    print i, trck, n_params, params
+    print one_track
     # Store the data into the "tracks" object
     self.set_n_tracks = n_tracks
     self.set_list_tracks = list_tracks
