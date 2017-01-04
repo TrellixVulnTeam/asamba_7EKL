@@ -150,7 +150,8 @@ class tracks:
         logging.error('var_def: no history files found in the path: "{0}"'.format(hist_search))
       list_track_paths += hists[:]
 
-    print dr, hist_search, n_hists
+    print list_track_paths
+    print dr, hist_search, n_hists, len(list_track_paths)
     sys.exit()
 
     # Extract parameters from history file paths
