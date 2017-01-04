@@ -50,7 +50,7 @@ class tracks:
     return self.n_dirs_M_ini
 
   def get_list_dirs_M_ini(self):
-    return self.get_list_dirs_M_ini
+    return self.list_dirs_M_ini
 
   def get_n_tracks(self):
     return self.n_tracks
