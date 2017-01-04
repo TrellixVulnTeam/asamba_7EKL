@@ -34,7 +34,7 @@ class tracks:
     self.n_dirs_M_ini = n_dirs_M_ini
 
   def set_list_dirs_M_ini(self, list_dirs_M_ini):
-    self.list_dirs_M_ini
+    self.list_dirs_M_ini = list_dirs_M_ini
 
   def set_n_tracks(self, n_tracks):
     self.n_tracks = n_tracks
