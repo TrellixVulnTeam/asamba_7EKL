@@ -169,8 +169,8 @@ class tracks:
       Z         = float(params[2][1:])
       logD      = float(params[3][4:])
 
-      track     = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
-      list_dic_tracks.append(track)
+      one_track = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
+      list_dic_tracks.append(one_track)
 
     # Store the data into the "tracks" object
     self.set_n_tracks = n_tracks
