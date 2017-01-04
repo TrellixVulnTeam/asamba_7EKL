@@ -5,7 +5,7 @@ __release_date__ = '03.01.2017'
 
 # Version 0.1:
 # Release Date: 04.01.2017
-# Developing the insert_def and insert_lib modules
+# Developing the var_def, var_lib, insert_def and insert_lib modules
 
 # Version 0.0:
 # Release Date: 03.01.2017

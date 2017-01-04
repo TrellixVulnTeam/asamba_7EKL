@@ -1,7 +1,8 @@
 __all__ = [
            'insert_def',        # definition of a class for data insertion
            'insert_lib',        # various functionalities for inserting data into tables
-           'var_def'            # define basic data variables and class objects
+           'var_def',           # define basic data variables and class objects
+           'var_lib',           # extra supporting functions for variables/data handling
            'version',           # track versions, release dates, and the changelog
            ]
 
