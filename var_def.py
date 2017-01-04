@@ -92,7 +92,7 @@ class tracks:
   def set_n_tracks(self, n_tracks):
     self.n_tracks = n_tracks
 
-  def set_list_tracks(self, list_dic_tracks):
+  def set_list_tracks(self, list_tracks):
     self.list_tracks = list_tracks
 
   # Getters
