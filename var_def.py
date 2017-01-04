@@ -1,9 +1,16 @@
 
+"""
+This module provides the track and tracks class objects and some basic functionalities. The "tracks"
+is build based on the "track" object.
+"""
+
 import sys, os, glob
 import logging
 import numpy as np 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+hist_search_pattern = '/hist/M*.hist'
+hist_extension      = '.hist'
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class track:
@@ -143,7 +150,7 @@ class tracks:
 
     # Collect all available hist files
     for dr in list_dirs_M_ini:
-      hist_search = dr + '/hist/M*.hist'
+      hist_search = dr + hist_search_pattern 
       hists   = glob.glob(hist_search)
       n_hists = len(hists)
       if n_hists == 0:
@@ -157,7 +164,7 @@ class tracks:
 
     for i, trck in enumerate(list_track_paths):
       ind_slash = trck.rfind('/')
-      ind_point = trck.rfind('.hist')
+      ind_point = trck.rfind(hist_extension)
       trck      = trck[ind_slash+1 : ind_point]
       params    = trck.split('-')
       n_params  = len(params)
@@ -172,8 +179,6 @@ class tracks:
       one_track = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
       list_tracks.append(one_track)
 
-    print i, trck, n_params, params
-    print one_track
     # Store the data into the "tracks" object
     self.set_n_tracks(n_tracks)
     self.set_list_tracks(list_tracks)
