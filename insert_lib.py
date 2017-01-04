@@ -68,10 +68,10 @@ def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
 
   list_tracks = self_tracks.list_tracks
   for i, obj in enumerate(list_tracks):
-    str_M_ini = '{0:06.fd}'.format(obj.M_ini)
-    str_fov   = '{0:05.fd}'.format(obj.fov)
-    str_Z     = '{0:05.fd}'.format(obj.Z)
-    str_logD  = '{0:05.fd}'.format(obj.logD)
+    str_M_ini = '{0:06.3f}'.format(obj.M_ini)
+    str_fov   = '{0:05.3f}'.format(obj.fov)
+    str_Z     = '{0:05.3f}'.format(obj.Z)
+    str_logD  = '{0:05.2f}'.format(obj.logD)
     line      = '{0} {1} {2} {3} \n'.format(str_M_ini, str_fov, str_Z, str_logD)
     lines.append(line)
 
