@@ -1,7 +1,6 @@
 
-__author__ = 'Ehsan Moravveji'
 __version__ = '0.1'
-__release_date__ = '03.01.2017'
+__release_date__ = '04.01.2017'
 
 # Version 0.1:
 # Release Date: 04.01.2017

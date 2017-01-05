@@ -1,4 +1,5 @@
 __all__ = [
+           'db_def',            # definition of database class for interactions
            'insert_def',        # definition of a class for data insertion
            'insert_lib',        # various functionalities for inserting data into tables
            'var_def',           # define basic data variables and class objects
@@ -7,6 +8,8 @@ __all__ = [
            ]
 
 from .version import __version__
-# from grid.insert_def import insert_def
-# from grid.insert_lib import insert_lib
-# from grid.var_def import var_def
+try:
+  import psycopg2
+except ImportError:
+  print 'ImportError: Please try installing psycopg2 first:'
+  print '<https://pypi.python.org/pypi/psycopg2>'
