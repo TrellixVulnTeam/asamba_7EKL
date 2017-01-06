@@ -9,6 +9,8 @@ import logging
 import numpy as np 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+logger = logging.getLogger(__name__)
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hist_search_pattern = '/hist/M*.hist'
 hist_extension      = '.hist'
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,7 +22,20 @@ class track:
   def __init__(self, M_ini, Z, fov, logD):
     """
     Constructor that stores the mass, metalicity, overshoot and extra diffusive mixing per each 
-    track
+    track. E.g.
+
+    >>>a_track = var_def.track(M_ini=12.0, Z=0.014, fov=0.024, logD=2.25)
+
+    @param M_ini: the initial mass in solar unit
+    @type M_ini: float
+    @param Z: metallicity (where the solar metallicity from Asplund et al. 2009 is 0.014)
+    @type Z: float
+    @param fov: the exponential overshoot free parameter (see e.g. Eq. 2 in Moravveji et al.
+           2016, ApJ)
+    @type fov: float
+    @param logD: the (logarithm of the) constant diffusive mixing in the radiative envelope.
+           See e.g. Fig. 2a in Moravveji et al. (2016, ApJ)
+    @type logD: float
     """
     self.M_ini = M_ini
     self.Z = Z
@@ -72,6 +87,10 @@ class tracks:
   """
   def __init__(self, dir_repos):
     """
+    The constructor of the class. E.g.
+
+    >>>some_tracks = var_def.tracks(dir_repos='/home/username/projects/mygrid')
+    
     @param dir_repos: Full path to the directory where the grid is stored, e.g. 
            /home/user/projects/asamba-grid
     @type dir_repos: string
@@ -129,7 +148,7 @@ class tracks:
     dirs   = sorted(glob.glob(dir_repos + 'M*'))
     n_dirs = len(dirs)
     if n_dirs == 0:
-      logging.error('var_def: get_mass_directories: Found no mass directory in {0}'.format(dir_repos))
+      logger.error('var_def: get_mass_directories: Found no mass directory in {0}'.format(dir_repos))
 
     self.n_dirs_M_ini = n_dirs
     self.list_dirs_M_ini = dirs
@@ -154,7 +173,7 @@ class tracks:
       hists   = glob.glob(hist_search)
       n_hists = len(hists)
       if n_hists == 0:
-        logging.error('var_def: no history files found in the path: "{0}"'.format(hist_search))
+        logger.error('var_def: no history files found in the path: "{0}"'.format(hist_search))
       list_track_paths += hists[:]
 
     # Extract parameters from history file paths
@@ -169,7 +188,7 @@ class tracks:
       params    = trck.split('-')
       n_params  = len(params)
       if n_params != 4:
-        logging.error('var_def: the number of retrieved parameters is different from expected')
+        logger.error('var_def: the number of retrieved parameters is different from expected')
 
       M_ini     = float(params[0][1:])
       fov       = float(params[1][2:])
@@ -184,4 +203,153 @@ class tracks:
     self.set_list_tracks(list_tracks)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+class model:
+  """
+  The class that encapsulates the properties of each of MESA output model files which serve as inputs
+  to GYRE.
+  """
+  def __init__(self, M_ini, fov, Z, logD, Xc, model_number):
+    """
+    constructor of the class
+    """
+    self.M_ini        = M_ini
+    self.fov          = fov
+    self.Z            = Z
+    self.logD         = logD
+    self.Xc           = Xc 
+    self.model_number = model_number
 
+    self.mass         = 0.
+    self.radius       = 0.
+    self.Teff         = 0.
+    self.log_g        = 0.
+    self.log_L        = 0.
+    self.log_Ledd     = 0.
+    self.log_mdot     = 0.
+    self.mass_conv_core = 0.
+
+    self.age          = 0.
+    self.tau_dyn      = 0.
+    self.tau_kh       = 0.
+    self.tau_nuc      = 0.
+
+    self.log_Tc       = 0.
+    self.log_Rhoc     = 0.
+    self.log_Pc       = 0.
+
+    self.center_h1    = 0.
+    self.center_h2    = 0.
+    self.center_he3   = 0.
+    self.center_he4   = 0.
+    self.center_n14   = 0.
+    self.center_n15   = 0.
+    self.center_o16   = 0.
+    self.center_o18   = 0.
+    self.center_ne20  = 0.
+    self.center_ne22  = 0.
+    self.center_mg24  = 0.
+
+    self.surface_h1   = 0.
+    self.surface_h2   = 0.
+    self.surface_he3  = 0.
+    self.surface_he4  = 0.
+    self.surface_c12  = 0.
+    self.surface_c13  = 0.
+    self.surface_n14  = 0.
+    self.surface_n15  = 0.
+    self.surface_o16  = 0.
+    self.surface_o18  = 0.
+    self.surface_ne20 = 0.
+    self.surface_ne22 = 0.
+    self.surface_mg24 = 0.
+
+    self.delta_nu     = 0.
+    self.nu_max       = 0.
+    self.nu_cutoff    = 0.
+    self.delta_P      = 0.
+
+    self.M_bol        = 0.
+    self.BC_V         = 0.
+    self.U_B          = 0.
+    self.B_V          = 0.
+    self.V_R          = 0.
+    self.V_I          = 0.
+    self.V_K          = 0.
+    self.R_I          = 0.
+    self.I_K          = 0.
+    self.J_H          = 0.
+    self.H_K          = 0.
+    self.K_L          = 0.
+    self.J_K          = 0.
+    self.J_L          = 0.
+    self.J_Lp         = 0.
+    self.K_M          = 0.
+
+  # def setters for the most important attributes of the class
+  def set_M_ini(self, M_ini):
+    self.M_ini = M_ini
+
+  def set_fov(self, fov):
+    self.fov = fov 
+
+  def set_Z(self, Z):
+    self.Z = Z 
+
+  def set_logD(self, logD):
+    self.logD = logD
+
+  def set_Xc(self, Xc):
+    self.Xc = Xc 
+
+  def set_model_number(self, model_number):
+    self.model_number = model_number
+
+  # setter (by dictionary) for the rest of the class attribute
+  def set_by_dic(self, dic):
+    """
+    Since the "model" class has many attributes, instead of writing a setter for all 
+    attributes manually (exhaustive), we pass the attribute values through a dictionary.
+    This is a general-purpose interface to set the "canonical" attributes of the "model"
+    class. E.g. 
+
+    >>> a_model.set_by_dic({'Teff':10125.0, 'log_g':4.128, 'center_018':1.4509e-5})
+
+    @param self: an instance of the model class
+    @type self: object
+    @param dic: a dictionary containing the attributes to be set in the model, e.g.
+    @type dic: dict
+    """
+    # avail = dir(self)
+    items = dic.items()
+    n_items = len(items)
+    if n_items == 0:
+      logger.error('model: set_by_dic: The input dictionary has no items inside.')
+
+    for item in items:
+      key = item[0]
+      val = item[1]
+      if if not hasattr(self, key): #key not in avail:
+        logger.error('model: set_by_dic: Non-standard key="{0}" cannot be set to the class'.format(key))
+      setattr(self, key, value)
+
+  # Getter
+  def get(self, attr):
+    """
+    General-purpose method to get the value of a canonical attribute of the object
+    E.g.
+
+    >>>val = a_model.get('age')
+
+    @param attr: the name of the available attribute of the class
+    @type attr: string
+    @return: the value of the attribute
+    @rtype: float
+    """
+    if not hasattr(self, attr):
+      logger.error('model: get: The attribute "{0}" is undefined'.format(attr))
+
+    return getattr(self, attr)
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
