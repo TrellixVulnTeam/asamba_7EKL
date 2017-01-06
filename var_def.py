@@ -11,18 +11,22 @@ import numpy as np
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-hist_search_pattern = '/hist/M*.hist'
+hist_search_pattern = 'hist/M*.hist'
 hist_extension      = '.hist'
+model_search_pattern= 'gyre_in/M*.gyre'
+model_extention     = '.gyre'
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class track:
   """
   Class object that stores the data for MESA tracks
   """
-  def __init__(self, M_ini, Z, fov, logD):
+  def __init__(self, M_ini=-1.0, Z=-1.0, fov=-1.0, logD=-1.0):
     """
     Constructor that stores the mass, metalicity, overshoot and extra diffusive mixing per each 
-    track. E.g.
+    track. By default, the attributes are set to "-1.0" as a physically meaningless initial value,
+    to facilitate more convenient capturing of wrong initializations. E.g. you can initialize a track
+    as:
 
     >>>a_track = var_def.track(M_ini=12.0, Z=0.014, fov=0.024, logD=2.25)
 
@@ -42,7 +46,7 @@ class track:
     self.fov = fov
     self.logD = logD
 
-    self.hist_string = ''
+    self.filename = ''
 
   def set_M_ini(self, M_ini):
     self.M_ini = M_ini
@@ -56,8 +60,8 @@ class track:
   def set_logD(self, logD):
     self.logD = logD
 
-  def set_hist_string(self, hist_string):
-    self.hist_string = hist_string
+  def set_filename(self, filename):
+    self.filename = filename
 
   def get_M_ini(self):
     return self.M_ini
@@ -71,14 +75,18 @@ class track:
   def get_logD(self):
     return self.logD 
 
-  def get_hist_string(self):
-    return self.hist_string
+  def get_filename(self):
+    return self.filename
 
-  def get_dic_track_parameters(self):
-    return {'M_ini':self.M_ini,
-            'Z':self.Z,
-            'fov':self.fov,
-            'logD':self.logD}
+  def get_attr_as_dic(self):
+    """
+    Convert the attributes of the "track" object into a dictionary, with the attribute names as keys
+    """
+    dic = dict()
+    for attr in dir(self):
+      dic[attr] = getattr(self, attr)
+
+    return dic
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class tracks:
@@ -90,7 +98,7 @@ class tracks:
     The constructor of the class. E.g.
 
     >>>some_tracks = var_def.tracks(dir_repos='/home/username/projects/mygrid')
-    
+
     @param dir_repos: Full path to the directory where the grid is stored, e.g. 
            /home/user/projects/asamba-grid
     @type dir_repos: string
@@ -121,23 +129,7 @@ class tracks:
   def set_list_tracks(self, list_tracks):
     self.list_tracks = list_tracks
 
-  # Getters
-  def get_dir_repos(self):
-    return self.dir_repos
-
-  def get_n_dirs_M_ini(self):
-    return self.n_dirs_M_ini
-
-  def get_list_dirs_M_ini(self):
-    return self.list_dirs_M_ini
-
-  def get_n_tracks(self):
-    return self.n_tracks
-
-  def get_list_tracks(self):
-    return self.list_tracks
-
-  def get_mass_directories(self):
+  def set_mass_directories(self):
     """
     Return the list of directories labelled with track initial masses residing in the repository path.
     E.g. the directories have names like "dir_repos/M01.234", "dir_repos/M56.789", and so on.
@@ -150,10 +142,10 @@ class tracks:
     if n_dirs == 0:
       logger.error('var_def: get_mass_directories: Found no mass directory in {0}'.format(dir_repos))
 
-    self.n_dirs_M_ini = n_dirs
-    self.list_dirs_M_ini = dirs
+    self.set_n_dirs_M_ini(n_dirs)
+    self.set_list_dirs_M_ini(dirs)
 
-  def get_track_parameters(self):
+  def set_track_parameters(self):
     """
     Glob and find all available tracks that are organized inside the repository (hence dir_repos).
     The tracks are organized based on their initial mass, and lie inside the "hist" subdirectory, e.g.
@@ -202,22 +194,41 @@ class tracks:
     self.set_n_tracks(n_tracks)
     self.set_list_tracks(list_tracks)
 
+  # Getters
+  def get_dir_repos(self):
+    return self.dir_repos
+
+  def get_n_dirs_M_ini(self):
+    return self.n_dirs_M_ini
+
+  def get_list_dirs_M_ini(self):
+    return self.list_dirs_M_ini
+
+  def get_n_tracks(self):
+    return self.n_tracks
+
+  def get_list_tracks(self):
+    return self.list_tracks
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class model:
   """
   The class that encapsulates the properties of each of MESA output model files which serve as inputs
   to GYRE.
   """
-  def __init__(self, M_ini, fov, Z, logD, Xc, model_number):
+  def __init__(self):
     """
     constructor of the class
     """
-    self.M_ini        = M_ini
-    self.fov          = fov
-    self.Z            = Z
-    self.logD         = logD
-    self.Xc           = Xc 
-    self.model_number = model_number
+    self.filename     = ''
+    self.track        = track(-1.0, -1.0, -1.0, -1.0)
+
+    self.M_ini        = 0.
+    self.fov          = 0. 
+    self.Z            = 0. 
+    self.logD         = 0. 
+    self.Xc           = 0. 
+    self.model_number = 0
 
     self.mass         = 0.
     self.radius       = 0.
@@ -285,25 +296,6 @@ class model:
     self.J_Lp         = 0.
     self.K_M          = 0.
 
-  # def setters for the most important attributes of the class
-  def set_M_ini(self, M_ini):
-    self.M_ini = M_ini
-
-  def set_fov(self, fov):
-    self.fov = fov 
-
-  def set_Z(self, Z):
-    self.Z = Z 
-
-  def set_logD(self, logD):
-    self.logD = logD
-
-  def set_Xc(self, Xc):
-    self.Xc = Xc 
-
-  def set_model_number(self, model_number):
-    self.model_number = model_number
-
   # setter (by dictionary) for the rest of the class attribute
   def set_by_dic(self, dic):
     """
@@ -328,7 +320,7 @@ class model:
     for item in items:
       key = item[0]
       val = item[1]
-      if if not hasattr(self, key): #key not in avail:
+      if not hasattr(self, key): #key not in avail:
         logger.error('model: set_by_dic: Non-standard key="{0}" cannot be set to the class'.format(key))
       setattr(self, key, value)
 
@@ -350,6 +342,83 @@ class model:
 
     return getattr(self, attr)
 
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+class models:
+  """
+  An agglemeration (container) of the objects from the "model" class
+  """
+  def __init__(self, dir_repos):
+    """
+    Constructor of the class. It can be instantiated by specifying the full path to the repository. 
+    E.g.
+
+    >>>many_models = var_def.models('/home/user/projects/mygrid')
+
+    """
+    if dir_repos[-1] != '/': dir_repos += '/'
+    self.dir_repos = dir_repos
+
+    self.model_search_pattern = ''
+
+    self.n_models = 0
+    self.list_filenames = []
+
+    self.list_models = []
+
+  # Setters
+  def set_model_search_pattern(self, model_search_pattern):
+    self.model_search_pattern = model_search_pattern
+
+  def set_n_models(self, n_models):
+    self.n_models = n_models
+
+  def set_list_filenames(self, list_filenames):
+    self.list_filenames = list_filenames
+
+  def set_list_models(self, list_models):
+    self.list_models = list_models
+
+  def find_list_filenames(self):
+    """
+    Find all present models on the disk.
+
+    @param dir_repos: the full path to the repository where the files sit, e.g. '/home/user/mygrid'
+    @type dir_repos: string
+    @param model_search_pattern: the search pattern for globbing the available model files. e.g.
+          'M*/gyre_in/*'
+    @type model_search_pattern: string
+    """
+    dir_repos = self.dir_repos
+    model_search_pattern = self.model_search_pattern
+
+    if not os.path.exists(dir_repos):
+      logger.error('find_list_filenames: "{0}" does not exist'.format(dir_repos))
+
+    if model_search_pattern == '':
+      logger.error('find_list_filenames: attribute "model_search_pattern" not set yet.')
+
+    model_search   = dir_repos + model_search_pattern
+    list_filenames = glob.glob(model_search)
+    n_files = len(list_filenames)
+    if n_files == 0:
+      logger.error('find_list_filenames: found no model files in "{0}"'.format(model_search))
+
+    self.set_n_models(n_files)
+    self.set_list_filenames(list_filenames)
+    logger.info('find_list_filenames: filenames listed successfully')
+
+  # Getters
+  def get_model_search_pattern(self):
+    return self.model_search_pattern
+
+  def get_list_filenames(self):
+    return self.list_filenames
+
+  def get_list_models(self):
+    return self.list_models
+
+  def get_n_models(self):
+    return self.n_models
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
