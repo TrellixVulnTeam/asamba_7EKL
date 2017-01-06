@@ -296,6 +296,13 @@ class model:
     self.J_Lp         = 0.
     self.K_M          = 0.
 
+  # Setters
+  def set_filename(self, filename):
+    self.filename = filename
+
+  def set_track(self, track):
+    self.track = track 
+    
   # setter (by dictionary) for the rest of the class attribute
   def set_by_dic(self, dic):
     """

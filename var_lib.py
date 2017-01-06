@@ -102,7 +102,8 @@ def prepare_models_data(self_models):
 
     # generate a track object, and insert it into the model
     the_track = var_def.track(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
-    setattr(a_model, 'track', the_track) 
+    # setattr(a_model, 'track', the_track) 
+    a_model.set_track(the_track)
 
     list_models.append(a_model)
 
