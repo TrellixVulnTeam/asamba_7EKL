@@ -9,8 +9,8 @@ __all__ = [
            ]
 
 from .version import __version__
-try:
-  import psycopg2
-except ImportError:
-  print 'ImportError: Please try installing psycopg2 first:'
-  print '<https://pypi.python.org/pypi/psycopg2>'
+# try:
+#   import psycopg2
+# except ImportError:
+#   print 'ImportError: Please try installing psycopg2 first:'
+#   print '<https://pypi.python.org/pypi/psycopg2>'
