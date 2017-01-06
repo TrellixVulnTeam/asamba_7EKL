@@ -405,7 +405,7 @@ class models:
 
     self.set_n_models(n_files)
     self.set_list_filenames(list_filenames)
-    logger.info('find_list_filenames: filenames listed successfully')
+    logger.info('find_list_filenames: found "{0}" model files'.format(n_files))
 
   # Getters
   def get_model_search_pattern(self):
