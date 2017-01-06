@@ -27,9 +27,11 @@ def gen_histname_from_gyre_in(gyre_in_filename):
   """
   f = gyre_in_filename
   f.replace('gyre_in', 'hist')
+  print f
   ind_logD = f.rfind('logD')
-  ind_keep = ind_logD + 4 + 5 + 1  # 4 for logD, 5 for the value, and 1 to shift one more character right
+  ind_keep = ind_logD + 4 + 5 # 4 for logD, 5 for the value
   f = f[:ind_keep] + '.hist'
+  print f
 
   return f
 
