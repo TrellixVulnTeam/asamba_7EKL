@@ -27,11 +27,9 @@ def gen_histname_from_gyre_in(gyre_in_filename):
   """
   f = gyre_in_filename
   f = f.replace('gyre_in', 'hist')
-  print f
   ind_logD = f.rfind('logD')
   ind_keep = ind_logD + 4 + 5 # 4 for logD, 5 for the value
   f = f[:ind_keep] + '.hist'
-  print f
 
   return f
 
@@ -75,12 +73,12 @@ def prepare_models_data(self_models):
     ind_point = filename.rfind('.')
     corename  = filename[ind_slash+1 : ind_point].split('-')
 
-    M_ini     = float(corename[0])
-    fov       = float(corename[1])
-    Z         = float(corename[2])
-    logD      = float(corename[3])
+    M_ini     = float(corename[0][1:])
+    fov       = float(corename[1][2:])
+    Z         = float(corename[2][1:])
+    logD      = float(corename[3][4:])
     evol_state= corename[4]
-    Xc        = float(corename[5])
+    Xc        = float(corename[5][2:])
     model_number  = int(corename[6])
 
     # get the corresponding row for this model from the hist recarray
