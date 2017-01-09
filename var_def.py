@@ -252,14 +252,14 @@ class model:
 
     self.mass         = 0.
     self.radius       = 0.
-    self.Teff         = 0.
+    self.log_Teff     = 0.
     self.log_g        = 0.
     self.log_L        = 0.
     self.log_Ledd     = 0.
     self.log_mdot     = 0.
     self.mass_conv_core = 0.
 
-    self.age          = 0.
+    self.star_age     = 0.
     self.tau_dyn      = 0.
     self.tau_kh       = 0.
     self.tau_nuc      = 0.
@@ -297,10 +297,10 @@ class model:
     self.delta_nu     = 0.
     self.nu_max       = 0.
     self.nu_cutoff    = 0.
-    self.delta_P      = 0.
+    self.delta_Pg     = 0.
 
-    self.M_bol        = 0.
-    self.BC_V         = 0.
+    self.Mbol         = 0.
+    self.bcv          = 0.
     self.U_B          = 0.
     self.B_V          = 0.
     self.V_R          = 0.

@@ -46,6 +46,8 @@ def get_hist_and_gyre_in_data(self_tracks):
   model_attrs = [attr for attr in model_attrs if attr not in exclude]
   exclude     = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number']
   other_attrs = [attr for attr in model_attrs if attr not in exclude]
+  color_attrs = set(['U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H', 'H_K', 'K_L', 'J_K',
+                     'J_L', 'J_Lp', 'K_M'])
 
   # iterate on all tracks and collect their corresponding models
   for i, track in enumerate(list_tracks):
@@ -90,9 +92,7 @@ def get_hist_and_gyre_in_data(self_tracks):
     hist_model_numbers= hist['model_number']
 
     list_rows         = []
-    for k, mn in enumerate(arr_model_numbers):
-
-      gyre_in_filename = list_gyre_in_filenames[k]
+    for k, gyre_in_filename in enumerate(list_gyre_in_filenames):
 
       # instantiate a model
       a_model = var_def.model()
@@ -118,10 +118,14 @@ def get_hist_and_gyre_in_data(self_tracks):
       setattr(a_model, 'model_number', model_number)
 
       # set the rest of the attributes from the history row
-      ind_row = np.where(mn == hist_model_numbers)[0]
+      ind_row = np.where(model_number == hist_model_numbers)[0]
       row     = hist[ind_row]
       
-      for attr in other_attrs: setattr(a_model, attr, row[attr])
+      for attr in other_attrs: 
+        key = attr
+        if key in color_attrs: 
+          key = key.replace('_', '-')
+        setattr(a_model, attr, row[key])
 
       list_models.append(a_model)
 
@@ -146,9 +150,9 @@ def get_track_parameters_from_hist_filename(filename):
   @return: tuple with the following items in the order: M_ini, fov, Z, logD
   @rtype: tuple
   """
-  ind_slash = gyre_in_filename.rfind('/')
-  ind_point = gyre_in_filename.rfind('.')
-  corename  = gyre_in_filename[ind_slash+1 : ind_point].split('-')
+  ind_slash = filename.rfind('/')
+  ind_point = filename.rfind('.')
+  corename  = filename[ind_slash+1 : ind_point].split('-')
 
   M_ini     = float(corename[0][1:])
   fov       = float(corename[1][2:])
@@ -177,9 +181,9 @@ def get_model_parameters_from_gyre_in_filename(filename):
   @return: tuple with the following items in the order: M_ini, fov, Z, logD, evol_state, Xc, model_number
   @rtype: tuple
   """
-  ind_slash = gyre_in_filename.rfind('/')
-  ind_point = gyre_in_filename.rfind('.')
-  corename  = gyre_in_filename[ind_slash+1 : ind_point].split('-')
+  ind_slash = filename.rfind('/')
+  ind_point = filename.rfind('.')
+  corename  = filename[ind_slash+1 : ind_point].split('-')
 
   M_ini     = float(corename[0][1:])
   fov       = float(corename[1][2:])
