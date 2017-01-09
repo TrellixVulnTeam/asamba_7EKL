@@ -240,81 +240,81 @@ class model:
     """
     constructor of the class
     """
-    self.filename     = ''
-    self.track        = track(-1.0, -1.0, -1.0, -1.0)
+    self.filename          = ''
+    self.track             = track(-1.0, -1.0, -1.0, -1.0)
 
-    self.M_ini        = 0.
-    self.fov          = 0. 
-    self.Z            = 0. 
-    self.logD         = 0. 
-    self.Xc           = 0. 
-    self.model_number = 0
+    self.M_ini             = 0.
+    self.fov               = 0. 
+    self.Z                 = 0. 
+    self.logD              = 0. 
+    self.Xc                = 0. 
+    self.model_number      = 0
 
-    self.mass         = 0.
-    self.radius       = 0.
-    self.log_Teff     = 0.
-    self.log_g        = 0.
-    self.log_L        = 0.
-    self.log_Ledd     = 0.
-    self.log_mdot     = 0.
-    self.mass_conv_core = 0.
+    self.star_mass         = 0.
+    self.radius            = 0.
+    self.log_Teff          = 0.
+    self.log_g             = 0.
+    self.log_L             = 0.
+    self.log_Ledd          = 0.
+    self.log_abs_mdot      = 0.
+    self.mass_conv_core    = 0.
 
-    self.star_age     = 0.
-    self.tau_dyn      = 0.
-    self.tau_kh       = 0.
-    self.tau_nuc      = 0.
+    self.star_age          = 0.
+    self.dynamic_timescale = 0.
+    self.kh_timescale      = 0.
+    self.nuc_timescale     = 0.
 
-    self.log_center_T = 0. 
-    self.log_center_Rho = 0. 
-    self.log_center_P = 0.
+    self.log_center_T      = 0. 
+    self.log_center_Rho    = 0. 
+    self.log_center_P      = 0.
  
-    self.center_h1    = 0.
-    self.center_h2    = 0.
-    self.center_he3   = 0.
-    self.center_he4   = 0.
-    self.center_n14   = 0.
-    self.center_n15   = 0.
-    self.center_o16   = 0.
-    self.center_o18   = 0.
-    self.center_ne20  = 0.
-    self.center_ne22  = 0.
-    self.center_mg24  = 0.
+    self.center_h1         = 0.
+    self.center_h2         = 0.
+    self.center_he3        = 0.
+    self.center_he4        = 0.
+    self.center_n14        = 0.
+    self.center_n15        = 0.
+    self.center_o16        = 0.
+    self.center_o18        = 0.
+    self.center_ne20       = 0.
+    self.center_ne22       = 0.
+    self.center_mg24       = 0.
 
-    self.surface_h1   = 0.
-    self.surface_h2   = 0.
-    self.surface_he3  = 0.
-    self.surface_he4  = 0.
-    self.surface_c12  = 0.
-    self.surface_c13  = 0.
-    self.surface_n14  = 0.
-    self.surface_n15  = 0.
-    self.surface_o16  = 0.
-    self.surface_o18  = 0.
-    self.surface_ne20 = 0.
-    self.surface_ne22 = 0.
-    self.surface_mg24 = 0.
+    self.surface_h1        = 0.
+    self.surface_h2        = 0.
+    self.surface_he3       = 0.
+    self.surface_he4       = 0.
+    self.surface_c12       = 0.
+    self.surface_c13       = 0.
+    self.surface_n14       = 0.
+    self.surface_n15       = 0.
+    self.surface_o16       = 0.
+    self.surface_o18       = 0.
+    self.surface_ne20      = 0.
+    self.surface_ne22      = 0.
+    self.surface_mg24      = 0.
 
-    self.delta_nu     = 0.
-    self.nu_max       = 0.
-    self.nu_cutoff    = 0.
-    self.delta_Pg     = 0.
+    self.delta_nu          = 0.
+    self.nu_max            = 0.
+    self.acoustic_cutoff   = 0.
+    self.delta_Pg          = 0.
 
-    self.Mbol         = 0.
-    self.bcv          = 0.
-    self.U_B          = 0.
-    self.B_V          = 0.
-    self.V_R          = 0.
-    self.V_I          = 0.
-    self.V_K          = 0.
-    self.R_I          = 0.
-    self.I_K          = 0.
-    self.J_H          = 0.
-    self.H_K          = 0.
-    self.K_L          = 0.
-    self.J_K          = 0.
-    self.J_L          = 0.
-    self.J_Lp         = 0.
-    self.K_M          = 0.
+    self.Mbol              = 0.
+    self.bcv               = 0.
+    self.U_B               = 0.
+    self.B_V               = 0.
+    self.V_R               = 0.
+    self.V_I               = 0.
+    self.V_K               = 0.
+    self.R_I               = 0.
+    self.I_K               = 0.
+    self.J_H               = 0.
+    self.H_K               = 0.
+    self.K_L               = 0.
+    self.J_K               = 0.
+    self.J_L               = 0.
+    self.J_Lp              = 0.
+    self.K_M               = 0.
 
   # Setters
   def set_filename(self, filename):
