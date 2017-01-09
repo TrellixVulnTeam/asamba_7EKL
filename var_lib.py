@@ -55,16 +55,36 @@ def get_hist_and_gyre_in_data(self_tracks):
 
     # get available gyre_in files associated with this track
     models.find_list_filenames()
+    list_gyre_in_filenames = models.get_list_filenames()
+    n_models = models.get_n_models()
 
-    if models.n_models == 0:
+    if n_models == 0:
       logger.error('get_hist_and_gyre_in_data: Found no gyre_in model for this track!')
 
-    arr_model_numbers = np.array([ model.model_number for model in models ])
+    arr_model_numbers = np.array([ get_model_number_from_gyre_in_filename(f) for f in list_gyre_in_filenames ])
     print arr_model_numbers
 
     sys.exit()
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_number_from_gyre_in_filename(filename):
+  """
+  Extract the MESA evolution model number (when recording the file) from the GYRE input filename.
+  E.g. the GYRE input file looks like the following:
+  /home/user/my_grid/M01.400/gyre_in/M01.400-ov0.025-Z0.014-logD02.50-MS-Xc0.7075-00107.gyre
+  The model number is the integer after the last dash "-" in the filename (easy to extract)
+
+  @param filename: full path to the GYRE input filename
+  @type filename: string
+  @return: the model number of the file
+  @rtype: int
+  """
+  ind_dash  = filename.rfind('-')
+  ind_point = filename.rfind('.')
+  str_mod_num = filename[ind_dash + 1 : ind_point]
+
+  return int(str_mod_num)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_gyre_in_search_pattern_from_hist(filename):
@@ -85,6 +105,8 @@ def get_gyre_in_search_pattern_from_hist(filename):
   srch = filename.replace('/hist/', '/gyre_in/')
   ind  = srch.rfind('.')
   srch = srch[:ind] + '*'
+
+  return srch
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def gen_histname_from_gyre_in(gyre_in_filename):

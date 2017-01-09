@@ -160,11 +160,16 @@ class tracks:
     @param self: an instance of the var_def.tracks() object
     @type self: class object
     """
+    if self.n_dirs_M_ini == 0:
+      logger.error('set_track_parameters: first call set_mass_directories()')
+
     list_dirs_M_ini = self.get_list_dirs_M_ini()
 
     list_track_paths = []
 
     hist_search_pattern = self.get_hist_search_pattern()
+    if hist_search_pattern == '':
+      logger.error('set_track_parameters: first call set_hist_search_pattern()')
 
     # Collect all available hist files
     for dr in list_dirs_M_ini:
@@ -184,8 +189,8 @@ class tracks:
     for i, trck in enumerate(list_track_paths):
       ind_slash = trck.rfind('/')
       ind_point = trck.rfind(hist_extension)
-      trck      = trck[ind_slash+1 : ind_point]
-      params    = trck.split('-')
+      corename  = trck[ind_slash+1 : ind_point]
+      params    = corename.split('-')
       n_params  = len(params)
       if n_params != 4:
         logger.error('var_def: the number of retrieved parameters is different from expected')
@@ -196,6 +201,7 @@ class tracks:
       logD      = float(params[3][4:])
 
       one_track = track(M_ini=M_ini, Z=Z, fov=fov, logD=logD)
+      one_track.set_filename(trck)
       list_tracks.append(one_track)
 
     # Store the data into the "tracks" object
