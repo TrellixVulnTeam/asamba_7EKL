@@ -264,10 +264,10 @@ class model:
     self.tau_kh       = 0.
     self.tau_nuc      = 0.
 
-    self.log_Tc       = 0.
-    self.log_Rhoc     = 0.
-    self.log_Pc       = 0.
-
+    self.log_center_T = 0. 
+    self.log_center_Rho = 0. 
+    self.log_center_P = 0.
+ 
     self.center_h1    = 0.
     self.center_h2    = 0.
     self.center_he3   = 0.
