@@ -42,7 +42,8 @@ def get_hist_and_gyre_in_data(self_tracks):
   # make a list of attributes in the "model" object
   a_model     = var_def.model()
   model_attrs = dir(a_model)
-  exclude     = ['__doc__', '__init__', '__module__', 'filename', 'set_by_dic', 'track']
+  exclude     = ['__doc__', '__init__', '__module__', 'filename', 'track', 'set_by_dic', 
+                 'set_filename', 'set_track', 'get']
   model_attrs = [attr for attr in model_attrs if attr not in exclude]
   exclude     = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number']
   other_attrs = [attr for attr in model_attrs if attr not in exclude]
