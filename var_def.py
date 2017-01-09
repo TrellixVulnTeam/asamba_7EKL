@@ -11,10 +11,6 @@ import numpy as np
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-hist_search_pattern = 'hist/M*.hist'
-hist_extension      = '.hist'
-model_search_pattern= 'gyre_in/M*.gyre'
-model_extention     = '.gyre'
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class track:
@@ -107,6 +103,9 @@ class tracks:
     if dir_repos[-1] != '/': dir_repos += '/'
     self.dir_repos = dir_repos
 
+    self.hist_search_pattern = ''
+    self.hist_extension = '.hist'
+
     # extra attributes
     self.n_dirs_M_ini = 0
     self.list_dirs_M_ini = []
@@ -116,6 +115,12 @@ class tracks:
   # Setters
   def set_dir_repos(self, dir_repos):
     self.dir_repos = dir_repos
+
+  def set_hist_search_pattern(self, hist_search_pattern):
+    self.hist_search_pattern = hist_search_pattern
+
+  def set_hist_extension(self, hist_extension):
+    self.hist_extension = hist_extension
 
   def set_n_dirs_M_ini(self, n_dirs_M_ini):
     self.n_dirs_M_ini = n_dirs_M_ini
@@ -159,6 +164,8 @@ class tracks:
 
     list_track_paths = []
 
+    hist_search_pattern = self.get_hist_search_pattern()
+
     # Collect all available hist files
     for dr in list_dirs_M_ini:
       hist_search = dr + hist_search_pattern 
@@ -172,6 +179,7 @@ class tracks:
     # Store info the class objects
     list_tracks  = []
     n_tracks = len(list_track_paths)
+    hist_extension = self.hist_extension
 
     for i, trck in enumerate(list_track_paths):
       ind_slash = trck.rfind('/')
@@ -197,6 +205,12 @@ class tracks:
   # Getters
   def get_dir_repos(self):
     return self.dir_repos
+
+  def get_hist_search_pattern(self):
+    return self.hist_search_pattern
+
+  def get_hist_extension(self):
+    return self.hist_extension
 
   def get_n_dirs_M_ini(self):
     return self.n_dirs_M_ini
@@ -366,6 +380,7 @@ class models:
     self.dir_repos = dir_repos
 
     self.model_search_pattern = ''
+    self.model_extension = '.gyre'
 
     self.n_models = 0
     self.list_filenames = []
@@ -375,6 +390,9 @@ class models:
   # Setters
   def set_model_search_pattern(self, model_search_pattern):
     self.model_search_pattern = model_search_pattern
+
+  def set_model_extension(self, model_extension):
+    self.model_extension = model_extension
 
   def set_n_models(self, n_models):
     self.n_models = n_models
@@ -417,6 +435,9 @@ class models:
   # Getters
   def get_model_search_pattern(self):
     return self.model_search_pattern
+
+  def get_model_extension(self):
+    return self.model_extension
 
   def get_list_filenames(self):
     return self.list_filenames
