@@ -352,7 +352,7 @@ class model:
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class models:
   """
-  An agglemeration (container) of the objects from the "model" class
+  An agglomeration (container) of the objects from the "model" class
   """
   def __init__(self, dir_repos):
     """
@@ -387,7 +387,7 @@ class models:
 
   def find_list_filenames(self):
     """
-    Find all present models on the disk.
+    Find present models on the disk that match the search pattern.
 
     @param dir_repos: the full path to the repository where the files sit, e.g. '/home/user/mygrid'
     @type dir_repos: string
