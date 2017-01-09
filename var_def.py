@@ -103,6 +103,8 @@ class tracks:
     if dir_repos[-1] != '/': dir_repos += '/'
     self.dir_repos = dir_repos
 
+    self.mass_search_pattern = ''
+
     self.hist_search_pattern = ''
     self.hist_extension = '.hist'
 
@@ -115,6 +117,9 @@ class tracks:
   # Setters
   def set_dir_repos(self, dir_repos):
     self.dir_repos = dir_repos
+
+  def set_mass_search_pattern(self, mass_search_pattern):
+    self.mass_search_pattern = mass_search_pattern
 
   def set_hist_search_pattern(self, hist_search_pattern):
     self.hist_search_pattern = hist_search_pattern
@@ -142,10 +147,16 @@ class tracks:
     @rtype: list of strings
     """
     dir_repos = self.get_dir_repos()
-    dirs   = sorted(glob.glob(dir_repos + 'M*'))
+    mass_search_pattern = self.mass_search_pattern
+    if mass_search_pattern == '':
+      logger.error('set_mass_directories: first set the attribute "mass_search_pattern"')
+      sys.exit(1)
+
+    dirs   = sorted( glob.glob(dir_repos + mass_search_pattern) )
     n_dirs = len(dirs)
     if n_dirs == 0:
       logger.error('var_def: get_mass_directories: Found no mass directory in {0}'.format(dir_repos))
+      sys.exit(1)
 
     self.set_n_dirs_M_ini(n_dirs)
     self.set_list_dirs_M_ini(dirs)
@@ -162,6 +173,7 @@ class tracks:
     """
     if self.n_dirs_M_ini == 0:
       logger.error('set_track_parameters: first call set_mass_directories()')
+      sys.exit(1)
 
     list_dirs_M_ini = self.get_list_dirs_M_ini()
 
@@ -170,6 +182,7 @@ class tracks:
     hist_search_pattern = self.get_hist_search_pattern()
     if hist_search_pattern == '':
       logger.error('set_track_parameters: first call set_hist_search_pattern()')
+      sys.exit(1)
 
     # Collect all available hist files
     for dr in list_dirs_M_ini:
@@ -178,6 +191,7 @@ class tracks:
       n_hists = len(hists)
       if n_hists == 0:
         logger.error('var_def: no history files found in the path: "{0}"'.format(hist_search))
+        sys.exit(1)
       list_track_paths += hists[:]
 
     # Extract parameters from history file paths
@@ -194,6 +208,7 @@ class tracks:
       n_params  = len(params)
       if n_params != 4:
         logger.error('var_def: the number of retrieved parameters is different from expected')
+        sys.exit(1)
 
       M_ini     = float(params[0][1:])
       fov       = float(params[1][2:])
@@ -211,6 +226,9 @@ class tracks:
   # Getters
   def get_dir_repos(self):
     return self.dir_repos
+
+  def get_mass_search_pattern(self):
+    return self.mass_search_pattern
 
   def get_hist_search_pattern(self):
     return self.hist_search_pattern
@@ -266,7 +284,7 @@ class model:
 
     self.log_center_T      = 0. 
     self.log_center_Rho    = 0. 
-    self.log_center_P      = 0.
+    self.log_center_P      = 0. 
  
     self.center_h1         = 0.
     self.center_h2         = 0.
@@ -343,12 +361,14 @@ class model:
     n_items = len(items)
     if n_items == 0:
       logger.error('model: set_by_dic: The input dictionary has no items inside.')
+      sys.exit(1)
 
     for item in items:
       key = item[0]
       val = item[1]
       if not hasattr(self, key): #key not in avail:
         logger.error('model: set_by_dic: Non-standard key="{0}" cannot be set to the class'.format(key))
+        sys.exit(1)
       setattr(self, key, value)
 
   # Getter
@@ -366,6 +386,7 @@ class model:
     """
     if not hasattr(self, attr):
       logger.error('model: get: The attribute "{0}" is undefined'.format(attr))
+      sys.exit(1)
 
     return getattr(self, attr)
 
@@ -424,15 +445,18 @@ class models:
 
     if not os.path.exists(dir_repos):
       logger.error('find_list_filenames: "{0}" does not exist'.format(dir_repos))
+      sys.exit(1)
 
     if model_search_pattern == '':
       logger.error('find_list_filenames: attribute "model_search_pattern" not set yet.')
+      sys.exit(1)
 
     model_search   = dir_repos + model_search_pattern
     list_filenames = glob.glob(model_search)
     n_files = len(list_filenames)
     if n_files == 0:
       logger.error('find_list_filenames: found no model files in "{0}"'.format(model_search))
+      sys.exit(1)
 
     self.set_n_models(n_files)
     self.set_list_filenames(list_filenames)

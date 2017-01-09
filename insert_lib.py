@@ -21,6 +21,7 @@ def gen_tracks_insert_commands(list_tracks):
   n_tracks = len(list_tracks)
   if n_tracks == 0:
     logger.error('gen_tracks_insert_commands: Input list is empty')
+    sys.exit(1)
 
   list_cmnds = []
   for i, track in enumerate(list_tracks):

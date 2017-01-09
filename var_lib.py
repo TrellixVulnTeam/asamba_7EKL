@@ -21,9 +21,10 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_hist_and_gyre_in_data(self_tracks):
+def get_list_models_from_hist_and_gyre_in_files(self_tracks):
   """
-
+  Extract the data for all GYRE input models in the repository, using their associated line in the 
+  MESA history file.
   """
   # collect necessary info
   st = self_tracks
@@ -34,7 +35,8 @@ def get_hist_and_gyre_in_data(self_tracks):
   list_tracks = st.list_tracks
 
   if n_tracks == 0:
-    logger.error('get_hist_and_gyre_in_data: the "tracks" object has no tracks strored in it')
+    logger.error('get_list_models_from_hist_and_gyre_in_files: the "tracks" object has no tracks strored in it')
+    sys.exit(1)
 
   n_models    = 0
   list_models = []
@@ -55,7 +57,8 @@ def get_hist_and_gyre_in_data(self_tracks):
     # locate and read the history file
     hist_file = track.filename
     if not os.path.exists(hist_file):
-      logger.error('get_hist_and_gyre_in_data: "{0}" does not exist'.format(hist_file))
+      logger.error('get_list_models_from_hist_and_gyre_in_files: "{0}" does not exist'.format(hist_file))
+      sys.exit(1)
 
     # instantiate a track from filename parameters
     tup_hist_par   = get_track_parameters_from_hist_filename(hist_file)
@@ -69,7 +72,8 @@ def get_hist_and_gyre_in_data(self_tracks):
     try:
       header, hist = read.read_mesa_ascii(hist_file)
     except:
-      logger.error('get_hist_and_gyre_in_data: read_mesa_ascii failed to read "{0}"'.format(hist_file))
+      logger.error('get_list_models_from_hist_and_gyre_in_files: read_mesa_ascii failed to read "{0}"'.format(hist_file))
+      sys.exit(1)
 
     # convert hist path to gyre_in search string
     gyre_in_search_pattern = get_gyre_in_search_pattern_from_hist(dir_repos, hist_file)
@@ -84,7 +88,8 @@ def get_hist_and_gyre_in_data(self_tracks):
     list_gyre_in_filenames = models.get_list_filenames()
     n_models   += models.get_n_models()
     if n_models == 0:
-      logger.error('get_hist_and_gyre_in_data: Found no gyre_in model for this track!')
+      logger.error('get_list_models_from_hist_and_gyre_in_files: Found no gyre_in model for this track!')
+      sys.exit(1)
 
     # get a list of model numbers for all stored model associated with this track
     # arr_model_numbers = np.array([ get_model_number_from_gyre_in_filename(f) for f in list_gyre_in_filenames ])
@@ -130,7 +135,7 @@ def get_hist_and_gyre_in_data(self_tracks):
 
       list_models.append(a_model)
 
-  logger.info('get_hist_and_gyre_in_data: Returned a list of "{0}" model objects'.format(n_models))
+  logger.info('get_list_models_from_hist_and_gyre_in_files: Returned a list of "{0}" model objects'.format(n_models))
 
   return list_models
 
@@ -233,6 +238,7 @@ def get_gyre_in_search_pattern_from_hist(dir_repos, filename):
   """
   if '/hist/' not in filename:
     logger.error('get_gyre_in_search_pattern_from_hist: "/hist/" not in the filename path')
+    sys.exit(1)
 
   if dir_repos in filename:
     filename = filename.replace(dir_repos, '')
@@ -296,6 +302,7 @@ def prepare_models_data(self_models):
     histname  = gen_histname_from_gyre_in(filename)
     if not os.path.exists(histname):
       logger.error('prepare_models_data: missing the corresponding hist file {0}'.format(histname))
+      sys.exit(1)
     hdr, hist = read.read_mesa_ascii(histname)
 
     tup_gyre_in_par = get_model_parameters_from_gyre_in_filename(filename)

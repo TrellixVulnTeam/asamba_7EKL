@@ -8,6 +8,23 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def write_model_parameters_to_ascii(self_models, ascii_out):
+  """
+
+  """
+  sm = self_models
+  n_models = sm.get_n_models()
+  if n_models == 0:
+    logger.error('write_model_parameters_to_ascii: the passed "models" object has no models inside')
+    sys.exit(1)
+
+  avail_attrs = dir(sm)
+  exclude     = set(['__init__', '__doc__', '__module__'])
+  avail_attrs = [attr for attr in avail_attrs if attr not in exclude]
+  avail_attrs = [attr for attr in avail_attrs if 'set' not in attr or 'get' not in attr]
+  print avail_attrs
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
   """
   Store the four parameters of the MESA tracks (mass, overshoot, metallicity and extra mixing) as
@@ -25,6 +42,7 @@ def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
   """
   if self_tracks.n_tracks == 0:
     logger.error('write_tracks_parameters_to_ascii: No track data stored. Call get_track_parameters() first')
+    sys.exit(1)
 
   # add a header
   lines       = ['{0:<6s} {1:<5s} {2:<5s} {3:<5s} \n'.format('M_ini', 'fov', 'Z', 'logD')]

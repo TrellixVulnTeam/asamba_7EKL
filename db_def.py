@@ -68,6 +68,7 @@ class X:
     n_cmnds = len(list_cmnds)
     if n_cmnds == 0:
       logger.error('execute_many: the list of commands is empty')
+      sys.exit(1)
 
     for i, cmnd in enumerate(list_cmnds):
       self.cursor.execute(cmnd)

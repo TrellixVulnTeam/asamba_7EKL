@@ -21,6 +21,7 @@ def read_mesa_ascii(filename):
   """
   if not os.path.isfile(filename):
     logger.error('read_mesa_ascii: {0} does not exist'.format(filename))
+    sys.exit(1)
 
   with open(filename, 'r') as r: lines = r.readlines()
   logger.info('read_mesa_ascii: {0} successfully read'.format(filename))
@@ -36,15 +37,15 @@ def read_mesa_ascii(filename):
   col_names     = lines.pop(0).rstrip('\r\n').split()
   n_cols        = len(col_names)
 
-  int_columns   = [ 'mix_type_1', 'mix_type_2', 'mix_type_3', 'mix_type_4', 'mix_type_5', 'mix_type_6',             # hist
-                    'burn_type_1', 'burn_type_2', 'burn_type_3', 'burn_type_4', 'burn_type_5', 'burn_type_6',         # hist
-                    'mixing_type', 'mlt_mixing_type', 'sch_stable', 'ledoux_stable', 'stability_type',                # prof
-                    'num_zones', 'cz_zone', 'cz_top_zone', 'num_backups', 'num_retries', 'zone',
-                    'model_number', 'version_number', 'nse_fraction' ]
+  int_columns   = [ 'model_number', 'version_number', 'sch_stable', 'ledoux_stable', 
+                    'stability_type', 'num_zones', 'cz_zone', 'cz_top_zone', 
+                    'num_backups', 'num_retries', 'zone', 'nse_fraction' ]
 
   dtypes        = []
   for col in col_names:
-    if col in int_columns:
+    if '_type' in col:
+      dtypes.append( (col, int) )
+    elif col in int_columns:
       dtypes.append( (col, int) )
     else:
       dtypes.append( (col, float) )
@@ -75,6 +76,7 @@ def read_tracks_parameters_from_ascii(ascii_in):
   """
   if not os.path.exists(ascii_in):
     logger.error('read_tracks_parameters_from_ascii: {0} does not exist'.format(ascii_in))
+    sys.exit(1)
 
   with open(ascii_in, 'r') as r: lines = r.readlines()
   header  = lines.pop(0)

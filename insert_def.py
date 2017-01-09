@@ -25,6 +25,7 @@ class insertion:
     """
     if table not in ['tracks', 'models', 'rotation_rates', 'mode_types', 'modes']:
       logging.error('Error: insert_def: init: requested table not supported')
+      sys.exit(1)
 
     self.table = table 
 
