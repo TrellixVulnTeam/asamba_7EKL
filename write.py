@@ -47,9 +47,6 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   @type self_models: class object
   @param ascii_out: full path to the ascii file to be written on disk
   @type ascii_out: string
-  @return: The list of the string lines that are written to the disk (including the header line) is
-         returned. For every line in the ascii file, there is one string item in this list.
-  @rtype: list of strings
   """
   sm = self_models
   n_models = sm.get_n_models()

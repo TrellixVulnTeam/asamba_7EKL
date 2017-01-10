@@ -26,4 +26,11 @@ print a_model.__doc__
 ```
 Soon, an HTML documentation page will be also added to the repository for a more convenient representation of the entire documented modules, functions and classes.
 
+## Notes About The Data Structure
+Below, I provide few key notes about how the data is organized in this package.
+
+* The attribute names of the `model` classe is borrowed from their exact names in the MESA output history file. These names also match the attributes of the database table `models`. Therefore, MESA users have easy time understanding the meaning of the data in the database/repository.
+
+* The physical units of all variables follow closely their units in MESA. E.g. the initial mass is given in solar unit, while the temperature (and other quantities) is given in CGS units. Thus, a proper reference to figure out the unit of each parameter is by consulting the `<mesa>/star/defaults/history_columns.list` file.
+
 ## References
