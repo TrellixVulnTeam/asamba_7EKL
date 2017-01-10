@@ -1,7 +1,10 @@
 
 """
-This module provides auxilary functinalities to work with the grid data, in reading, writng and 
-manipulating the grid data (tracks, models, modes, etc) into a proper format. 
+This module provides auxilary functinalities to work with the grid data, in manipulating 
+the grid data (tracks, models, modes, etc) into a proper format. This module complements
+the basic data classes defined in var_def; thus, it is critical to understand the different
+classes, attributes and methods in the var_def module. Most of the output of the functions 
+are stored internally as the attributes of the passed object files. 
 """
 
 import sys, os, glob

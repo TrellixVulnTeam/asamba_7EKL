@@ -1,4 +1,11 @@
 
+"""
+This module provides some functionalities for writing a variety of data on disk as e.g. 
+ASCII files. The functions typically receive an instance of data classes defined in var_def
+module, and exploit the information in the object. It is strongly recommended to read and 
+understand the meaning of different classes, their attributes, and methods.
+"""
+
 import sys, os, glob
 import logging
 import numpy as np 
@@ -10,7 +17,39 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_model_parameters_to_ascii(self_models, ascii_out):
   """
+  Collect, and write down the whole "track" and "model" data from the dist (repository path). The 
+  produced ascii file has two purposes: 
+  
+  1- It stands on its own, to represent the important data per each stored model, 
+  2. It can be later uesd to fill up the SQL database with the corresponding attributes in the "tracks"
+     and "models" tables.
+  
+  @param self_models: an instance of the var_def.models class. Note that before passing this object,
+         the following methods must have already been applied on it. So, one use example is the following:
 
+         >>> dir_repos = '/home/user/my-grid'
+         >>> tracks = var_def.tracks(dir_repos)
+         >>> tracks.set_mass_search_pattern('M*')
+         >>> tracks.set_hist_search_pattern('/hist/*.hist')
+         >>> tracks.set_hist_extension('.hist')
+
+         >>> tracks.set_mass_directories()
+         >>> tracks.set_track_parameters()
+
+         >>> list_models = var_lib.get_list_models_from_hist_and_gyre_in_files(tracks)
+         >>> n_models    = len(list_models)
+         >>> models      = var_def.models(dir_repos)
+         >>> models.set_list_models(list_models)
+         >>> models.set_n_models(n_models)
+
+         >>> write.write_model_parameters_to_ascii(models, 'models-parameters.txt')
+
+  @type self_models: class object
+  @param ascii_out: full path to the ascii file to be written on disk
+  @type ascii_out: string
+  @return: The list of the string lines that are written to the disk (including the header line) is
+         returned. For every line in the ascii file, there is one string item in this list.
+  @rtype: list of strings
   """
   sm = self_models
   n_models = sm.get_n_models()
@@ -49,7 +88,7 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   handle.write(header)
 
   # collect the line info as lines
-  lines       = [header]
+  # lines       = [header]
 
   # iterate over models, and collect data into lines
   for i, model in enumerate(list_models):
@@ -64,12 +103,11 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
 
     # append to the ascii file, and to the output list
     handle.write(line)
-    lines.append(line)
+    # lines.append(line)
 
   logger.info('write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
   print ' - grid.write.write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out)
 
-  return lines
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_tracks_parameters_to_ascii(self_tracks, ascii_out):

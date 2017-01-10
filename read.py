@@ -1,4 +1,10 @@
 
+"""
+This module provides basic functionalities to read a variety of data e.g. in ASCII 
+and HDF5 etc. formats. The highlight of the module is the "read_mesa_ascii()" function
+which can read MESA history or profile files.
+"""
+
 import sys, os, glob
 import logging
 import numpy as np 
@@ -10,13 +16,15 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def read_mesa_ascii(filename):
   """
-  Read an history or profile ascii output from MESA.
+  Read a history or profile ascii output from MESA.
+  An example of using this function to read the file "input_file" is the following
+
+  >>> input_file = '/home/user/my-files/The_Sun/LOGS/history.data'
+  >>> header, data = read.read_mesa_ascii(input_file)
+
   @param filename: full path to the input ascii file
   @type filename: string
-  @param dtype: numpy-compatible dtype object. if it is not provided, it will be retrieved from read.get_dtype()
-  @type dtype: list of tuples
-  @return dictionary of the header of the file, and the record array for the data block. It can be called like this
-     >>> header, data = read.read_mesa_ascii('filename')
+  @return dictionary of the header of the file, and the record array for the data block. 
   @rtype: dictionary and numpy record array
   """
   if not os.path.isfile(filename):
