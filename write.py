@@ -34,13 +34,13 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   avail_attrs = [attr for attr in avail_attrs if attr not in exclude]
   avail_attrs = [attr for attr in avail_attrs if 'set' not in attr and 'get' not in attr]
   
-  key_attrs   = ['M_ini', 'fov', 'Z', 'logD', 'evol', 'Xc', 'model_number']
+  key_attrs   = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number']
   # key_fmt     = [float, float, float, float, str, float, int]
   other_attrs = [attr for attr in avail_attrs if attr not in key_attrs]
 
   # collect the header for all columns
-  header      = '{0:>6s} {1:>5s} {2:>5s} {3:>5s} {4:>4s} {5:>6s} {6:>5s}'.format(
-                 'M_ini', 'fov', 'Z', 'logD', 'evol', 'Xc', 'num')
+  header      = '{0:>6s} {1:>5s} {2:>5s} {3:>5s} {4:>6s} {5:>5s}'.format(
+                 'M_ini', 'fov', 'Z', 'logD', 'Xc', 'num')
   for attr in other_attrs:
     header    += '{0:>12s} '.format(attr[:12])
   header      += '\n'
@@ -54,8 +54,8 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   # iterate over models, and collect data into lines
   for i, model in enumerate(list_models):
     # first, the key attributes
-    line      = '{0:>06.3f} {1:>05.3f} {2:>05.3f} {3:>05.2f} {4:>4s} {5:>06.4f} {6:>05d} '.format(
-                 model.M_ini, model.fov, model.Z, model.logD, model.evol, model.Xc, model.model_number)
+    line      = '{0:>06.3f} {1:>05.3f} {2:>05.3f} {3:>05.2f} {4:>06.4f} {5:>05d} '.format(
+                 model.M_ini, model.fov, model.Z, model.logD, model.Xc, model.model_number)
     
     # iterate over the rest of the attributes, and convert them to string
     for k, attr in other_attrs: line += '{0:>12.6e3} '.format(getattr(model, attr))
