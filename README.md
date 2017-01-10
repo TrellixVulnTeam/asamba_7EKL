@@ -4,6 +4,9 @@
 [TOC]
 
 ## About
+The `grid` is a Python interface to interact with the forward asteroseismic grid of massive stars, computed by the MESA stellar structure and evolution code, coupled with the GYRE adiabatic nonradial pulsation code. The whole data in the grid is organized as a PostgreSQL database, and the `grid` module allows the users to exploit this database.
+
+The computation of the grid, the development of the database, and the development of this repository are currently under intense development. So, things will grow/improve steeply soon.
 
 ## Cloning the Repository
 To clone the latest public release of the repository, you may simply do the following:
