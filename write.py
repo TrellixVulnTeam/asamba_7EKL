@@ -39,7 +39,7 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   other_attrs = [attr for attr in avail_attrs if attr not in key_attrs]
 
   # collect the header for all columns
-  header      = '{0:>6s} {1:>5s} {2:>5s} {3:>5s} {4:>6s} {5:>5s}'.format(
+  header      = '{0:>6s} {1:>5s} {2:>5s} {3:>5s} {4:>6s} {5:>5s} '.format(
                  'M_ini', 'fov', 'Z', 'logD', 'Xc', 'num')
   for attr in other_attrs:
     header    += '{0:>12s} '.format(attr[:12])
@@ -58,7 +58,8 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
                  model.M_ini, model.fov, model.Z, model.logD, model.Xc, model.model_number)
     
     # iterate over the rest of the attributes, and convert them to string
-    for k, attr in other_attrs: line += '{0:>12.6e3} '.format(getattr(model, attr))
+    for k, attr in enumerate(other_attrs): 
+      line += '{0:>12.6e} '.format(getattr(model, attr)[0])
     line += '\n'
 
     # append to the ascii file, and to the output list
