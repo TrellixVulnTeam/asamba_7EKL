@@ -1,6 +1,10 @@
 
-__version__ = '0.1'
-__release_date__ = '04.01.2017'
+__version__ = '0.2'
+__release_date__ = '10.01.2017'
+
+# Version 0.2:
+# Release Date: 10.01.2017
+# with var_def, var_lib, read and write modules, one can collect grid data into ascii files
 
 # Version 0.1:
 # Release Date: 04.01.2017
