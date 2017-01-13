@@ -28,6 +28,15 @@ def get_list_models_from_hist_and_gyre_in_files(self_tracks):
   """
   Extract the data for all GYRE input models in the repository, using their associated line in the 
   MESA history file.
+
+  Turns out, this is a very memory exhaustive routine, and basically inappropriate to use on a single
+  typical node. It is possible to easily exceed the available RAM.
+
+  @param self_tracks: an instance of the var_def.tracks class.
+  @param self_tracks: object
+  @return: list of models, i.e. a list of instances of the var_def.model class, with one object per
+         each GYRE model on the disk.
+  @rtype: list of objects
   """
   # collect necessary info
   st = self_tracks
@@ -94,10 +103,6 @@ def get_list_models_from_hist_and_gyre_in_files(self_tracks):
       logger.error('get_list_models_from_hist_and_gyre_in_files: Found no gyre_in model for this track!')
       sys.exit(1)
 
-    # get a list of model numbers for all stored model associated with this track
-    # arr_model_numbers = np.array([ get_model_number_from_gyre_in_filename(f) for f in list_gyre_in_filenames ])
-    # arr_model_numbers = np.sort(arr_model_numbers)
-
     hist_model_numbers= hist['model_number']
 
     list_rows         = []
@@ -106,7 +111,7 @@ def get_list_models_from_hist_and_gyre_in_files(self_tracks):
       # instantiate a model
       a_model = var_def.model()
       a_model.set_filename(gyre_in_filename)
-      a_model.set_track(track)
+      # a_model.set_track(track)
 
       # get attributes from gyre_in filename
       tup_gyre_in_par  = get_model_parameters_from_gyre_in_filename(gyre_in_filename)
@@ -341,9 +346,9 @@ def prepare_models_data(self_models):
         setattr(a_model, attr, row[attr])
 
     # generate a track object, and insert it into the model
-    the_track = var_def.track(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+    # the_track = var_def.track(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
     # setattr(a_model, 'track', the_track) 
-    a_model.set_track(the_track)
+    # a_model.set_track(the_track)
 
     list_models.append(a_model)
 

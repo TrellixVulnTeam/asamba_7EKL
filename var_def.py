@@ -44,6 +44,20 @@ class track:
 
     self.filename = ''
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.M_ini = -1
+    self.Z     = -1
+    self.fov   = -1
+    self.logD  = -1
+    self.filename = ''
+    # for attr in dir(self): delattr(self, attr)
+
+  def __del__(self):
+    pass
+
   def set_M_ini(self, M_ini):
     self.M_ini = M_ini
 
@@ -113,6 +127,23 @@ class tracks:
     self.list_dirs_M_ini = []
     self.n_tracks = 0
     self.list_tracks = []
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.dir_repos = ''
+    self.mass_search_pattern = ''
+    self.hist_search_pattern = ''
+    self.hist_extension      = ''
+    self.n_dirs_M_ini        = 0
+    self.list_dirs_M_ini     = []
+    self.n_tracks            = 0
+    self.list_tracks         = []
+    # for attr in dir(self): delattr(self, attr)
+
+  def __del__(self):
+    pass
 
   # Setters
   def set_dir_repos(self, dir_repos):
@@ -259,7 +290,7 @@ class model:
     constructor of the class
     """
     self.filename          = ''
-    self.track             = track(-1.0, -1.0, -1.0, -1.0)
+    # self.track             = track(-1.0, -1.0, -1.0, -1.0)
 
     self.M_ini             = 0.
     self.fov               = 0. 
@@ -334,12 +365,22 @@ class model:
     self.J_Lp              = 0.
     self.K_M               = 0.
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    # for attr in dir(self): delattr(self, attr)
+    pass
+
+  def __del__(self):
+    pass
+
   # Setters
   def set_filename(self, filename):
     self.filename = filename
 
-  def set_track(self, track):
-    self.track = track 
+  # def set_track(self, track):
+  #   self.track = track 
     
   # setter (by dictionary) for the rest of the class attribute
   def set_by_dic(self, dic):
@@ -413,6 +454,21 @@ class models:
     self.list_filenames = []
 
     self.list_models = []
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.dir_repos = ''
+    self.model_search_pattern = ''
+    self.model_extension      = ''
+    self.n_models             = 0
+    self.list_filenames       = []
+    self.list_models          = []
+    # for attr in dir(self): delattr(self, attr)
+
+  def __del__(self):
+    pass
 
   # Setters
   def set_model_search_pattern(self, model_search_pattern):
