@@ -1,7 +1,15 @@
 
+"""
+This module provides basic functionalities to read a variety of data e.g. in ASCII 
+and HDF5 etc. formats. The highlight of the module is the "read_mesa_ascii()" function
+which can read MESA history or profile files.
+"""
+
 import sys, os, glob
 import logging
 import numpy as np 
+
+from grid import var_def
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -10,13 +18,15 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def read_mesa_ascii(filename):
   """
-  Read an history or profile ascii output from MESA.
+  Read a history or profile ascii output from MESA.
+  An example of using this function to read the file "input_file" is the following
+
+  >>> input_file = '/home/user/my-files/The_Sun/LOGS/history.data'
+  >>> header, data = read.read_mesa_ascii(input_file)
+
   @param filename: full path to the input ascii file
   @type filename: string
-  @param dtype: numpy-compatible dtype object. if it is not provided, it will be retrieved from read.get_dtype()
-  @type dtype: list of tuples
-  @return dictionary of the header of the file, and the record array for the data block. It can be called like this
-     >>> header, data = read.read_mesa_ascii('filename')
+  @return dictionary of the header of the file, and the record array for the data block. 
   @rtype: dictionary and numpy record array
   """
   if not os.path.isfile(filename):
@@ -58,6 +68,74 @@ def read_mesa_ascii(filename):
   data = np.core.records.fromarrays(np.array(data, float).transpose(), dtype=dtypes)
 
   return header, data
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def read_models_parameters_from_ascii(ascii_in):
+  """
+  Warning: If the size of the input ascii is too large (which is practically the case), then this 
+  function crashes raising a MemoryError exception.
+
+  Read the contents of the input ASCII file containing the whole grid models data.
+
+  @param ascii_in: full path to the ASCII file to be read
+  @type ascii_in: string
+  @return: array containing the whole data. Each field can be accessed using the same attributes of
+           the var_def.model class object.
+  @rtype: numpy record array
+  """
+  if not os.path.exists(ascii_in):
+    logger.error('read_models_parameters_from_ascii: {0} does not exist'.format(ascii_in))
+    sys.exit(1)
+
+  # First, prepare the columns names, similar to the way the ASCII file is written
+  # The following block is adopted from write.write_model_parameters_to_ascii()
+  a_model     = var_def.model()
+  model_attrs = dir(a_model)
+  exclude     = ['__doc__', '__init__', '__enter__', '__exit__', '__del__', '__module__', 
+                 'filename', 'track', 'set_by_dic', 
+                 'set_filename', 'set_track', 'get']
+  model_attrs = [attr for attr in model_attrs if attr not in exclude]
+  basic_attrs = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number'] # treated manually below
+  other_attrs = [attr for attr in model_attrs if attr not in basic_attrs]
+  color_attrs = set(['U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H', 'H_K', 'K_L', 'J_K',
+                     'J_L', 'J_Lp', 'K_M'])
+
+  # prepare the column dtypes for the numpy recarray
+  dtypes      = []
+  for attr in basic_attrs + other_attrs:
+    if attr   == 'model_number':
+      dtypes.append( (attr, np.int16) )
+    else:
+      dtypes.append( (attr, np.float32) )
+  n_cols      = len(dtypes)
+
+  # read/load the file, and count the number of lines
+  with open(ascii_in, 'r') as file: lines = file.readlines()
+  n_rows      = len(lines)   # including the one line of the header
+  lines       = []           # to garbage the contents of this list, and free RAM memory
+
+  # get the file handle again, and read each line of the file iteratively to minimize RAM
+  handle      = open(ascii_in, 'r')
+
+  # iterate over the lines list, and fill up the record array
+  rows        = []
+  for i_row in range(n_rows):
+    if i_row  == 0: 
+      header  = handle.readline()
+      continue
+    else:
+      line    = handle.readline()
+      row     = line.rstrip('\r\n').split()
+      rows.append(row)
+
+  handle.close()
+
+  # create the record array
+  rec         = np.core.records.fromarrays(np.array(rows, float).transpose(), dtype=dtypes)
+
+  logger.info('read_models_parameters_from_ascii: returned recarry of file: "{0}"'.format(ascii_in))
+
+  return rec
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def read_tracks_parameters_from_ascii(ascii_in):

@@ -12,6 +12,7 @@ underscore "_" in the name; e.g.
 import sys, os, glob
 import logging
 import numpy as np 
+import subprocess
 import psycopg2
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,18 +34,22 @@ class grid_db:
     @param dbname: the name of the running database server. By default, it is called "grid" too.
     @type dbname: string
     """
+    if exists(dbname) is False:
+      logger.error('grid_db.__init__: Database "{0}" does not exist'.format(dbname))
+      sys.exit(1)
+
     self.dbname = dbname
 
-    connection  = psycopg2.connect('dbname=%s', (dbname, ))
+    connection  = psycopg2.connect('dbname={0}'.format(dbname))
     cursor      = connection.cursor()
 
     self.connection = connection
     self.cursor     = cursor
 
   def __enter__(self):
-    pass 
+    return self 
 
-  def __exit__(self):
+  def __exit__(self, type, value, traceback):
     self.get_cursor().close()
     self.get_connection().close()
 
@@ -75,11 +80,11 @@ class grid_db:
     self.connection.commit()
 
   # ...................................
-  def execute_one(self, cmnd):
+  def execute_one(self, cmnd, value):
     """
     **Execute AND commit** one SQL command on the cursor, passed by the "cmnd"
     """
-    self.cursor.execute(cmnd)
+    self.cursor.execute(cmnd, value)
     self.commit()
 
   # ...................................
@@ -118,12 +123,40 @@ class grid_db:
     """
     A wrapper around the psycopg2.fetchone() method
     """
-    return self.get_cursor().fetchone()[0]
+    return self.get_cursor().fetchone() 
 
   # ...................................
   def fetch_many(self):
     """
     A wrapper around psycopg2.fetchmany()
     """
+    return self.get_cursor().fetchmany()
+
   # ...................................
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def exists(dbname):
+  """
+  Check if the database already exists.
+  Returns True if the database exists, and False otherwise.
+  """
+  cmnd   = 'psql -lqt | cut -d \| -f 1 | grep -w {0}'.format(dbname)
+  exe    = subprocess.Popen(cmnd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  stdout = exe.stdout.read().rstrip('\r\n').strip()
+  stderr = exe.stderr.read().rstrip('\r\n').strip()
+  err    = exe.returncode
+  # print '1:', cmnd
+  # print '2:', stdout
+  # print '3:', stderr
+  # print '4:', err
+  if err is not None:
+    logger.info('grid_db.exists(): Command failed: "{0}"'.format(cmnd))
+    return False
+  else:
+    try:
+      assert stdout == dbname
+      return True
+    except AssertionError:
+      return False
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

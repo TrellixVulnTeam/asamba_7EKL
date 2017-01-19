@@ -33,10 +33,10 @@ def get_tracks_id(db, M_ini, fov, Z, logD):
   """
   # curs = db.get_cursor()
   tup  = (M_ini, fov, Z, logD)
-  cmnd = 'select id from grid.tracks where M_ini=%s and fov=%s and Z=%s and logD=%s', tup
+  cmnd = 'select id from grid.tracks where M_ini=%s and fov=%s and Z=%s and logD=%s'
   print cmnd
-  with the_db as db:
-    id = the_db.execute_one(cmnd)
+  with db as the_db:
+    id = the_db.execute_one(cmnd, tup)
 
   print id
 
