@@ -4,6 +4,8 @@ import logging
 import numpy as np 
 import psycopg2
 
+from grid import db_def
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -13,12 +15,12 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tracks_id(db, M_ini, fov, Z, logD):
+def get_tracks_id(dbname, M_ini, fov, Z, logD):
   """
   Retrieve the id for a track given the four basic parameters (attributes) the distinguish the track.
 
-  @param db: an instance of the db_def.grid_db() class
-  @type db: class object
+  @param dbname: database name, used to instantiate the db_def.grid_db(dbname) object
+  @type db: string
   @param M_ini: initial mass (in solar mass)
   @type M_ini: float
   @param fov: exponential overshoot parameter
@@ -31,14 +33,12 @@ def get_tracks_id(db, M_ini, fov, Z, logD):
         In case of a failure, we return False
   @rtype: integer
   """
-  # curs = db.get_cursor()
   tup  = (M_ini, fov, Z, logD)
-  cmnd = 'select id from grid.tracks where M_ini=%s and fov=%s and Z=%s and logD=%s'
-  print cmnd
-  with db as the_db:
-    id = the_db.execute_one(cmnd, tup)
-
-  print id
+  cmnd = 'select id from tracks where M_ini~%s and fov~%s and Z~%s and logD~%s'
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(cmnd, tup)
+    result = the_db.fetch_one()
+    id     = result[0]
 
   return id
 

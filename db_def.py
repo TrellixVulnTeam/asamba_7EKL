@@ -73,6 +73,19 @@ class grid_db:
 
   # Methods
   # ...................................
+  # ...................................
+  def has_table(self, table):
+    cmnd = 'select exists(select * from information_schema.tables where table_name=%s)'
+    self.execute_one(cmnd, (table,))
+    return self.fetch_one()[0]
+
+  # ...................................
+  def has_function(self, function_name):
+    cmnd = 'select exists(select * from pg_proc where proname=%s)'
+    self.execute_one(cmnd, (function_name, ))
+    return self.fetch_one()[0]
+
+  # ...................................
   def commit(self):
     """
     Wrapper around the psycopg2.cursor.commit()
@@ -84,7 +97,10 @@ class grid_db:
     """
     **Execute AND commit** one SQL command on the cursor, passed by the "cmnd"
     """
-    self.cursor.execute(cmnd, value)
+    result = self.cursor.execute(cmnd, value)
+    if result is not None:
+      logger.error('execute_one failed')
+      sys.exit(1)
     self.commit()
 
   # ...................................
@@ -115,7 +131,10 @@ class grid_db:
       sys.exit(1)
 
     cursor  = self.get_cursor()
-    cursor.executemany(cmnd, values)
+    result  = cursor.executemany(cmnd, values)
+    if result is not None:
+      logger.error('execute_many failed')
+      sys.exit(1)
     self.commit()
 
   # ...................................
@@ -133,6 +152,7 @@ class grid_db:
     return self.get_cursor().fetchmany()
 
   # ...................................
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def exists(dbname):
   """
