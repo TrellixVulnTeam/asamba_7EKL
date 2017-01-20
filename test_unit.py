@@ -26,6 +26,70 @@ logger = logging.getLogger(__name__)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_03(dbname):
+
+  logger.info('do_test_03: test db_lib.get_track_by_id()')
+
+  # first clean up the table
+  cmnd       = 'delete from tracks'
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(cmnd, None)
+
+  num_tests = 10
+  tolerance = 1e-5
+  list_tups = []
+  tests     = []
+
+  all_id    = np.random.random_integers(1, 10000, num_tests)
+  all_M_ini = np.random.random(num_tests) * 35. 
+  all_fov   = np.random.random(num_tests) * 0.04
+  all_Z     = np.random.random(num_tests) * 0.018
+  all_logD  = np.random.random(num_tests) * 8.0
+
+  for i_test in range(num_tests):
+    orig_id    = all_id[i_test]
+    orig_M_ini = all_M_ini[i_test]
+    orig_fov   = all_fov[i_test]
+    orig_Z     = all_Z[i_test]
+    orig_logD  = all_logD[i_test]
+    tup        = (orig_id, orig_M_ini, orig_fov, orig_Z, orig_logD)
+    if tup in list_tups: 
+      logger.warning('do_test_03: accidentally, one input tuple is repeated: i={0}'.format(i_test))
+      continue
+
+    # insert this random row in the table, and retrieve it by its id
+    cmnd       = 'insert into tracks (id, M_ini, fov, Z, logD) values (%s,%s,%s,%s,%s)'
+    with db_def.grid_db(dbname=dbname) as the_db:
+      the_db.execute_one(cmnd, tup)
+
+    params     = db_lib.get_track_by_id(dbname, orig_id)
+    res_M_ini  = params[0]
+    res_fov    = params[1]
+    res_Z      = params[2]
+    res_logD   = params[3]
+
+    check_01   = assert_approximately_equal('M_ini', orig_M_ini, res_M_ini, tolerance)
+    check_02   = assert_approximately_equal('fov', orig_fov, res_fov, tolerance)
+    check_03   = assert_approximately_equal('Z', orig_Z, res_Z, tolerance)
+    check_04   = assert_approximately_equal('logD', orig_logD, res_logD, tolerance)
+    this_test  = all([check_01, check_02, check_03, check_04])
+
+    tests.append(this_test)
+
+
+  test       = all(tests)
+  if test is True:
+    logger.info('do_test_03: All "{0}" checks passed'.format(num_tests))
+  else:
+    logger.error('do_test_03: At least one check failed')
+
+  cmnd       = 'delete from tracks'
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(cmnd, None)
+
+  return test 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_02(dbname):
 
   logger.info('do_test_02: test db_lib.get_tracks_id()')
@@ -36,16 +100,11 @@ def do_test_02(dbname):
     the_db.execute_one(cmnd, None)
 
   num_tests = 10
-  tolerance = 1e-6
   list_tups = []
   tests     = []
 
   for i_test in range(num_tests):
     orig_id    = np.random.randint(1, 10000)
-    # orig_M_ini = 12.1234   # np.random.random(1)[0] * 35. 
-    # orig_fov   = 0.01234   # np.random.random(1)[0] * 0.04
-    # orig_Z     = 0.06543   # np.random.random(1)[0] * 0.018
-    # orig_logD  = 12.3456   #+ i_test * 0.01  # np.random.random(1)[0] * 8.0
     orig_M_ini = np.random.random(1)[0] * 35. 
     orig_fov   = np.random.random(1)[0] * 0.04
     orig_Z     = np.random.random(1)[0] * 0.018
@@ -65,7 +124,7 @@ def do_test_02(dbname):
     params     = (orig_M_ini, orig_fov, orig_Z, orig_logD)
     with db_def.grid_db(dbname=dbname) as the_db:
 
-      the_db.execute_one('select * from tracks', None)
+      # the_db.execute_one('select * from tracks', None)
       # print 'Get row:', "{0:.30f}".format(the_db.fetch_one()[1])
 
       the_db.execute_one(cmnd, params)
@@ -92,7 +151,7 @@ def do_test_02(dbname):
   with db_def.grid_db(dbname=dbname) as the_db:
     the_db.execute_one(cmnd, None)
 
-  return True 
+  return test 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_01(dbname):
@@ -143,21 +202,39 @@ def do_test_01(dbname):
     the_db.execute_one(cmnd, None)
 
   return test
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # C O N V E N I E N C E   &   C O M P A R I S O N   F U N C T I O N S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Define a local function to test each column value, and log the result properly
 def assert_exactly_equal(attribute, original, retrieved):  
+  """
+  Define a local function to test each column value, and log the result properly
+  """
   try:
     assert original == retrieved
-    logger.info('        ... "{0}" OK'.format(attribute))
+    logger.info('        ... "{0}" exactly OK'.format(attribute))
     return True
   except AssertionError:
     logger.error('       XXX "{0}" failed'.format(attribute))
     return False
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def assert_approximately_equal(attribute, original, retrieved, tolerance):
+  """
+  Assert the two values (original and retrived) of the attribute are identical within the round-off
+  as specified by the tolerance.
+  """
+  try:
+    assert np.abs(original - retrieved) <= tolerance
+    logger.info('        ... {0} approximately OK'.format(attribute))
+    return True 
+  except AssertionError:
+    logger.error('       XXX "{0}" failed'.format(attribute))
+    return False
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -324,9 +401,11 @@ def main():
 
   make_table_tracks(dbname=my_db)
 
-  status  = do_test_01(dbname=my_db)
+  # status  = do_test_01(dbname=my_db)
 
-  status  = do_test_02(dbname=my_db)
+  # status  = do_test_02(dbname=my_db)
+
+  status  = do_test_03(dbname=my_db)
 
   status  = drop_test_database(dbname=my_db)
   if status is not True:

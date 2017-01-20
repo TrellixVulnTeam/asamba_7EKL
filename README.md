@@ -1,5 +1,48 @@
-
 # Asteroseismic Modelling Database Python Tools
 
 [TOC]
 
+## About
+The `grid` is a Python interface to interact with the forward asteroseismic grid of massive stars, computed by the MESA stellar structure and evolution code, coupled with the GYRE adiabatic nonradial pulsation code. The whole data in the grid is organized as a PostgreSQL database, and the `grid` module allows the users to exploit this database.
+
+The computation of the grid, the development of the database, and the development of this repository are currently under intense development. So, things will grow/improve steeply soon.
+
+## Cloning the Repository
+To clone the latest public release of the repository, you may simply do the following:
+
+```bash
+cd <path-to-save-repository>
+git clone https://ehsan_moravveji@bitbucket.org/ehsan_moravveji/grid.git
+```
+
+## Documentation
+All modules and functions in the repository are documented. Thus, it is easy to read the intent of each module/function/class objects, by referring to the source code. An alternative way to read the basic documentation of the class objects is to instantiate them, and then accessing the `__doc__` attribute. As an example, to read the documentation for the `model` object, one can do the following:
+
+```python
+from grid import var_def
+a_model = var_def.model()
+print a_model.__doc__
+```
+Soon, an HTML documentation page will be also added to the repository for a more convenient representation of the entire documented modules, functions and classes.
+
+## Notes About The Data Structure
+Below, I provide few key notes about how the data is organized in this package.
+
+* The attribute names of the `model` classe is borrowed from their exact names in the MESA output history file. These names also match the attributes of the database table `models`. Therefore, MESA users have easy time understanding the meaning of the data in the database/repository.
+
+* The physical units of all variables follow closely their units in MESA. E.g. the initial mass is given in solar unit, while the temperature (and other quantities) is given in CGS units. Thus, a proper reference to figure out the unit of each parameter is by consulting the `<mesa>/star/defaults/history_columns.list` file.
+
+## Notes About The Query Syntax
+Except the row IDs of all tables, the rest of the attributes across the whole database are single-precision (i.e. of type real in SQL). As a result, the floating point round-off does allow retrieval of rows by providing the input attributes (e.g. to retrieve the id of a row of the "tracks" table by providing M_ini, fov, Z and logD). This means that a basic SQL query like the following is so volunerable to fail:
+
+```SQL
+select id from grid.tracks where M_ini=12.345 and fov=0.012 and Z=0.014 and logD=02.34;
+```
+
+As a work around, a new operator is overloaded, to represent *approximately equals to*, and it is represented by the tilde symbol **~**. The check for this near-equality is performed within the single floating point precision, i.e. **10^{-5}**. Therefore, the following SQL query syntax works instead:
+
+```SQL
+select id from grid.tracks where M_ini~12.345 and fov~0.012 and Z~0.014 and logD~02.34;
+```
+
+## References

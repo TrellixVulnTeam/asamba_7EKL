@@ -14,6 +14,33 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_track_by_id(dbname, id):
+  """
+  Retrieve the four basic track attributes, M_ini, fov, Z, logD, respectively by the requested id.
+  if the id exceeds the minimum and maximum id range in the database, an exception is raised, and
+  the function terminates.
+
+  @param dbname: database name, used to instantiate the db_def.grid_db(dbname) object
+  @type dbname: string
+  @param id: the unique id of the grid.tracks table to fetch the corresponding row
+  @type id: integer
+  @return: a tuple with (M_ini, fov, Z, logD), respectively
+  @rtype: tuple
+  """
+  with db_def.grid_db(dbname=dbname) as the_db:
+
+    cmnd = 'select %s between (select min(id) from tracks) and (select max(id) from tracks)'
+    the_db.execute_one(cmnd, (id, ))
+    if the_db.fetch_one() is False:
+      logger.error('get_track_by_id: id={0} exceeds the available tracks.id range')
+      sys.exit(1)
+
+    cmnd = 'select M_ini, fov, Z, logD from tracks where id=%s'
+    the_db.execute_one(cmnd, (id, ))
+    result = the_db.fetch_one()
+
+  return result
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_tracks_id(dbname, M_ini, fov, Z, logD):
   """
