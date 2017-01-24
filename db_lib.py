@@ -42,12 +42,21 @@ def get_track_by_id(dbname, id):
   return result
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tracks_id(dbname, M_ini, fov, Z, logD):
+def get_tracks_id(dbname_or_dbobj, M_ini, fov, Z, logD):
   """
   Retrieve the id for a track given the four basic parameters (attributes) the distinguish the track.
 
-  @param dbname: database name, used to instantiate the db_def.grid_db(dbname) object
-  @type db: string
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking track ID needs be fetched. This gives a nice speedup when thousands to millions of 
+        track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
   @param M_ini: initial mass (in solar mass)
   @type M_ini: float
   @param fov: exponential overshoot parameter
@@ -60,12 +69,23 @@ def get_tracks_id(dbname, M_ini, fov, Z, logD):
         In case of a failure, we return False
   @rtype: integer
   """
-  tup  = (M_ini, fov, Z, logD)
   cmnd = 'select id from tracks where M_ini~%s and fov~%s and Z~%s and logD~%s'
-  with db_def.grid_db(dbname=dbname) as the_db:
-    the_db.execute_one(cmnd, tup)
-    result = the_db.fetch_one()
-    id     = result[0]
+  tup  = (M_ini, fov, Z, logD)
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, tup)
+      result = the_db.fetch_one()
+      id     = result[0]
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, tup)
+    result   = dbname_or_dbobj.fetch_one()
+    id       = result[0]
+  #
+  else:
+    logger.error('get_tracks_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    sys.exit(1)
 
   return id
 

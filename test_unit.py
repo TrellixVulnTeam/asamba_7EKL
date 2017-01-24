@@ -130,7 +130,7 @@ def do_test_02(dbname):
       the_db.execute_one(cmnd, params)
       # print 'Get id: ', the_db.fetch_one()
 
-    the_id     = db_lib.get_tracks_id(dbname=dbname, M_ini=orig_M_ini, 
+    the_id     = db_lib.get_tracks_id(dbname, M_ini=orig_M_ini, 
                         fov=orig_fov, Z=orig_Z, logD=orig_logD)
 
     try:
@@ -233,6 +233,7 @@ def assert_approximately_equal(attribute, original, retrieved, tolerance):
     return True 
   except AssertionError:
     logger.error('       XXX "{0}" failed'.format(attribute))
+    print original, retrieved, np.abs(original-retrieved)
     return False
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -401,11 +402,11 @@ def main():
 
   make_table_tracks(dbname=my_db)
 
-  # status  = do_test_01(dbname=my_db)
+  status  = do_test_01(dbname=my_db)
 
-  # status  = do_test_02(dbname=my_db)
+  status  = do_test_02(dbname=my_db)
 
-  status  = do_test_03(dbname=my_db)
+  # status  = do_test_03(dbname=my_db)
 
   status  = drop_test_database(dbname=my_db)
   if status is not True:
