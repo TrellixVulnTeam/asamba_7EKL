@@ -59,7 +59,7 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
     
     # iterate over the rest of the attributes, and convert them to string
     for k, attr in enumerate(other_attrs): 
-      line += '{0:>12.6e} '.format(getattr(model, attr)[0])
+      line += '{0:>12.5e} '.format(getattr(model, attr)[0])
     line += '\n'
 
     # append to the ascii file, and to the output list

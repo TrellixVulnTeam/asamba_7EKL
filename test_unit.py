@@ -248,7 +248,7 @@ def operator_overloading_function(dbname):
 
   cmnd = 'create function approximately_equals_to  \
           (in x real, in y real) returns boolean \
-          as $$ select abs(x-y) <= 1e-6*abs(x) $$ \
+          as $$ select abs(x-y) <= 1e-5*abs(x) $$ \
           language sql stable strict;'
   with db_def.grid_db(dbname=dbname) as the_db:
     the_db.execute_one(cmnd, None)
