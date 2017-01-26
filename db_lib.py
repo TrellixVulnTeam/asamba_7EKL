@@ -42,7 +42,7 @@ def get_track_by_id(dbname, id):
   return result
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tracks_id(dbname_or_dbobj, M_ini, fov, Z, logD):
+def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
   """
   Retrieve the id for a track given the four basic parameters (attributes) the distinguish the track.
 
@@ -84,7 +84,7 @@ def get_tracks_id(dbname_or_dbobj, M_ini, fov, Z, logD):
     id       = result[0]
   #
   else:
-    logger.error('get_tracks_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
     sys.exit(1)
 
   return id

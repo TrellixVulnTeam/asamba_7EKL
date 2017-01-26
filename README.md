@@ -32,17 +32,17 @@ Below, I provide few key notes about how the data is organized in this package.
 
 * The physical units of all variables follow closely their units in MESA. E.g. the initial mass is given in solar unit, while the temperature (and other quantities) is given in CGS units. Thus, a proper reference to figure out the unit of each parameter is by consulting the `<mesa>/star/defaults/history_columns.list` file.
 
-## Notes About The Query Syntax
-Except the row IDs of all tables, the rest of the attributes across the whole database are single-precision (i.e. of type real in SQL). As a result, the floating point round-off does allow retrieval of rows by providing the input attributes (e.g. to retrieve the id of a row of the "tracks" table by providing M_ini, fov, Z and logD). This means that a basic SQL query like the following is so volunerable to fail:
+## The Query Syntax: Approximately Equals to
+Except the row IDs of all tables, the rest of the attributes across the whole database are single-precision (i.e. of type `real` in SQL). As a result, the *floating point round-off does abandon retrieval of rows by providing the input attributes* (e.g. to retrieve the id of a row of the "tracks" table by providing M_ini, fov, Z and logD). This means that a basic SQL query like the following is so volunerable to fail, and doomed to return no result:
 
 ```SQL
-select id from grid.tracks where M_ini=12.345 and fov=0.012 and Z=0.014 and logD=02.34;
+SELECT id FROM grid.tracks WHERE M_ini=12.345 AND fov=0.012 AND Z=0.014 AND logD=02.34;
 ```
 
-As a work around, a new operator is overloaded, to represent *approximately equals to*, and it is represented by the tilde symbol **~**. The check for this near-equality is performed within the single floating point precision, i.e. **10^{-5}**. Therefore, the following SQL query syntax works instead:
+Something should be done about the equality comparison operation (i.e. `=`). As a work around, a new operator is overloaded, to represent *approximately equals to*, and it is represented by the tilde symbol **~**. The check for this near-equality is performed within the single floating point precision, i.e. **10^{-6}**. Two values are approximately equal to one another if their *relative absolute difference* is less than one part in million; in other words two variables $$a$$ and $$b$$ are accepted as equal if $$|a-b| <= 10^-6*|a|$$. To enjoy this convenience operation, one needs to use the tilde operator *~* instead of the equality sign in the SQL `WHERE` clauses. Therefore, the following SQL query syntax works instead:
 
 ```SQL
-select id from grid.tracks where M_ini~12.345 and fov~0.012 and Z~0.014 and logD~02.34;
+SELECT id FROM grid.tracks WHERE M_ini~12.345 AND fov~0.012 AND Z~0.014 AND logD~02.34;
 ```
 
 ## References

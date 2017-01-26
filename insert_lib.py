@@ -3,10 +3,81 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import var_def, db_def
+from grid import var_def, db_def, db_lib
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   T O   I N T E R A C T   W I T H   T H E   D A T A B A S E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
+  """
+  Inset one row into the "tracks" table of the database
+  """
+  if isinstance(id, type(None)):
+    cmnd = 'insert into tracks (M_ini, fov, Z, logD) values (%s, %s, %s, %s)'
+    tup  = (M_ini, fov, Z, logD)
+  elif isinstance(id, int):
+    cmnd = 'insert into tracks (id, M_ini, fov, Z, logD) values (%s, %s, %s, %s, %s)'
+    tup  = (id, M_ini, fov, Z, logD)
+  else:
+    logger.error('insert_row_into_tracks: Input argument id has unexpected type')
+    sys.exit(1)
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, tup)
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, tup)
+  else:
+    logger.error('insert_row_into_tracks: Input argument dbname_or_dbobj has a wrong type!')
+    sys.exit(1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   T O   W O R K   W I T H   A N   I N P U T   A S C I I   F I L E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def insert_models_from_models_parameter_file(ascii_in):
+  """
+
+  """
+  if not os.path.exists(ascii_in):
+    logger.error('insert_models_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
+    sys.exit(1)
+  else:     # get the file handle
+    handle = open(ascii_in, 'r')
+
+  # walk over the input file, and insert each row one after the other
+  i        = -1
+  with db_def.grid_db() as the_db:
+    while  True:
+      i      += 1
+      if i <= 0:      # skip the header
+        hdr  = handle.readline()
+        continue
+
+      line   = handle.readline()
+      if line == '': break
+
+      model  = model_line_to_model_object(line)
+
+      id_track = db_lib.get_track_id(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+      print id_track
+
+      i      += 1
+
+      if i == 10: break
+
+  handle.close()
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_tracks_from_models_parameter_file(ascii_in):
   """
@@ -80,6 +151,14 @@ def insert_tracks_from_models_parameter_file(ascii_in):
   return
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# A U X I L A R Y    F U N C T I O N S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def gen_tracks_insert_commands(list_tracks):
   """
   Receive a list of "track" objects, and return a list of SQL insert commands to put the data into the
@@ -107,3 +186,57 @@ def gen_tracks_insert_commands(list_tracks):
   return list_cmnds
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def model_line_to_model_object(line):
+  """
+  Convert one row of the ascii parameter file, into an instance of the var_def.model class, and store
+  the line values into those of the corresponding attribute. The returned object is useful to insert
+  into the SQL database
+
+  @param line: one line of the parameter file, which contains numbers only
+  @type line: string
+  @return: an instance of the var_def.model class, with the attributes all set from the input line.
+  @rtype: object
+  """
+  if not isinstance(line, str):
+    logger.error('model_line_to_model_object: The input is not a string')
+    sys.exit(1)
+  line        = line.rstrip('\r\n').split()
+
+  model       = var_def.model()
+  # model_attrs = dir(model)
+  
+  # exclude     = ['__doc__', '__init__', '__enter__', '__exit__', '__del__', '__module__', 
+  #                'filename', 'track', 'set_by_dic', 
+  #                'set_filename', 'set_track', 'get']
+  # model_attrs = [attr for attr in model_attrs if attr not in exclude]
+  # basic_attrs = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number'] # treated manually below
+  # other_attrs = [attr for attr in model_attrs if attr not in basic_attrs]
+  # color_attrs = set(['U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H', 'H_K', 'K_L', 'J_K',
+  #                    'J_L', 'J_Lp', 'K_M'])
+
+  avail_attrs = dir(model)
+  exclude     = set(['__init__', '__doc__', '__module__', 'filename', 'track'])
+  avail_attrs = [attr for attr in avail_attrs if attr not in exclude]
+  avail_attrs = [attr for attr in avail_attrs if 'set' not in attr and 'get' not in attr]
+  key_attrs   = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number']
+  other_attrs = [attr for attr in avail_attrs if attr not in key_attrs]
+
+  dic         = dict()
+  for i, attr in enumerate(key_attrs):
+    val       = line[i]
+    conv      = float
+    model[attr]
+    if attr == 'model_number':
+      conv    = int
+    setattr(model, attr, val)
+
+  return model
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+

@@ -92,7 +92,7 @@ def do_test_03(dbname):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_02(dbname):
 
-  logger.info('do_test_02: test db_lib.get_tracks_id()')
+  logger.info('do_test_02: test db_lib.get_track_id()')
 
   # first clean up the table
   cmnd       = 'delete from tracks'
@@ -115,24 +115,11 @@ def do_test_02(dbname):
       continue
 
     # insert this random row in the table, and get back the id
-    cmnd       = 'insert into tracks (id, M_ini, fov, Z, logD) values (%s,%s,%s,%s,%s)'
-    with db_def.grid_db(dbname=dbname) as the_db:
-      the_db.execute_one(cmnd, tup)
-
-    cmnd       = 'select id from tracks where M_ini~%s and fov~%s and Z~%s and logD~%s'
-
-    params     = (orig_M_ini, orig_fov, orig_Z, orig_logD)
-    with db_def.grid_db(dbname=dbname) as the_db:
-
-      # the_db.execute_one('select * from tracks', None)
-      # print 'Get row:', "{0:.30f}".format(the_db.fetch_one()[1])
-
-      the_db.execute_one(cmnd, params)
-      # print 'Get id: ', the_db.fetch_one()
-
-    the_id     = db_lib.get_tracks_id(dbname, M_ini=orig_M_ini, 
+    insert_lib.insert_row_into_tracks(dbname, orig_id, orig_M_ini, orig_fov, orig_Z, orig_logD)
+    # retrieve the id
+    the_id     = db_lib.get_track_id(dbname, M_ini=orig_M_ini, 
                         fov=orig_fov, Z=orig_Z, logD=orig_logD)
-
+    # assert the retrieved id is the same as the original one
     try:
       assert the_id == orig_id
       logger.info('   ... Check {0} OK'.format(i_test))
@@ -233,7 +220,7 @@ def assert_approximately_equal(attribute, original, retrieved, tolerance):
     return True 
   except AssertionError:
     logger.error('       XXX "{0}" failed'.format(attribute))
-    print original, retrieved, np.abs(original-retrieved)
+    # print original, retrieved, np.abs(original-retrieved)
     return False
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -261,7 +248,7 @@ def operator_overloading_function(dbname):
 
   cmnd = 'create function approximately_equals_to  \
           (in x real, in y real) returns boolean \
-          as $$ select abs(x-y) <= 1e-5 $$ \
+          as $$ select abs(x-y) <= 1e-6*abs(x) $$ \
           language sql stable strict;'
   with db_def.grid_db(dbname=dbname) as the_db:
     the_db.execute_one(cmnd, None)
@@ -383,6 +370,23 @@ def drop_test_database(dbname):
     logger.info('drop_test_database: successfully droped the database "{0}"'.format(dbname))
     return True
 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def test_string(dbname):
+  str_s = 4*'%s,'
+  str_s = str_s[:-1]
+  cmnd  = 'insert into tracks (M_ini, fov, Z, logD) values (' + str_s + ')'
+  tup   = (1.1, 2.2, 3.3, 4.4)
+  with db_def.grid_db(dbname) as the_db: 
+    the_db.execute_one('delete from tracks', None)
+    print the_db.execute_one(cmnd, tup)
+
+  with db_def.grid_db(dbname) as the_db: 
+    print the_db.fetch_one()
+
+  with db_def.grid_db(dbname) as the_db: 
+    the_db.execute_one('delete from tracks', None)
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def main():
   """
@@ -406,7 +410,9 @@ def main():
 
   status  = do_test_02(dbname=my_db)
 
-  # status  = do_test_03(dbname=my_db)
+  status  = do_test_03(dbname=my_db)
+
+  # test_string(dbname=my_db)
 
   status  = drop_test_database(dbname=my_db)
   if status is not True:

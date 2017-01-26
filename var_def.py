@@ -259,7 +259,7 @@ class model:
     constructor of the class
     """
     self.filename          = ''
-    self.track             = track(-1.0, -1.0, -1.0, -1.0)
+    # self.track             = track(-1.0, -1.0, -1.0, -1.0)
 
     self.M_ini             = 0.
     self.fov               = 0. 
@@ -338,8 +338,8 @@ class model:
   def set_filename(self, filename):
     self.filename = filename
 
-  def set_track(self, track):
-    self.track = track 
+  # def set_track(self, track):
+  #   self.track = track 
     
   # setter (by dictionary) for the rest of the class attribute
   def set_by_dic(self, dic):
@@ -371,6 +371,15 @@ class model:
         sys.exit(1)
       setattr(self, key, value)
 
+  def set(self, attr, val):
+    """
+    Set the value of the specific attribute "attr" of the model object
+    """
+    if not hasattr(self, attr):
+      logger.error('model: set: The attribute "{0}" is undefined'.format(attr))
+      sys.exit(1)
+    setattr(self, attr, val)
+    
   # Getter
   def get(self, attr):
     """
