@@ -13,6 +13,54 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def prepare_insert_tracks(dbname_or_dbobj, include_id=False):
+  """
+  Execute the SQL "Prepare" statement in order to prepare for inserting rows into the tracks
+  table
+  """
+  if include_id:
+    cmnd   = 'prepare prepare_insert_tracks (integer, real, real, real, real) as \
+              insert into %s.tracks (id, M_ini, fov, Z, logD) values \
+              ($1, $2, $3, $4, $5)'
+  else:
+    cmnd   = 'prepare prepare_insert_tracks (real, real, real, real) as \
+              insert into %s.tracks (M_ini, fov, Z, logD) values \
+              ($1, $2, $3, $4)'
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, (the_db.dbname, ))
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, (dbname_or_dbobj.dbname, ))
+  else:
+    logger.error('prepare_insert_tracks: Input argument has unsupported type')
+    sys.exit(1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def execute_insert_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
+  """
+  Execute the prepared insertion statement. This implies that the function prepare_insert_tracks()
+  is already executed, and the prepare statment is already activated in the open session.
+  """
+  if isinstance(id, type(None)):
+    cmnd = 'execute prepare_insert_tracks (%s, %s, %s, %s)'
+    tup  = (M_ini, fov, Z, logD)
+  elif isinstance(id, int):
+    cmnd = 'execute prepare_insert_tracks (%s, %s, %s, %s, %s)'
+    tup  = (id, M_ini, fov, Z, logD)
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, tup)
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, tup)
+  else:
+    logger.error('execute_insert_into_tracks: Input argument dbname_or_dbobj has a wrong type!')
+    sys.exit(1)
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
   """
   Inset one row into the "tracks" table of the database
@@ -79,7 +127,7 @@ def insert_models_from_models_parameter_file(ascii_in):
   handle.close()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_tracks_from_models_parameter_file(ascii_in):
+def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   """
   This routine is protected agains *Injection Attacks*.
   """
@@ -87,21 +135,16 @@ def insert_tracks_from_models_parameter_file(ascii_in):
     logger.error('get_insert_commands_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
     sys.exit(1)
 
-  # get a cursor to the grid
-  try:
-    the_db = db_def.grid_db()
-    # cursor = the_db.get_cursor()
-    logger.info('insert_tracks_from_models_parameter_file: grid_db instantiated.')
+ try:
+    assert db_def.exists(dbname=dbname) == True
+    # the_db = db_def.grid_db()
+    logger.info('insert_tracks_from_models_parameter_file: database "{0}" exists.'.format(dbname))
   except:
-    logger.error('insert_tracks_from_models_parameter_file: failed to instantiate grid_db.')
+    logger.error('insert_tracks_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
+    sys.exit(1)
 
-  # enumerate the number of available rows in the file
-  # with open(ascii_in, 'r') as handle:
-  #   lines  = handle.readlines()
-  #   n_rows = len(lines)
-  #   lines  = []               # clean up the list by deallocating its content
 
-  # reopen the file, and get the file handle
+  # open the file, and get the file handle
   handle   = open(ascii_in, 'r')
   # iterate over each row in the file, and construct the insertion command
   # unique   = set()
@@ -140,15 +183,13 @@ def insert_tracks_from_models_parameter_file(ascii_in):
   tups     = list(unique)
 
   n_values = len(tups)
-  cmnd     = 'insert into grid.tracks (M_ini, fov, Z, logD) \
-              values (%s, %s, %s, %s)'
-
-  # execure many and commit
-  logger.info('insert_tracks_from_models_parameter_file: "{0}" tracks recognized'.format(n_values))
-  the_db.execute_many(cmnd=cmnd, values=tups)
-  logger.info('insert_tracks_from_models_parameter_file: Insertion completed.')
-
-  return
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.prepare_insert_tracks(include_id=False)
+    # execute many and commit
+    logger.info('insert_tracks_from_models_parameter_file: "{0}" tracks recognized'.format(n_values))
+    cmnd   = 'execute prepare_insert_tracks ({0})'.format(','.join(['?']*4))
+    the_db.execute_many(cmnd=cmnd, values=tups)
+    logger.info('insert_tracks_from_models_parameter_file: Insertion completed.')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

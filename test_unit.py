@@ -151,11 +151,21 @@ def do_test_01(dbname):
     the_db.execute_one(cmnd, None)
 
   # original test values  
-  orig_id    = 1001
-  orig_M_ini = 12.3456
-  orig_fov   = 0.12312
-  orig_Z     = 0.04554
-  orig_logD  = 98.7654
+  if True:
+    # using ordinary input
+    orig_id    = 1001
+    orig_M_ini = 12.3456
+    orig_fov   = 0.12312
+    orig_Z     = 0.04554
+    orig_logD  = 98.7654
+  else:
+    # testing small and large exponential numbers
+    orig_id    = 1001
+    orig_M_ini = 12.3456
+    orig_fov   = 1.23456e-8
+    orig_Z     = 1.23456e15
+    orig_logD  = -1.23456e-20
+
   tup        = (orig_id, orig_M_ini, orig_fov, orig_Z, orig_logD)
 
   cmnd       = 'insert into tracks (id, M_ini, fov, Z, logD) values (%s,%s,%s,%s,%s)'
@@ -410,7 +420,7 @@ def main():
 
   status  = do_test_02(dbname=my_db)
 
-  status  = do_test_03(dbname=my_db)
+  # status  = do_test_03(dbname=my_db)
 
   # test_string(dbname=my_db)
 
