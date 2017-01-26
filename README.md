@@ -36,13 +36,15 @@ Below, I provide few key notes about how the data is organized in this package.
 Except the row IDs of all tables, the rest of the attributes across the whole database are single-precision (i.e. of type `real` in SQL). As a result, the *floating point round-off does abandon retrieval of rows by providing the input attributes* (e.g. to retrieve the id of a row of the "tracks" table by providing M_ini, fov, Z and logD). This means that a basic SQL query like the following is so volunerable to fail, and doomed to return no result:
 
 ```SQL
-SELECT id FROM grid.tracks WHERE M_ini=12.345 AND fov=0.012 AND Z=0.014 AND logD=02.34;
+SELECT id FROM grid.tracks WHERE M_ini = 12.345 AND fov = 0.012 AND Z = 0.014 AND logD = 02.34;
 ```
 
 Something should be done about the equality comparison operation (i.e. `=`). As a work around, a new operator is overloaded, to represent *approximately equals to*, and it is represented by the tilde symbol **~**. The check for this near-equality is performed within the single floating point precision, i.e. **10^{-6}**. Two values are approximately equal to one another if their *relative absolute difference* is less than one part in million; in other words two variables $$a$$ and $$b$$ are accepted as equal if $$|a-b| <= 10^-6*|a|$$. To enjoy this convenience operation, one needs to use the tilde operator *~* instead of the equality sign in the SQL `WHERE` clauses. Therefore, the following SQL query syntax works instead:
 
 ```SQL
-SELECT id FROM grid.tracks WHERE M_ini~12.345 AND fov~0.012 AND Z~0.014 AND logD~02.34;
+SELECT id FROM grid.tracks WHERE M_ini ~ 12.345 AND fov ~ 0.012 AND Z ~ 0.014 AND logD ~ 02.34;
 ```
+
+<img src="http://www.sciweavers.org/tex2img.php?eq=%7Ca-b%7C%20%5Cleq%2010%5E%7B-6%7D%20%7Ca%7C&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0" align="center" border="0" alt="|a-b| \leq 10^{-6} |a|" width="139" height="21" />
 
 ## References
