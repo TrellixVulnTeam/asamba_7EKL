@@ -40,12 +40,15 @@ SELECT id FROM grid.tracks WHERE M_ini = 12.345 AND fov = 0.012 AND Z = 0.014 AN
 ```
 
 Something should be done about the equality comparison operation (i.e. `=`). As a work around, a new operator is overloaded, to represent *approximately equals to*, and it is represented by the tilde symbol **~**. The check for this near-equality is performed within the single floating point precision, i.e. **10^{-6}**. Two values are approximately equal to one another if their *relative absolute difference* is less than one part in million. In simple math terms:
+
 <img src="http://www.sciweavers.org/tex2img.php?eq=a%5Csimeq%20b%20%5Cquad%20%7B%5Crm%20if%7D%20%5Cquad%20%7Ca-b%7C%20%5Cleq%2010%5E%7B-6%7D%20%7Ca%7C&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0" align="center" border="0" alt="a\simeq b \quad {\rm if} \quad |a-b| \leq 10^{-6} |a|" width="226" height="21" />
+
 To enjoy this convenience operation, one needs to use the tilde operator *~* instead of the equality sign in the SQL `WHERE` clauses. Therefore, the following SQL query syntax works instead:
 
 ```SQL
 SELECT id FROM grid.tracks WHERE M_ini ~ 12.345 AND fov ~ 0.012 AND Z ~ 0.014 AND logD ~ 02.34;
 ```
 
+I strongly recommend users towards exploiting this overloaded `~` operator.
 
 ## References
