@@ -3,7 +3,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import var_def, db_def, db_lib
+from grid import var_def, var_lib, db_def, db_lib
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -11,6 +11,78 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N T E R A C T   W I T H   T H E   D A T A B A S E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def prepare_insert_models():
+  """
+  "Prepare" a command that allows inserting any row into the models table. This is to facilitate
+  much faster interaction with the database.
+  """     
+  # model_attrs = var_lib.get_model_attrs()
+  # n_tot       = len(model_attrs)  # see the grid.sql file and the attribute types for models table
+  # base_attrs  = var_lib.get_model_basic_attrs()
+  # n_base      = len(base_attrs)
+  other_attrs = var_lib.get_model_other_attrs()
+  n_other     = len(other_attrs)
+
+  # The 4 track attributes are retrieved by the id_track, so we must skip them. The other three 
+  # attributes (i.e. id_trac, Xc and model_number) are inserted first, and so are the whole other attributes
+
+  # creating a concatenated string for all variable types in order
+  str_types   = 'int,real,int,' + ','.join(['real']*n_other)
+  str_attrs   = ['id_track', 'Xc', 'model_number']
+  n_attrs     = len(str_attrs)
+  str_qmarks  = ','.join(['?']*n_attrs)
+
+  cmnd = 'prepare prepare_insert_models ({0}) as \
+          insert into models ({1}) values ({2})'.format(
+          str_types, str_attrs, str_qmark)
+  
+  return cmnd
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_execute_insert_model_command(tup_vals):
+  """
+  """
+  n_tup = len(tup_vals)
+  cmnd  = 'execute prepare_insert_models ({0})'.format(','.join(['%s'] * n_tup))
+
+  return cmnd
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def insert_row_into_models(dbobj, model):
+  """
+  Insert one row into the models table of the database, by transfering the data contained in the model
+  object (2nd argument). This function only performs the SQL insert operation, and does not commit. This
+  helps a fast and efficient insertion. The user must do the commit() himself, else, the changes will 
+  not be applied.
+
+  @param dbojb: an instance of the db_def.grid_db class.
+  @type dbobj: object
+  @param model: an instance of the var_def.model class, which already contains the information of the row
+  @type model: object
+  @return: None
+  @rtype: NoneType
+  """
+  attrs  = ['id_tracks'] + var_lib.get_model_attrs()
+
+  M_ini  = model.M_ini
+  fov    = model.fov
+  Z      = model.Z
+  logD   = model.logD
+  id_track = db_lib.get_track_id(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+  print id_track
+
+  vals   = [id_track]
+  for i, attr in enumerate(attrs[1:]): 
+    val  = getattr(model, attr)
+    vals.append(val)
+
+  tup    = tuple(vals)
+  cmnd   = get_execute_insert_model_command(tup)
+  dbobj.execute_one(cmnd, tup, commit=False)
+
+  logger.info('insert_row_into_models: one row added.')
+
+  return None
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def prepare_insert_tracks(dbname_or_dbobj, include_id=False):
@@ -93,9 +165,11 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_models_from_models_parameter_file(ascii_in):
+def insert_models_from_models_parameter_file(dbname, ascii_in):
   """
-
+  This function starts from an ASCII input file (which is most probably prepared by calling 
+  write.write_model_parameters_to_ascii), and insert each line as a row into the "models" table of 
+  the database
   """
   if not os.path.exists(ascii_in):
     logger.error('insert_models_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
@@ -105,7 +179,12 @@ def insert_models_from_models_parameter_file(ascii_in):
 
   # walk over the input file, and insert each row one after the other
   i        = -1
-  with db_def.grid_db() as the_db:
+  with db_def.grid_db(dbname=dbname) as the_db:
+    # first, prepare the database to receive a lot of insertions
+    cmnd   = prepare_insert_models()
+    the_db.execute_one(cmnd, None)
+
+    # now, iterate over each line and insert it into the database
     while  True:
       i      += 1
       if i <= 0:      # skip the header
@@ -113,18 +192,20 @@ def insert_models_from_models_parameter_file(ascii_in):
         continue
 
       line   = handle.readline()
-      if line == '': break
+      if line == '': # commit and close the connection: end of the journey!
+        conn = the_db.get_connection()
+        conn.commit()
+        break
 
-      model  = model_line_to_model_object(line)
-
-      id_track = db_lib.get_track_id(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
-      print id_track
+      with model_line_to_model_object(line) as model:
+        insert_row_into_models(the_db, model)
 
       i      += 1
 
       if i == 10: break
 
   handle.close()
+  logger.info('insert_models_from_models_parameter_file: "{0}" rows inserted into models table'.format(i))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_tracks_from_models_parameter_file(dbname, ascii_in):
@@ -132,7 +213,7 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   This routine is protected agains *Injection Attacks*.
   """
   if not os.path.exists(ascii_in):
-    logger.error('get_insert_commands_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
+    logger.error('insert_tracks_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
     sys.exit(1)
 
  try:

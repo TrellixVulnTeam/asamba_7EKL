@@ -14,6 +14,72 @@ import var_def
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   F O R   M O D E L   O B J E C T S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_attrs():
+  """
+  Get the entire list of attributes for an instance of the var_def.model class. The attributes are 
+  sorted in the way they are defined in the class (which might be different from the order in which 
+  they are stored/allocated in memory!). The returned list is a concatenation of the two following 
+  lists:
+  - basic attributes, retrieved by calling get_model_basic_attrs()
+  - other attributes, retrieved by calling get_model_other_attrs()
+
+  @return: the full list of var_def.model attribute names 
+  @rtype: list of strings
+  """
+
+  return get_model_basic_attrs() + get_model_other_attrs()
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_basic_attrs():
+  """
+  Get the basic attributes of a var_def.model() object. These six attributes distinguish a MESA 
+  model from another.
+
+  @return: list of basic attribute names, i.e. 'M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number'
+  @rtype: list of strings
+  """
+  return get_track_attrs() + ['Xc', 'model_number']
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_other_attrs():
+  """
+  Get the other attribute names of the var_def.model() object. These attributes are retrieved from
+  MESA history information.
+
+  @return: list of other attribute names 
+  @rtype: list of strings
+  """
+  str_attrs = [# fundamental parameters
+               'star_mass', 'radius', 'log_Teff', 'log_g', 'log_L', 'log_Ledd',
+               'log_abs_mdot', 'mass_conv_core', 'star_age', 
+               # timescales
+               'dynamic_timescale', 'kh_timescale', 'nuc_timescale', 
+               # core conditions
+               'log_center_T', 'log_center_Rho', 'log_center_P', 
+               # core abundances
+               'center_h1', 'center_h2', 'center_he3', 'center_he4', 'center_c12', 
+               'center_c13', 'center_n14', 'center_n15', 'center_o16', 'center_o18', 
+               'center_ne20', 'center_ne22', 'center_mg24', 
+               # surface abundances
+               'surface_h1', 'surface_h2', 'surface_he3', 'surface_he4', 'surface_c12',
+               'surface_c13', 'surface_n14', 'surface_n15', 'surface_o16', 'surface_o18',
+               'surface_ne20', 'surface_ne22', 'surface_mg24',
+               # asteroseismic global/scaling parameters
+               'delta_nu', 'nu_max', 'acoustic_cutoff', 'delta_Pg',
+               # color indexes
+               'Mbol', 'bcv', 'U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H',
+               'H_K', 'K_L', 'J_K', 'J_L', 'J_Lp', 'K_M'
+              ] 
+
+  return str_attrs
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E L S   O B J E C T S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -350,6 +416,16 @@ def prepare_models_data(self_models):
   logger.info('Done')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# R O U T I N E S   F O R   T R A C K S   O B J E C T S
+# R O U T I N E S   F O R   T R A C K   O B J E C T S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_track_attrs():
+  """
+  Get the attribute names of the var_def.track object. These are the four basic attributes used to 
+  define/distinguish an evolutionary track in MESA.
+
+  @return: list of attribute names, i.e. 'M_ini', 'fov', 'Z', 'logD'
+  @rtype: list of strings
+  """
+  return ['M_ini', 'fov', 'Z', 'logD']
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -93,7 +93,7 @@ class grid_db:
     self.connection.commit()
 
   # ...................................
-  def execute_one(self, cmnd, value):
+  def execute_one(self, cmnd, value, commit=True):
     """
     **Execute AND commit** one SQL command on the cursor, passed by the "cmnd"
     """
@@ -101,7 +101,7 @@ class grid_db:
     if result is not None:
       logger.error('execute_one failed')
       sys.exit(1)
-    self.commit()
+    if commit: self.commit()
 
   # ...................................
   def execute_many(self, cmnd, values):

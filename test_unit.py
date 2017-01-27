@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_04(dbname, ascii_in):
+
+  logger.info('do_test_04: test insert_lib.insert_models_from_models_parameter_file()')
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_03(dbname):
 
@@ -398,9 +402,12 @@ def test_string(dbname):
     the_db.execute_one('delete from tracks', None)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def main():
+def main(ascii_in):
   """
   Execute the tests one after the other
+
+  @param ascii_in: full path to where the ASCII model parameter file is stored. This is a large file
+         (~ 2-3 GB), and has >3.8 million rows, and about 65 columns.
   """
   logger.info('Main: Start the tests')
 
@@ -422,6 +429,9 @@ def main():
 
   # status  = do_test_03(dbname=my_db)
 
+  if ascii_in:
+    status= do_test_04(dbname=my_db, ascii_in=ascii_in)
+
   # test_string(dbname=my_db)
 
   status  = drop_test_database(dbname=my_db)
@@ -431,6 +441,13 @@ def main():
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if __name__ == '__main__':
-  status = main()
+  args     = sys.argv
+  if len(args) == 2:
+    ascii_in = args[1]
+  else:
+    ascii_in = ''
+  print ascii_in
+  sys.exit('in main')
+  status   = main(ascii_in=ascii_in)
   sys.exit(status)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
