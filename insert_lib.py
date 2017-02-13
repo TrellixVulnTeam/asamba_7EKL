@@ -85,32 +85,37 @@ def insert_row_into_models(dbobj, model):
   return None
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def prepare_insert_tracks(dbname_or_dbobj, include_id=False):
+def prepare_insert_tracks(include_id=False):
   """
   Execute the SQL "Prepare" statement in order to prepare for inserting rows into the tracks
   table
+
+  @param include_id: (default False) Set True to include the attribute "id" as a part of the 
+         prepare statement, or False to exclude it. Note that if "id" is included, during the 
+         insertion operation, it should be also included accordingly.
+  @type include_id: boolean      
+  @return: the prepare_insert_tracks command to be executed independently
+  @rtype: string
   """
   if include_id:
     cmnd   = 'prepare prepare_insert_tracks (integer, real, real, real, real) as \
-              insert into %s.tracks (id, M_ini, fov, Z, logD) values \
+              insert into tracks (id, M_ini, fov, Z, logD) values \
               ($1, $2, $3, $4, $5)'
   else:
     cmnd   = 'prepare prepare_insert_tracks (real, real, real, real) as \
-              insert into %s.tracks (M_ini, fov, Z, logD) values \
+              insert into tracks (M_ini, fov, Z, logD) values \
               ($1, $2, $3, $4)'
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
-      the_db.execute_one(cmnd, (the_db.dbname, ))
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, (dbname_or_dbobj.dbname, ))
-  else:
-    logger.error('prepare_insert_tracks: Input argument has unsupported type')
-    sys.exit(1)
+  return cmnd
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def execute_insert_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
   """
+  Obsolete: 
+  The prepare statements in SQL are only effective while the connection to the database is active. 
+  Once the connection is broken, the prepare statements are ineffective. For this reason, this function
+  is useless.
+
   Execute the prepared insertion statement. This implies that the function prepare_insert_tracks()
   is already executed, and the prepare statment is already activated in the open session.
   """
@@ -129,8 +134,6 @@ def execute_insert_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
   else:
     logger.error('execute_insert_into_tracks: Input argument dbname_or_dbobj has a wrong type!')
     sys.exit(1)
-
-
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
@@ -210,19 +213,31 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   """
+  Insert distinct track rows into the *tracks* table in the grid database. The four track attributes
+  are taken from 
   This routine is protected agains *Injection Attacks*.
+
+  @
   """
   if not os.path.exists(ascii_in):
     logger.error('insert_tracks_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
     sys.exit(1)
 
- try:
+  try:
     assert db_def.exists(dbname=dbname) == True
     # the_db = db_def.grid_db()
     logger.info('insert_tracks_from_models_parameter_file: database "{0}" exists.'.format(dbname))
   except:
     logger.error('insert_tracks_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
     sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    try:
+      assert the_db.has_table('tracks')
+    except AssertionError:
+      logger.error('insert_tracks_from_models_parameter_file: \
+                    Table "{0}" not found in the database "{1}"'.format('tracks', dbname))
+      sys.exit(1)
 
 
   # open the file, and get the file handle
@@ -236,7 +251,7 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     i      += 1
     if i <= 0:     # skip the header
       hdr  = handle.readline()
-      continue     
+      continue    
 
     line   = handle.readline()
     if not line: break      # exit by the End-of-File (EOF)
@@ -253,8 +268,12 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     sys.stdout.write('progress = {0:.2f} % '.format(100. * i/3.845e6))
     sys.stdout.flush()
 
-    # if tup in unique: continue
-    tups.append(tup)
+    # make sure the insert row is unique. the following statement is too inefficient, but is OK
+    # because the tracks table is gonna be filled up only once. On the plus side, the following 
+    # statement keeps the same ordering of the ascii file intact, so, tracks are enumerated as 
+    # they appear in the file. The alternative/efficient way (list --> set --> list) would be super
+    # efficient, but does not guarantee the order (set rule)
+    if tup not in tups: tups.append(tup)
 
   handle.close()
   print
@@ -265,11 +284,16 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
 
   n_values = len(tups)
   with db_def.grid_db(dbname=dbname) as the_db:
-    the_db.prepare_insert_tracks(include_id=False)
+    
+    # prepare an insertion statement into the tracks table
+    cmnd   = prepare_insert_tracks(include_id=False)
+    the_db.execute_one(cmnd, None)
+
     # execute many and commit
     logger.info('insert_tracks_from_models_parameter_file: "{0}" tracks recognized'.format(n_values))
-    cmnd   = 'execute prepare_insert_tracks ({0})'.format(','.join(['?']*4))
+    cmnd   = 'execute prepare_insert_tracks ({0})'.format( ','.join( ['%s'] * 4 ))
     the_db.execute_many(cmnd=cmnd, values=tups)
+    # the_db.execute_one(cmnd, tups[0])
     logger.info('insert_tracks_from_models_parameter_file: Insertion completed.')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

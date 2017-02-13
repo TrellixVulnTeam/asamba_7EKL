@@ -160,6 +160,8 @@ class tracks:
 
     self.set_n_dirs_M_ini(n_dirs)
     self.set_list_dirs_M_ini(dirs)
+    logger.info('set_mass_directories: Found "{0}" directories with "{1}"'.format(
+           n_dirs, mass_search_pattern))
 
   def set_track_parameters(self):
     """
@@ -222,6 +224,7 @@ class tracks:
     # Store the data into the "tracks" object
     self.set_n_tracks(n_tracks)
     self.set_list_tracks(list_tracks)
+    logger.info('set_track_parameters: Setting track numbers and list done.')
 
   # Getters
   def get_dir_repos(self):
@@ -470,6 +473,14 @@ class models:
     self.set_n_models(n_files)
     self.set_list_filenames(list_filenames)
     logger.info('find_list_filenames: found "{0}" model files'.format(n_files))
+
+  def sort_list_filenames(self):
+    # filenames  = self.get_list_filenames()
+    # n_files    = len(files)
+    if self.get_n_models() == 0:
+      logger.error('sort_list_filenames: list of filenames is empty. Call find_list_filenames()')
+      sys.exit(1)
+    self.list_filenames.sort()
 
   # Getters
   def get_model_search_pattern(self):

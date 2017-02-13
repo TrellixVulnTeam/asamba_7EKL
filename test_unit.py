@@ -25,9 +25,15 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_05(dbname, ascii_in):
+
+  logger.info('do_test_05: test insert_lib.insert_models_from_models_parameter_file()')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_04(dbname, ascii_in):
 
-  logger.info('do_test_04: test insert_lib.insert_models_from_models_parameter_file()')
+  logger.info('do_test_04: test insert_lib.insert_tracks_from_models_parameter_file()')
+  insert_lib.insert_tracks_from_models_parameter_file(dbname, ascii_in)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_03(dbname):
@@ -423,14 +429,16 @@ def main(ascii_in):
 
   make_table_tracks(dbname=my_db)
 
-  status  = do_test_01(dbname=my_db)
+  # status  = do_test_01(dbname=my_db)
 
-  status  = do_test_02(dbname=my_db)
+  # status  = do_test_02(dbname=my_db)
 
   # status  = do_test_03(dbname=my_db)
 
   if ascii_in:
     status= do_test_04(dbname=my_db, ascii_in=ascii_in)
+    
+    status= do_test_05(dbname=my_db, ascii_in=ascii_in)
 
   # test_string(dbname=my_db)
 
@@ -446,8 +454,6 @@ if __name__ == '__main__':
     ascii_in = args[1]
   else:
     ascii_in = ''
-  print ascii_in
-  sys.exit('in main')
   status   = main(ascii_in=ascii_in)
   sys.exit(status)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

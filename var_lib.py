@@ -50,16 +50,20 @@ def get_model_basic_attrs():
 def get_model_other_attrs():
   """
   Get the other attribute names of the var_def.model() object. These attributes are retrieved from
-  MESA history information.
+  MESA history information, and are in the same order as they appear as history column names. This
+  choice facilitates much faster conversion of history rows/columns and writing them down into an 
+  ASCII file. The same is true when reading the file. For other purposes, the ordering is not 
+  important.
 
   @return: list of other attribute names 
   @rtype: list of strings
   """
   str_attrs = [# fundamental parameters
-               'star_mass', 'radius', 'log_Teff', 'log_g', 'log_L', 'log_Ledd',
-               'log_abs_mdot', 'mass_conv_core', 'star_age', 
+               'star_mass', 'star_age', 'log_abs_mdot', 'mass_conv_core', 
                # timescales
                'dynamic_timescale', 'kh_timescale', 'nuc_timescale', 
+               # global parameters
+               'log_Teff', 'log_L', 'radius', 'log_g', 'log_Ledd',               
                # core conditions
                'log_center_T', 'log_center_Rho', 'log_center_P', 
                # core abundances
@@ -79,6 +83,18 @@ def get_model_other_attrs():
 
   return str_attrs
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_color_attrs():
+  """
+  Get the attributes of the model, corresponding to the color indixes.
+
+  @return: list of color attribute names
+  @rtype: list of string
+  """
+  clr_attrs = ['Mbol', 'bcv', 'U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H',
+               'H_K', 'K_L', 'J_K', 'J_L', 'J_Lp', 'K_M']
+
+  return clr_attrs
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E L S   O B J E C T S
@@ -334,6 +350,9 @@ def gen_histname_from_gyre_in(gyre_in_filename):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def prepare_models_data(self_models):
   """
+  Obsolete: This routine is a no Go, when dealing with the entire database, because we immediately 
+  run out of memory.
+
   This routine prepares the necessary data needed to fill up all required fields in the "model" objects.
   For that, we use the values from the history filenames, from GYRE input filename, and from the history
   columns, as soon as we match the model_number of the input model with that of the evolution step in

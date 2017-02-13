@@ -3,19 +3,117 @@ import sys, os, glob
 import logging
 import numpy as np 
 
+from grid import var_lib, read
+
+import time
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_model_parameters_to_ascii(self_models, ascii_out):
   """
+  Note: The old ascii_out file will be overwritten, if it already exists.
+  """
+  t0 = time.time()
+  sm = self_models
+  n_models = sm.get_n_models()
+  if n_models == 0:
+    logger.warning('write_model_parameters_to_ascii: calling models.find_list_filenames() first')
+    sm.find_list_filenames()
+  t1 = time.time()
+  list_gyre_in = sm.get_list_filenames()
+  n_files      = len(list_gyre_in)
+  logger.info('write_model_parameters_to_ascii: Found "{0}" "{1}" files.'.format(
+              n_files, sm.get_model_extension()))
+  t2 = time.time()
+  sm.sort_list_filenames()
+  t3 = time.time()
+  print 't1-t0: time to find files:', t1-t0
+  print 't2-t1: get list of filenames:', t2-t1
+  print 't3-t2: sort filenames:', t3-t2 
 
+  # get model attributes other than the six basic ones
+  other_attrs   = var_lib.get_model_other_attrs()
+  color_attrs   = var_lib.get_model_color_attrs()
+  rec_attrs     = []
+  for attr in other_attrs:
+    if attr in color_attrs and '_' in attr:
+      attr      = attr.replace('_', '-')
+    rec_attrs.append(attr)
+  set_attrs     = set(rec_attrs)
+
+  # open the file handle
+  if os.path.exists(ascii_out): os.unlink(ascii_out)
+  try:
+    handle    = open(ascii_out, 'a')
+  except:
+    logger.error('write_model_parameters_to_ascii: failed to open: "{0}"'.format(ascii_out))
+    sys.exit(1)
+
+  # collect the header for all columns
+  header      = '{0:>6s} {1:>5s} {2:>5s} {3:>5s} {4:>6s} {5:>5s} '.format(
+                 'M_ini', 'fov', 'Z', 'logD', 'Xc', 'num')
+  header      += ' '.join([ '{0:>12s}'.format(attr[:12]) for attr in rec_attrs ]) + '\n'
+  # write the header
+  handle.write(header)
+
+  # iterate over the list of input GYRE files, and fetch the corresponding info from the history file  
+  last_histname = ''
+  for i, filename in enumerate(list_gyre_in):
+
+    # find the corresponding history file for this model
+    histname  = var_lib.gen_histname_from_gyre_in(filename)
+    # avoid reading the hist file again if the model is along the same track as that of the 
+    # previous iteration
+    if histname == last_histname:
+      pass
+    else:
+      if not os.path.exists(histname):
+        logger.error('write_model_parameters_to_ascii: missing the corresponding hist file {0}'.format(histname))
+        sys.exit(1)
+      hdr, hist = read.read_mesa_ascii(histname)
+      last_histname = histname
+
+    tup_gyre_in_par = var_lib.get_model_parameters_from_gyre_in_filename(filename)
+
+    M_ini     = tup_gyre_in_par[0]
+    fov       = tup_gyre_in_par[1]
+    Z         = tup_gyre_in_par[2]
+    logD      = tup_gyre_in_par[3]
+    evol_state= tup_gyre_in_par[4]
+    Xc        = tup_gyre_in_par[5]
+    model_number = tup_gyre_in_par[6]
+
+    # get the corresponding row for this model from the hist recarray
+    ind_row   = model_number - 1
+    if model_number == hist['model_number'][ind_row]:
+      pass
+    else:
+      logger.error('write_model_parameters_to_ascii: messed up model_number!')
+      ind_row = np.where(hist['model_number'] == model_number)[0][0]
+    row       = hist[ind_row]
+
+    # manually, construct the first 6 columns of the output file
+    line      = '{0:>06.3f} {1:>05.3f} {2:>05.3f} {3:>05.2f} {4:>06.4f} {5:>05d} '.format(
+                 M_ini, fov, Z, logD, Xc, model_number)
+    line      += ' '.join(['{0:>12.5e}'.format(row[attr]) for attr in rec_attrs]) + ' \n'
+
+    # append to the ascii file, and to the output list
+    handle.write(line)
+
+  logger.info('write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
+  print ' - grid.write.write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def write_model_parameters_to_ascii_obsolete(self_models, ascii_out):
+  """
+  Note: The old ascii_out file will be overwritten, if it already exists.
   """
   sm = self_models
   n_models = sm.get_n_models()
   if n_models == 0:
-    logger.error('write_model_parameters_to_ascii: the passed "models" object has no models inside')
+    logger.error('write_model_parameters_to_ascii_obsolete: the passed "models" object has no models inside')
     sys.exit(1)
   list_models = sm.get_list_models()
 
@@ -24,7 +122,7 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
   try:
     handle    = open(ascii_out, 'a')
   except:
-    logger.error('write_model_parameters_to_ascii: failed to open: "{0}"'.format(ascii_out))
+    logger.error('write_model_parameters_to_ascii_obsolete: failed to open: "{0}"'.format(ascii_out))
     sys.exit(1)
 
   # filter the attributes
@@ -66,8 +164,8 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
     handle.write(line)
     lines.append(line)
 
-  logger.info('write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
-  print ' - grid.write.write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out)
+  logger.info('write_model_parameters_to_ascii_obsolete: saved "{0}"'.format(ascii_out))
+  print ' - grid.write.write_model_parameters_to_ascii_obsolete: saved "{0}"'.format(ascii_out)
 
   return lines
 
