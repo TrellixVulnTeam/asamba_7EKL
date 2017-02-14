@@ -28,13 +28,15 @@ def prepare_insert_models():
 
   # creating a concatenated string for all variable types in order
   str_types   = 'int,real,int,' + ','.join(['real']*n_other)
-  str_attrs   = ['id_track', 'Xc', 'model_number']
-  n_attrs     = len(str_attrs)
-  str_qmarks  = ','.join(['?']*n_attrs)
+  avail_attrs = ['id_track', 'Xc', 'model_number'] + var_lib.get_model_other_attrs() 
+  n_attrs     = len(avail_attrs)
+  str_attrs   = ','.join(avail_attrs)
+  # str_qmarks  = ','.join(['?']*n_attrs)
+  str_qmarks  = ','.join([ '${0}'.format(i+1) for i in range(n_attrs) ])
 
   cmnd = 'prepare prepare_insert_models ({0}) as \
           insert into models ({1}) values ({2})'.format(
-          str_types, str_attrs, str_qmark)
+          str_types, str_attrs, str_qmarks)
   
   return cmnd
 
@@ -62,14 +64,14 @@ def insert_row_into_models(dbobj, model):
   @return: None
   @rtype: NoneType
   """
-  attrs  = ['id_tracks'] + var_lib.get_model_attrs()
+  attrs  = ['id_tracks', 'Xc', 'model_number'] + var_lib.get_model_other_attrs()
 
   M_ini  = model.M_ini
   fov    = model.fov
   Z      = model.Z
   logD   = model.logD
-  id_track = db_lib.get_track_id(M_ini=M_ini, fov=fov, Z=Z, logD=logD)
-  print id_track
+  id_track = db_lib.get_track_id(dbname_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+  # print id_track
 
   vals   = [id_track]
   for i, attr in enumerate(attrs[1:]): 
@@ -80,7 +82,7 @@ def insert_row_into_models(dbobj, model):
   cmnd   = get_execute_insert_model_command(tup)
   dbobj.execute_one(cmnd, tup, commit=False)
 
-  logger.info('insert_row_into_models: one row added.')
+  logger.info('insert_row_into_models: Adding: id_track={0}, Xc={1}'.format(id_track, model.Xc))
 
   return None
 
@@ -109,36 +111,24 @@ def prepare_insert_tracks(include_id=False):
   return cmnd
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def execute_insert_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
-  """
-  Obsolete: 
-  The prepare statements in SQL are only effective while the connection to the database is active. 
-  Once the connection is broken, the prepare statements are ineffective. For this reason, this function
-  is useless.
-
-  Execute the prepared insertion statement. This implies that the function prepare_insert_tracks()
-  is already executed, and the prepare statment is already activated in the open session.
-  """
-  if isinstance(id, type(None)):
-    cmnd = 'execute prepare_insert_tracks (%s, %s, %s, %s)'
-    tup  = (M_ini, fov, Z, logD)
-  elif isinstance(id, int):
-    cmnd = 'execute prepare_insert_tracks (%s, %s, %s, %s, %s)'
-    tup  = (id, M_ini, fov, Z, logD)
-
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
-      the_db.execute_one(cmnd, tup)
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, tup)
-  else:
-    logger.error('execute_insert_into_tracks: Input argument dbname_or_dbobj has a wrong type!')
-    sys.exit(1)
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
   """
   Inset one row into the "tracks" table of the database
+
+  @param dbname_or_dbobj: The name of the database, or an instance of the database connection
+  @type dbname_or_dbobj: string or object
+  @param id: track id (declared serial in the SQL schema). If None, then its value is assigned by 
+         SQL internally. If set to an integer, the passed value is enforced.
+  @type id: int or None
+  @param M_ini: initial mass of the track (in solar mass)
+  @type M_ini: float
+  @param fov: exponential overshoot free parameter
+  @type fov: float
+  @param Z: metallicity (with the standard solar metallicity 0.014)
+  @type Z: float
+  @param logD: the logarithm of the extra diffusive mixing
+  @type logD: float
+  @return: None
   """
   if isinstance(id, type(None)):
     cmnd = 'insert into tracks (M_ini, fov, Z, logD) values (%s, %s, %s, %s)'
@@ -172,22 +162,55 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
   """
   This function starts from an ASCII input file (which is most probably prepared by calling 
   write.write_model_parameters_to_ascii), and insert each line as a row into the "models" table of 
-  the database
+  the database. For example, one can use this function like the following:
+
+  >>>from grid import insert_lib
+  >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
+  >>>insert_lib.insert_models_from_models_parameter_file(dbname='grid', ascii_in=param_file)
+
+  @param dbname: the name of the database which contains the "models" table. Normally, it is called
+         "grid"
+  @type dbname: string
+  @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
+         columns. Only the unique M_ini, fov, Z and logD attributes are extracted from the rows, and 
+         inserted into distinct rows into the "tracks" table.
+  @type ascii_in: string
   """
   if not os.path.exists(ascii_in):
     logger.error('insert_models_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
     sys.exit(1)
   else:     # get the file handle
+    n_rows = sum((1 for i in open(ascii_in, 'rb'))) - 1
     handle = open(ascii_in, 'r')
+
+  try:
+    assert db_def.exists(dbname=dbname) == True
+    logger.info('insert_models_from_models_parameter_file: database "{0}" exists.'.format(dbname))
+  except:
+    logger.error('insert_models_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    try:
+      assert the_db.has_table('models')
+    except AssertionError:
+      logger.error('insert_models_from_models_parameter_file: \
+                    Table "{0}" not found in the database "{1}"'.format('models', dbname))
+      sys.exit(1)
+
+  # open the file, and get the file handle
+  handle   = open(ascii_in, 'r')
+  tups     = []
 
   # walk over the input file, and insert each row one after the other
   i        = -1
   with db_def.grid_db(dbname=dbname) as the_db:
-    # first, prepare the database to receive a lot of insertions
+
+    # prepare the database to receive a lot of insertions
     cmnd   = prepare_insert_models()
     the_db.execute_one(cmnd, None)
 
-    # now, iterate over each line and insert it into the database
+    # iterate over each line and insert it into the database
     while  True:
       i      += 1
       if i <= 0:      # skip the header
@@ -195,29 +218,39 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
         continue
 
       line   = handle.readline()
-      if line == '': # commit and close the connection: end of the journey!
-        conn = the_db.get_connection()
-        conn.commit()
-        break
+      if not line: break     # exit by the End-of-File (EOF)
+      # row    = line.rstrip('\r\n').split()
 
       with model_line_to_model_object(line) as model:
         insert_row_into_models(the_db, model)
+        print model.Xc
 
-      i      += 1
-
-      if i == 10: break
+      # progress bar on the stdout
+      sys.stdout.write('\r')
+      sys.stdout.write('progress = {0:.2f} % '.format(100. * float(i)/n_rows))
+      sys.stdout.flush()
 
   handle.close()
-  logger.info('insert_models_from_models_parameter_file: "{0}" rows inserted into models table'.format(i))
+  logger.info('insert_models_from_models_parameter_file: "{0}" rows inserted into models table'.format(i-1))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   """
   Insert distinct track rows into the *tracks* table in the grid database. The four track attributes
   are taken from 
-  This routine is protected agains *Injection Attacks*.
+  This routine is protected agains *Injection Attacks*. Example of use is:
 
-  @
+  >>>from grid import insert_lib
+  >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
+  >>>insert_lib.insert_tracks_from_models_parameter_file(dbname='grid', ascii_in=param_file)
+
+  @param dbname: the name of the database which contains the "tracks" table. Normally, it is called
+         "grid"
+  @type dbname: string
+  @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
+         columns. Only the unique M_ini, fov, Z and logD attributes are extracted from the rows, and 
+         inserted into distinct rows into the "tracks" table.
+  @type ascii_in: string
   """
   if not os.path.exists(ascii_in):
     logger.error('insert_tracks_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
@@ -225,7 +258,6 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
 
   try:
     assert db_def.exists(dbname=dbname) == True
-    # the_db = db_def.grid_db()
     logger.info('insert_tracks_from_models_parameter_file: database "{0}" exists.'.format(dbname))
   except:
     logger.error('insert_tracks_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
@@ -238,7 +270,6 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
       logger.error('insert_tracks_from_models_parameter_file: \
                     Table "{0}" not found in the database "{1}"'.format('tracks', dbname))
       sys.exit(1)
-
 
   # open the file, and get the file handle
   handle   = open(ascii_in, 'r')
@@ -273,14 +304,15 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     # statement keeps the same ordering of the ascii file intact, so, tracks are enumerated as 
     # they appear in the file. The alternative/efficient way (list --> set --> list) would be super
     # efficient, but does not guarantee the order (set rule)
-    if tup not in tups: tups.append(tup)
+    # if tup not in tups: tups.append(tup)
+    tups.append(tup)
 
   handle.close()
   print
 
   # pick only unique sets of the track parameters
   unique   = set(tups)
-  tups     = list(unique)
+  tups     = sorted(list(unique))
 
   n_values = len(tups)
   with db_def.grid_db(dbname=dbname) as the_db:
@@ -348,32 +380,16 @@ def model_line_to_model_object(line):
     sys.exit(1)
   line        = line.rstrip('\r\n').split()
 
+  # instantiate a model object
   model       = var_def.model()
-  # model_attrs = dir(model)
-  
-  # exclude     = ['__doc__', '__init__', '__enter__', '__exit__', '__del__', '__module__', 
-  #                'filename', 'track', 'set_by_dic', 
-  #                'set_filename', 'set_track', 'get']
-  # model_attrs = [attr for attr in model_attrs if attr not in exclude]
-  # basic_attrs = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number'] # treated manually below
-  # other_attrs = [attr for attr in model_attrs if attr not in basic_attrs]
-  # color_attrs = set(['U_B', 'B_V', 'V_R', 'V_I', 'V_K', 'R_I', 'I_K', 'J_H', 'H_K', 'K_L', 'J_K',
-  #                    'J_L', 'J_Lp', 'K_M'])
 
-  avail_attrs = dir(model)
-  exclude     = set(['__init__', '__doc__', '__module__', 'filename', 'track'])
-  avail_attrs = [attr for attr in avail_attrs if attr not in exclude]
-  avail_attrs = [attr for attr in avail_attrs if 'set' not in attr and 'get' not in attr]
-  key_attrs   = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number']
-  other_attrs = [attr for attr in avail_attrs if attr not in key_attrs]
+  # get the model attribute names
+  avail_attrs = var_lib.get_model_attrs()
 
-  dic         = dict()
-  for i, attr in enumerate(key_attrs):
-    val       = line[i]
+  for i, attr in enumerate(avail_attrs):
     conv      = float
-    model[attr]
-    if attr == 'model_number':
-      conv    = int
+    if attr   == 'model_number': conv = int 
+    val       = conv(line[i])
     setattr(model, attr, val)
 
   return model

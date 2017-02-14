@@ -44,6 +44,9 @@ class track:
 
     self.filename = ''
 
+  def __exit__(self, type, value, traceback):
+    pass
+
   def set_M_ini(self, M_ini):
     self.M_ini = M_ini
 
@@ -113,6 +116,12 @@ class tracks:
     self.list_dirs_M_ini = []
     self.n_tracks = 0
     self.list_tracks = []
+
+  def __enter__(self):
+    return self 
+
+  def __exit__(self, type, value, traceback):
+    pass
 
   # Setters
   def set_dir_repos(self, dir_repos):
@@ -337,6 +346,12 @@ class model:
     self.J_Lp              = 0.
     self.K_M               = 0.
 
+  def __enter__(self):
+    return self 
+
+  def __exit__(self, type, value, traceback):
+    pass
+
   # Setters
   def set_filename(self, filename):
     self.filename = filename
@@ -425,6 +440,12 @@ class models:
     self.list_filenames = []
 
     self.list_models = []
+
+  def __enter__(self):
+    return self 
+
+  def __exit__(self, type, value, traceback):
+    pass
 
   # Setters
   def set_model_search_pattern(self, model_search_pattern):
