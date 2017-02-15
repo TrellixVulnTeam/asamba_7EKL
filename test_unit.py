@@ -5,7 +5,7 @@ import logging
 import numpy as np 
 import psycopg2
 
-from grid import db_def, db_lib, insert_lib
+from grid import db_def, db_lib, insert_lib, read
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Error Handling and Logging
@@ -408,6 +408,15 @@ def test_string(dbname):
     the_db.execute_one('delete from tracks', None)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def test_gyre_h5(filename):
+  logger.info('test_gyre_h5: test read.get_minimal_gyre_output()')
+  modes  = read.gyre_h5(filename)
+  if modes:
+    logger.info('test_gyre_h5: Succeeded')
+  else:
+    logger.error('test_gyre_h5: Failed')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def main(ascii_in):
   """
   Execute the tests one after the other
@@ -437,7 +446,7 @@ def main(ascii_in):
 
   if ascii_in:
     status= do_test_04(dbname=my_db, ascii_in=ascii_in)
-    
+
     status= do_test_05(dbname=my_db, ascii_in=ascii_in)
 
   # test_string(dbname=my_db)
@@ -446,6 +455,7 @@ def main(ascii_in):
   if status is not True:
     logger.error('main: drop_test_db failed')
     return status
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if __name__ == '__main__':

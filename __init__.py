@@ -9,6 +9,11 @@ __all__ = [
            ]
 
 from .version import __version__
+try:
+  import h5py
+except ImportError:
+  print 'ImportError: Please try installing the "h5py" Python module first:'
+  print 'http://docs.h5py.org/en/latest/build.html'
 # try:
 #   import psycopg2
 # except ImportError:

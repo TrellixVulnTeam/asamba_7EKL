@@ -374,7 +374,6 @@ class model:
     @param dic: a dictionary containing the attributes to be set in the model, e.g.
     @type dic: dict
     """
-    # avail = dir(self)
     items = dic.items()
     n_items = len(items)
     if n_items == 0:
@@ -519,5 +518,117 @@ class models:
   def get_n_models(self):
     return self.n_models
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+class modes:
+  """
+  This is a light-weight container for the GYRE outputs. All attriutes corresponding to the summary
+  files or the eigenfunction files are available. The fields are initiated to "None" to keep the default
+  volume of the objects minimal.
+  """
+
+  def __init__(self):
+    """
+    Constructor of the class. The attributes are based on the GYRE v.4.4, and the list of attributes 
+    are availble here: <https://bitbucket.org/rhdtownsend/gyre/wiki/Output%20Files%20(4.4)>
+    """
+    # Attributes of the summary files (eigenfrequency list)
+    self.l            = None
+    self.l_0          = None
+    self.m            = None
+    self.n_pg         = None
+    self.n_p          = None
+    self.n_g          = None
+    self.omega        = None
+    self.omega_int    = None
+    self.freq         = None
+    self.freq_units   = ''
+    self.f_T          = None
+    self.f_g          = None
+    self.psi_T        = None
+    self.psi_g        = None
+    self.beta         = None
+    self.E            = None
+    self.E_norm       = None
+    self.W            = None
+    self.M_star       = None
+    self.R_star       = None
+    self.L_star       = None
+    self.n_poly       = None
+
+    # Attributes of the mode files (eigenfunction files)
+    self.n            = None
+    self.x            = None
+    self.V            = None
+    self.As           = None
+    self.U            = None
+    self.c_1          = None
+    self.Gamma_1      = None
+    self.nabla_ad     = None
+    self.delta        = None
+    self.Omega_rot    = None
+    self.xi_r         = None
+    self.xi_h         = None
+    self.Yt_1         = None
+    self.Yt_2         = None
+    self.eul_phi      = None
+    self.deul_phi     = None
+    self.eul_p        = None
+    self.eul_rho      = None
+    self.eul_T        = None
+    self.lag_S        = None
+    self.lag_L        = None
+    self.lag_p        = None
+    self.lag_rho      = None
+    self.lag_T        = None
+    self.dE_dx        = None
+    self.dW_dx        = None
+    self.prop_type    = None
+    self.K            = None
+    self.M_r          = None
+    self.p            = None
+    self.rho          = None
+    self.T            = None
+    self.F_j          = None
+    self.div_F_j      = None
+
+    # Other attributes
+    self.label        = None
+
+  def __enter__(self):
+    return self 
+
+  def __exit__(self, type, value, traceback):
+    pass
+
+  # Setters
+  def set(self, attr, val):
+    """
+    Set the value of an attribute
+    """
+    if not hasattr(self, attr):
+      logger.error('modes.set(): Attribute "{0}" not available'.format(attr))
+      sys.exit(1)
+    setattr(self, attr, val)
+
+  def set_by_dic(self, dic):
+    """
+    Set the attributes of the object through the available items (key, values) in the passed 
+    dictionary. This is to minimize the number of necessary calls to the "set()" method.
+
+    @param self: An instance of the modes class
+    @type self: object
+    @param dic: A dictionary containing the contents of the GYRE output files
+    @type dic: dictionary
+    """
+    items = dic.items()
+    n_items = len(items)
+    if n_items == 0:
+      logger.error('modes: set_by_dic: The input dictionary has no items inside.')
+      sys.exit(1)
+
+    for item in items:
+      key = item[0]
+      val = item[1]
+      self.set(key, val)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

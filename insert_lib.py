@@ -3,7 +3,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import var_def, var_lib, db_def, db_lib
+from grid import var_def, var_lib, db_def, db_lib, read
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -150,6 +150,50 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
     sys.exit(1)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   T O   I N S E R T   G Y R E   D A T A    I N T O   T H E   D A T A B A S E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def insert_gyre_output_into_modes_table(dbname, list_h5, commit_every=10000):
+  """
+  Insert GYRE output data (mode order "n" and frequency "freq") into the "modes" table, using the 
+  list of HDF5 GYRE output files. Since this is a massive and time consuming operation, this the 
+  insertions are committed occasionally.
+
+  @param dbname: the name of the database which contains the "models" table. Normally, it is called
+         "grid"
+  @type dbname: string
+  @param list_h5: list of full path to each individual GYRE HDF5 file which will be inserted into 
+         the database. Each file is read internally.
+  @type list_h5: list of string
+  """
+  try:
+    assert db_def.exists(dbname=dbname) == True
+    logger.info('insert_gyre_output_into_modes_table: database "{0}" exists.'.format(dbname))
+  except:
+    logger.error('insert_gyre_output_into_modes_table: failed to instantiate database "{0}".'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    try:
+      assert the_db.has_table('modes')
+    except AssertionError:
+      logger.error('insert_gyre_output_into_modes_table: \
+                    Table "{0}" not found in the database "{1}"'.format('models', dbname))
+      sys.exit(1)
+
+  # iterate over input files, and insert them into the database
+  n_h5    = len(list_h5)
+  for i, h5_file in enumerate(list_h5):
+
+    gyre_out = read.get_minimal_gyre_output(h5_file)
+
+
+
+  return None 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
 
