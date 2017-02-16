@@ -2,6 +2,7 @@
 import sys, os, glob
 import subprocess
 import logging
+import time
 import numpy as np 
 import psycopg2
 
@@ -23,6 +24,30 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # T E S T I N G   F U N C T I O N S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_07(dbname, list_h5):
+
+  n_h5 = len(list_h5)
+  logger.info('do_test_07: test insert_lib.insert_gyre_output_into_modes_table(): with "{0}" files'.format(n_h5))
+  try:
+    t0 = time.time()
+    insert_lib.insert_gyre_output_into_modes_table(dbname=dbname, list_h5=list_h5)
+    dt = time.time() - t0
+    logger.info('do_test_07: succeeded. "{0}" files inserted in {1} sec'.format(n_h5, dt))
+  except:
+    logger.info('do_test_07: failed')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_06(dbname):
+
+  logger.info('do_test_06: test db_def.grid_db.get_table()')
+  with db_def.grid_db(dbname=dbname) as the_db:
+    try:
+      result = the_db.get_mode_types()
+      logger.info('do_test_06: succeeded')
+    except:
+      logger.error('do_test_06: failed')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_05(dbname, ascii_in):
@@ -287,6 +312,211 @@ def operator_overloading_function(dbname):
   return True
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def make_table_modes(dbname):
+  """
+  Create the "modes" table identical to the "grid.modes" table
+  """
+  if not db_def.exists(dbname=dbname):
+    logger.error('make_table_modes: Database "{0}" does not exist'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    if my_db.has_table('modes'):
+      logger.warning('make_table_modes: Database "{0}" already has table "modes"'.format(dbname))
+      return
+
+
+  tbl = 'create table modes (\
+          id             bigserial, \
+          id_model       int not null, \
+          id_rot         int not null, \
+          id_type        int not null, \
+          n              int not null, \
+          freq           real not null, \
+          primary key (id), \
+          foreign key (id_model) references models (id), \
+          foreign key (id_rot)   references rotation_rates (id), \
+          foreign key (id_type)  references mode_types (id), \
+          constraint positive_freq check (freq > 0) ); \
+          create index index_freq_n on modes (n, freq);'
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(tbl, None)
+  logger.info('make_table_modes: the "modes" table created successfully in database "{0}"'.format(dbname))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def make_table_rotation_rates(dbname):
+  """
+  Create the "rotation_rates" table
+  """
+  if not db_def.exists(dbname=dbname): 
+    logger.error('make_table_rotation_rates: Database "{0}" does not exist'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    if my_db.has_table('rotation_rates'):
+      logger.warning('make_table_rotation_rates: Database "{0}" already has table "mode_types"'.format(dbname))
+      return
+
+  tbl = 'create table rotation_rates ( \
+        id             serial, \
+        eta            real, \
+        primary key (id), \
+        unique (eta), \
+        constraint positive_eta check (eta >= 0) );'
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(tbl, None)
+  logger.info('make_table_rotation_rates: the "rotation_rate" table created in database "{0}".'.format(dbname))
+
+  # static insertions
+  with db_def.grid_db(dbname=dbname) as the_db:
+    cmnd = 'prepare ins_rot_rat (int, real) as \
+            insert into rotation_rates (id, eta) values ($1, $2)'
+    the_db.execute_one(cmnd, None)
+
+    cmnd = 'execute ins_rot_rat (%s, %s)'
+    tups = [(i+1, i*5) for i in range(11)]
+    the_db.execute_many(cmnd, tups)
+
+  logger.info('make_table_rotation_rates: the insertions succeeded')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def make_table_mode_types(dbname):
+  """
+  Create the "mode_types" table identical to the "grid.mode_types" table
+  """
+  if not db_def.exists(dbname=dbname): 
+    logger.error('make_table_mode_types: Database "{0}" does not exist'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    if my_db.has_table('mode_types'):
+      logger.warning('make_table_mode_types: Database "{0}" already has table "mode_types"'.format(dbname))
+      return
+
+  tbl = 'create table mode_types( \
+        id            serial, \
+        l             int not null, \
+        m             int not null, \
+        primary key (id), \
+        unique (l, m), \
+        constraint positive_l check (l >= 0), \
+        constraint bounded_m  check (m >= -l and m <= l)\
+        );'
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    my_db.execute_one(tbl, None)
+  logger.info('make_table_mode_types: the "mode_types" table created in database "{0}".'.format(dbname))
+
+  # static insertions
+  with db_def.grid_db(dbname=dbname) as my_db:
+    cmnd = 'prepare ins_md_tp (int, int, int) as \
+            insert into mode_types (id, l, m) values ($1, $2, $3)'
+    my_db.execute_one(cmnd, None)
+
+    cmnd = 'execute ins_md_tp (%s, %s, %s)'
+    tups = [(0, 0, 0), (1, 1, 1), (2, 1, 0), (3, 1, -1), (4, 2, 2),
+            (5, 2, 1), (6, 2, 0), (7, 2, -1), (8, 2, -2)]
+    my_db.execute_many(cmnd, tups)
+
+  logger.info('make_table_mode_types: the insertions succeeded')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def make_table_models(dbname):
+  """
+  Create the "models" table identical to the "grid.models" table
+  """
+  if not db_def.exists(dbname=dbname): 
+    logger.error('make_table_models: Database "{0}" does not exist'.format(dbname))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    if my_db.has_table('models'):
+      logger.warning('make_table_models: Database "{0}" already has table "models"'.format(dbname))
+      return
+
+  tbl = 'create table models ( \
+        id             serial, \
+        id_track       int not null, \
+        Xc             real not null, \
+        model_number   int not null, \
+        star_mass      real, \
+        radius         real, \
+        log_Teff       real, \
+        log_g          real, \
+        log_L          real, \
+        log_Ledd       real, \
+        log_abs_mdot   real, \
+        mass_conv_core real, \
+        star_age       real, \
+        dynamic_timescale real, \
+        kh_timescale   real, \
+        nuc_timescale  real, \
+        log_center_T   real, \
+        log_center_Rho real, \
+        log_center_P   real, \
+        center_h1      real, \
+        center_h2      real, \
+        center_he3     real, \
+        center_he4     real, \
+        center_c12     real, \
+        center_c13     real, \
+        center_n14     real, \
+        center_n15     real, \
+        center_o16     real, \
+        center_o18     real, \
+        center_ne20    real, \
+        center_ne22    real, \
+        center_mg24    real, \
+        surface_h1     real, \
+        surface_h2     real, \
+        surface_he3    real, \
+        surface_he4    real, \
+        surface_c12    real, \
+        surface_c13    real, \
+        surface_n14    real, \
+        surface_n15    real, \
+        surface_o16    real, \
+        surface_o18    real, \
+        surface_ne20   real, \
+        surface_ne22   real, \
+        surface_mg24   real, \
+        delta_nu       real, \
+        nu_max         real, \
+        acoustic_cutoff real, \
+        delta_Pg       real, \
+        Mbol           real, \
+        bcv            real, \
+        U_B            real, \
+        B_V            real, \
+        V_R            real, \
+        V_I            real, \
+        V_K            real, \
+        R_I            real, \
+        I_K            real, \
+        J_H            real, \
+        H_K            real, \
+        K_L            real, \
+        J_K            real, \
+        J_L            real, \
+        J_Lp           real, \
+        K_M            real,\
+        primary key (id), \
+        foreign key (id_track) references tracks (id), \
+        constraint positive_Xc check (Xc >= 0), \
+        check (model_number >= 0) ); \
+        create index index_logTeff_logg on models (log_Teff, log_g); \
+        create index index_Xc on models (Xc desc); \
+        create index index_age on models (star_age asc); \
+        create index index_delta_Pg on models (delta_Pg desc);'
+
+  with db_def.grid_db(dbname=dbname) as my_db:
+    my_db.execute_one(tbl, None)
+
+  logger.info('make_table_models: the "models" table created in database "{0}".'.format(dbname))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def make_table_tracks(dbname):
   """
   Create the "tracks" table identical to the "grid.tracks" table
@@ -416,6 +646,10 @@ def test_gyre_h5(filename):
   else:
     logger.error('test_gyre_h5: Failed')
 
+  freq = modes.freq 
+  print type(freq)
+  print freq[0], np.real(freq[0]), type(freq[0])
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def main(ascii_in):
   """
@@ -451,11 +685,32 @@ def main(ascii_in):
 
   # test_string(dbname=my_db)
 
+  make_table_models(dbname=my_db)
+
+  make_table_mode_types(dbname=my_db)
+
+  make_table_rotation_rates(dbname=my_db)
+
+  make_table_modes(dbname=my_db)
+
+  status  = do_test_06(dbname=my_db)
+
+  # dir_    = '/STER/mesa-gyre/asamba-grid/'
+  dir_    = '/Users/ehsan/programs/asamba-grid/'
+  dir_    += 'M35.000/eta00.00/'
+  list_h5 = sorted(glob.glob(dir_ + '*.h5'))
+  n_h5    = len(list_h5)
+
+  if True:
+    test_gyre_h5(list_h5[0])
+
+  if False:
+    status  = do_test_07(dbname='copy_grid', list_h5=list_h5)
+
   status  = drop_test_database(dbname=my_db)
   if status is not True:
     logger.error('main: drop_test_db failed')
     return status
-
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if __name__ == '__main__':

@@ -33,16 +33,16 @@ def gyre_h5(filename):
     logger.error('gyre_h5: "{0}" does not exist'.format(filename))
     sys.exit(1)
 
-  complex_dtype = np.dtype([('re', '>f8'), ('im', '>f8')])
+  complex_dtype = np.dtype([('re', '<f8'), ('im', '<f8')])
 
   with h5py.File(filename, 'r') as h5:
     with var_def.modes() as modes:
       for attr_key, attr_val in zip(h5.attrs.keys(), h5.attrs.values()):
         modes.set(attr_key, attr_val)
       for column_key in h5.keys():
-        print column_key, h5[column_key][...].dtype
         if h5[column_key].dtype == complex_dtype:
           column_val = h5[column_key][...]['re'] + 1j * h5[column_key][...]['im']
+          print column_key, type(h5[column_key][...]['re'])
         else:
           column_val = h5[column_key][...]
         modes.set(column_key, column_val)

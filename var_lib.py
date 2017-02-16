@@ -14,6 +14,11 @@ import var_def
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   F O R   M O D E S   O B J E C T S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E L   O B J E C T S
@@ -96,12 +101,6 @@ def get_model_color_attrs():
 
   return clr_attrs
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# R O U T I N E S   F O R   M O D E L S   O B J E C T S
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_list_models_from_hist_and_gyre_in_files(self_tracks):
   """
@@ -220,6 +219,51 @@ def get_list_models_from_hist_and_gyre_in_files(self_tracks):
   logger.info('get_list_models_from_hist_and_gyre_in_files: Returned a list of "{0}" model objects'.format(n_models))
 
   return list_models
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_model_parameters_from_gyre_out_filename(filename):
+  """
+  Extract all parameters in the MESA output/GYRE input file, and return them as a tuple. A random file
+  may look like the following:
+  /home/user/my_grid/M12.345/gyre_out/eta25.00/ad-sum-M12.345-ov0.012-Z0.014-logD02.50-MS-Xc0.3217-00312-eta25.00.h5
+
+  @param filename: The full path to the GYRE output file
+  @type filename: string
+  @return: a tuple with 7 parameters of the model as float or integer values. The order of the 
+           output is the following:
+           - 0: M_ini, initial mass
+           - 1: fov, exponential overshoot parameter
+           - 2: Z, initial metallicity
+           - 3: logD: the logarithm of the extra diffusive mixing
+           - 4: Xc: the core hydrogen mass fraction
+           - 5: model_number: integer, giving MESA step number
+           - 6: eta: rotation rate in percentage w.r.t. the break up rotation rate
+  @rtype: tuple
+  """
+  ind_slash = filename.rfind('/')
+  ind_point = filename.rfind('.')
+  corename  = filename[ind_slash+1 : ind_point].split('-')
+
+  n_prefix  = 2
+  pos_M     = n_prefix
+  pos_fov   = pos_M + 1
+  pos_Z     = pos_fov + 1
+  pos_logD  = pos_Z + 1
+  pos_evol  = pos_logD + 1
+  pos_Xc    = pos_evol + 1
+  pos_mod_n = pos_Xc + 1
+  pos_eta   = pos_mod_n + 1
+
+  M_ini     = float(corename[pos_M][1:])
+  fov       = float(corename[pos_fov][2:])
+  Z         = float(corename[pos_Z][1:])
+  logD      = float(corename[pos_logD][4:])
+  evol_state= corename[pos_evol]
+  Xc        = float(corename[pos_Xc][2:])
+  model_number  = int(corename[pos_mod_n])
+  eta       = float(corename[pos_eta][3:])
+
+  return (M_ini, fov, Z, logD, Xc, model_number, eta)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_track_parameters_from_hist_filename(filename):

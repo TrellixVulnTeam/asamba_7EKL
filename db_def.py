@@ -104,7 +104,7 @@ class grid_db:
     if commit: self.commit()
 
   # ...................................
-  def execute_many(self, cmnd, values):
+  def execute_many(self, cmnd, values, commit=True):
     """
     **Execute AND commit** many (a list of) SQL commands on the cursor.
     The command is passed by the "cmnd", and the corresponding values are passed
@@ -135,7 +135,7 @@ class grid_db:
     if result is not None:
       logger.error('execute_many failed')
       sys.exit(1)
-    self.commit()
+    if commit == True: self.commit()
 
   # ...................................
   def fetch_one(self):
@@ -151,6 +151,34 @@ class grid_db:
     """
     return self.get_cursor().fetchmany()
 
+  # ...................................
+  def fetch_all(self):
+    """
+    A wrapper around psycopg2.fetchall()
+    """
+    return self.get_cursor().fetchall()
+
+  # ...................................
+  def get_mode_types(self):
+    """
+    Retrieve the contents of the "mode_types" table
+    """      
+    cmnd = 'select * from mode_types'
+    self.execute_one(cmnd, None)
+    out  = self.fetch_all()
+
+    return out
+
+  # ...................................
+  def get_rotation_rates(self):
+    """
+    Retrieve the contents of the "rotation_rates" table
+    """
+    cmnd = 'select * from rotation_rates'
+    self.execute_one(cmnd, None)
+    out = self.fetch_all()
+
+    return out
   # ...................................
   # ...................................
 

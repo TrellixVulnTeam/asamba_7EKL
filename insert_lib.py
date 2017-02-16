@@ -11,15 +11,32 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N T E R A C T   W I T H   T H E   D A T A B A S E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+def get_execute_insert_modes_command():
+  """
+  Get the query command that executes the insertion of values into the "modes" table.
+  @return: 'execute prepare_insert_modes (%s, %s, %s, %s, %s)'
+  @rtype: string
+  """
+  return 'execute prepare_insert_modes (%s, %s, %s, %s, %s)'
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def prepare_insert_modes():
+  """
+  Prepare the insertion of the rows into the "modes" table
+  """
+  cmnd = 'prepare prepare_insert_modes (int, int, int, int, real) as \
+          insert into modes (id_model, id_rot, id_type, n, freq) values \
+          ($1, $2, $3, $4, $5)'
+
+  return cmnd
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def prepare_insert_models():
   """
   "Prepare" a command that allows inserting any row into the models table. This is to facilitate
   much faster interaction with the database.
   """     
-  # model_attrs = var_lib.get_model_attrs()
-  # n_tot       = len(model_attrs)  # see the grid.sql file and the attribute types for models table
-  # base_attrs  = var_lib.get_model_basic_attrs()
-  # n_base      = len(base_attrs)
   other_attrs = var_lib.get_model_other_attrs()
   n_other     = len(other_attrs)
 
@@ -154,7 +171,7 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N S E R T   G Y R E   D A T A    I N T O   T H E   D A T A B A S E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_gyre_output_into_modes_table(dbname, list_h5, commit_every=10000):
+def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
   """
   Insert GYRE output data (mode order "n" and frequency "freq") into the "modes" table, using the 
   list of HDF5 GYRE output files. Since this is a massive and time consuming operation, this the 
@@ -174,21 +191,108 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, commit_every=10000):
     logger.error('insert_gyre_output_into_modes_table: failed to instantiate database "{0}".'.format(dbname))
     sys.exit(1)
 
+  n_h5    = len(list_h5)
+  if n_h5 == 0:
+    logger.error('insert_gyre_output_into_modes_table: input list_h5 is empty')
+    sys.exit(1)
+
   with db_def.grid_db(dbname=dbname) as the_db:
     try:
       assert the_db.has_table('modes')
     except AssertionError:
       logger.error('insert_gyre_output_into_modes_table: \
-                    Table "{0}" not found in the database "{1}"'.format('models', dbname))
+                    Table "{0}" not found in the database "{1}"'.format('modes', dbname))
       sys.exit(1)
 
-  # iterate over input files, and insert them into the database
-  n_h5    = len(list_h5)
-  for i, h5_file in enumerate(list_h5):
+    # prepare the insertion
+    cmnd           = prepare_insert_modes()
+    the_db.execute_one(cmnd, None, commit=False)
+    cmnd           = get_execute_insert_modes_command()
 
-    gyre_out = read.get_minimal_gyre_output(h5_file)
+    # fetch the "mode_types" table
+    mode_types     = the_db.get_mode_types()
+    mode_types_id  = [tup[0] for tup in mode_types]
+    mode_types_l_m = [(tup[1], tup[2]) for tup in mode_types]
 
+    # fetch the "rotation_rates" table
+    rotation_rates = the_db.get_rotation_rates()
+    rotation_rates_id = np.array([ tup[0] for tup in rotation_rates ])
+    rotation_rates = np.array([ tup[1] for tup in rotation_rates ])
 
+    # iterate over input files, and insert them into the database
+    rows           = []
+    i_insert       = 0
+    for i, h5_file in enumerate(list_h5):
+
+      # progress bar
+      sys.stdout.write('\r')
+      sys.stdout.write('progress = {0:.2f} % '.format(100. * float(i)/n_h5))
+      sys.stdout.flush()
+
+      # from gyre output filename to parameters and ids
+      file_params  = var_lib.get_model_parameters_from_gyre_out_filename(filename=h5_file)
+      M_ini        = file_params[0]
+      fov          = file_params[1]
+      Z            = file_params[2]
+      logD         = file_params[3]
+      Xc           = file_params[4]
+      model_number = file_params[5]
+      eta          = file_params[6]
+
+      id_track     = db_lib.get_track_id(the_db, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+
+      id_model     = db_lib.get_models_id_by_id_tracks_and_model_number(
+                                dbname_or_dbobj=the_db, id_track=id_track, model_number=model_number)
+
+      ind_rot      = np.argmin(np.abs(rotation_rates - eta))
+      id_rot       = rotation_rates_id[ind_rot]
+
+      # gyre output data as an object 
+      modes = read.gyre_h5(h5_file)
+      n_pg  = modes.n_pg
+      l     = modes.l
+      m     = modes.m 
+      freq  = np.real(modes.freq)
+      n_modes   = len(freq)
+
+      # sorted list of unique l and m values in the file
+      avail_l_m = sorted(list(set( [(l[j], m[j]) for j in range(n_modes)] )))
+
+      row       = []
+      for l_m in avail_l_m:
+
+        id_type   = [mode_types_id[k] for k in range(len(mode_types_id)) 
+                     if mode_types_l_m[k] == l_m][0]
+        this_l, this_m = l_m
+        ind_l_m   = np.where((l == this_l) & (m == this_m))[0]
+        this_n_pg = n_pg[ind_l_m]
+        this_freq = freq[ind_l_m]
+        n_this    = len(this_freq)
+
+        row       += [(id_model, id_rot, id_type, this_n_pg[j], this_freq[j]) for j in range(n_this)]
+
+      rows        += row
+
+      print 'YYYYYYYYYYYYYYYYYYY', rows[0]
+      print freq[0], this_freq[0]
+      sys.exit(1)
+
+      # insert once upon a time
+      if i % insert_every == 0:
+        i_insert  += 1
+        the_db.execute_many(cmnd, rows, commit=False)
+        logger.info('insert_gyre_output_into_modes_table: many insertions number {0}.'.format(i_insert))
+        rows      = []   # reset and cleanup
+      else:
+        pass
+
+    # commit the remaining rows
+    if len(rows) > 0:
+      the_db.execute_many(cmnd, rows, commit=True)
+    else:
+      the_db.commit()
+
+  logger.info('insert_gyre_output_into_modes_table: Successfully exits.')
 
   return None 
 

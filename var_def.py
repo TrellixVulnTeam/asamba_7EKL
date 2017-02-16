@@ -530,6 +530,7 @@ class modes:
     """
     Constructor of the class. The attributes are based on the GYRE v.4.4, and the list of attributes 
     are availble here: <https://bitbucket.org/rhdtownsend/gyre/wiki/Output%20Files%20(4.4)>
+    The data types after allocation is either integer, float, string
     """
     # Attributes of the summary files (eigenfrequency list)
     self.l            = None
