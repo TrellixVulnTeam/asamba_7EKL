@@ -20,6 +20,57 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_look_up_models_id(dbname_or_dbobj):
+  """
+  Retrieve the id, id_track and model_number from the entire "models" table, and construct a look up
+  dictionary with the keys as the (id_track, model_number) tuple, and the values as the id. 
+
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking model ID needs be fetched. This avoids connection overheads when thousands to 
+        millions of track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
+  """
+  cmnd = 'select id, id_track, model_number from models'
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, None)
+      result = the_db.fetch_all()
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, None)
+    result   = dbname_or_dbobj.fetch_all()
+  #
+  else:
+    logger.error('get_dic_look_up_models_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    sys.exit(1)
+
+  if not isinstance(result, list):
+    logger.error('get_dic_look_up_models_id: failed')
+    sys.exit(1)
+
+  n   = len(result)
+  if n == 0:
+    logger.error('get_dic_look_up_models_id: the result list is empty')
+    sys.exit(1)
+
+  list_id  = np.array([ result[k][0] for k in range(n) ])
+  list_tup = [ (result[k][1], result[k][2]) for k in range(n) ]
+  dic = dict()
+  for key, val in zip(list_tup, list_id): dic[key] = val
+
+  logger.info('get_dic_look_up_models_id: Successfully returning "{0}" records'.format(n))
+
+  return dic
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model_number):
   """
   @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 

@@ -131,7 +131,10 @@ class grid_db:
       sys.exit(1)
 
     cursor  = self.get_cursor()
-    result  = cursor.executemany(cmnd, values)
+    try:
+      result  = cursor.executemany(cmnd, values)
+    except psycopg2.Error as err:
+      print 'error has occured:', err
     if result is not None:
       logger.error('execute_many failed')
       sys.exit(1)

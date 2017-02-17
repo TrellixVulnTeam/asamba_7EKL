@@ -22,7 +22,12 @@ def gyre_h5(filename):
   """
   Read the GYRE output HDF5 file in full detail, and return an instance of the var_def.modes() with
   relevant attributes filled up. Thus, this routine reads the summary file or the eigenfunction file
-  conveniently. 
+  conveniently. Example of use:
+
+  >>>from grid import read
+  >>>gyre_file = '/home/user/projects/gyre/beta_Cep.h5'
+  >>>mode_list = gyre_h5(gyre_file)
+  >>>freq      = np.real( mode_list.freq )
 
   @param filename: full path to the output GYRE HDF5 file
   @type filename: string
@@ -42,7 +47,6 @@ def gyre_h5(filename):
       for column_key in h5.keys():
         if h5[column_key].dtype == complex_dtype:
           column_val = h5[column_key][...]['re'] + 1j * h5[column_key][...]['im']
-          print column_key, type(h5[column_key][...]['re'])
         else:
           column_val = h5[column_key][...]
         modes.set(column_key, column_val)

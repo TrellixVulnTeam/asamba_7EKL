@@ -11,14 +11,40 @@ from grid import db_def, db_lib, insert_lib, read
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Error Handling and Logging
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
+                    raiseExceptions=True,
                     # filename='test_unit.log',
                     # filemode='w'
                     )
 formatter = logging.Formatter('%(levelname)-8s: %(name)-12s: %(message)s')
 logger = logging.getLogger(__name__)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+class LoggerWriter:
+  def __init__(self, level):
+    # self.level is really like using log.debug(message)
+    # at least in my case
+    self.level = level
+
+  def write(self, message):
+    # if statement reduces the amount of newlines that are
+    # printed to the logger
+    if message != '\n':
+      self.level(message)
+
+  def flush(self):
+    # create a flush method so things can be flushed when
+    # the system wants to. Not sure if simply 'printing'
+    # sys.stderr is the correct way to do it, but it seemed
+    # to work properly for me.
+    self.level(sys.stderr)
+
+# sys.stdout = LoggerWriter(logger.debug)
+# sys.stderr = LoggerWriter(logger.warning)
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -329,8 +355,8 @@ def make_table_modes(dbname):
   tbl = 'create table modes (\
           id             bigserial, \
           id_model       int not null, \
-          id_rot         int not null, \
-          id_type        int not null, \
+          id_rot         smallint not null, \
+          id_type        smallint not null, \
           n              int not null, \
           freq           real not null, \
           primary key (id), \
@@ -646,10 +672,6 @@ def test_gyre_h5(filename):
   else:
     logger.error('test_gyre_h5: Failed')
 
-  freq = modes.freq 
-  print type(freq)
-  print freq[0], np.real(freq[0]), type(freq[0])
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def main(ascii_in):
   """
@@ -701,10 +723,10 @@ def main(ascii_in):
   list_h5 = sorted(glob.glob(dir_ + '*.h5'))
   n_h5    = len(list_h5)
 
-  if True:
+  if False:
     test_gyre_h5(list_h5[0])
 
-  if False:
+  if True:
     status  = do_test_07(dbname='copy_grid', list_h5=list_h5)
 
   status  = drop_test_database(dbname=my_db)
