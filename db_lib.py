@@ -148,6 +148,63 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   T R A C K S   T A B L E 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_look_up_track_id(dbname_or_dbobj):
+  """
+  Retrieve the id, M_ini, fov, Z, and logD from the entire "models" table, and construct a look up
+  dictionary with the keys as the (M_ini, fov, Z, logD) tuple, and the values as the id. This gives
+  a mapping of track ids to their corresponding attributes, which is very useful for the fastest 
+  way to retrieve track ids by their attributes.
+
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking model ID needs be fetched. This avoids connection overheads when thousands to 
+        millions of track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
+
+  """
+  cmnd = 'select id, M_ini, fov, Z, logD from tracks;'
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, None)
+      result = the_db.fetch_all()
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, None)
+    result   = dbname_or_dbobj.fetch_all()
+  #
+  else:
+    logger.error('get_dic_look_up_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    sys.exit(1)
+
+  if not isinstance(result, list):
+    logger.error('get_dic_look_up_track_id: failed')
+    sys.exit(1)
+
+  n   = len(result)
+  if n == 0:
+    logger.error('get_dic_look_up_track_id: the result list is empty')
+    sys.exit(1)
+
+  list_id  = np.array([ result[k][0] for k in range(n) ])
+  list_tup = [ (result[k][1], result[k][2], result[k][3], result[k][4]) for k in range(n) ]
+  dic = dict()
+  for key, val in zip(list_tup, list_id): dic[key] = val
+
+  logger.info('get_dic_look_up_track_id: Successfully returning "{0}" records'.format(n))
+
+  return dic
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_track_by_id(dbname, id):
   """
   Retrieve the four basic track attributes, M_ini, fov, Z, logD, respectively by the requested id.

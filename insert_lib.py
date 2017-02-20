@@ -227,6 +227,10 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
     # (id_track, model_number) keys!
     dic_models_id  = db_lib.get_dic_look_up_models_id(the_db)
 
+    # get the look up dictionary for "tracks" "id". The ids are values of the 
+    # (M_ini, fov, Z, logD) keys!
+    dic_tracks_id  = db_lib.get_dic_look_up_track_id(the_db)
+
     # iterate over input files, and insert them into the database
     rows           = []
     i_insert       = 0
@@ -247,11 +251,14 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       model_number = file_params[5]
       eta          = file_params[6]
 
-      id_track     = db_lib.get_track_id(the_db, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+      # id_track     = db_lib.get_track_id(the_db, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+      tup_track    = (M_ini, fov, Z, logD)
+      id_track     = dic_tracks_id[tup_track]
 
       # id_model     = db_lib.get_models_id_by_id_tracks_and_model_number(
       #                           dbname_or_dbobj=the_db, id_track=id_track, model_number=model_number)
-      id_model     = dic_models_id[ (id_track, model_number) ]
+      tup_model    = (id_track, model_number)
+      id_model     = dic_models_id[tup_model]
 
       ind_rot      = np.argmin(np.abs(rotation_rates - eta))
       id_rot       = rotation_rates_id[ind_rot]
@@ -284,7 +291,7 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       if i > 0 and i % insert_every == 0:
         i_insert  += 1
         the_db.execute_many(cmnd_exec, rows, commit=False)
-        logger.info('insert_gyre_output_into_modes_table: many insertions number {0}.'.format(i_insert))
+        logger.info('insert_gyre_output_into_modes_table: Success: bulk insertions #{0}'.format(i_insert))
         rows      = []   # reset and cleanup
       else:
         pass
