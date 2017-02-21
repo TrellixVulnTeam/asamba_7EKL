@@ -52,6 +52,83 @@ class LoggerWriter:
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_09(dbname):
+
+  logger.info('do_test_09: test db_lib.get_dic_look_up_mode_types_id()')
+  dic_types = db_lib.get_dic_look_up_mode_types_id(dbname)
+  if not isinstance(dic_types, dict):
+    logger.error('do_test_09: return type is not dictionary')
+    sys.exit(1)
+
+  list_ids  = [0, 1, 2, 4, 5, 6]
+  list_types= [(0, 0), (1, 1), (1, 0), (2, 2), (2, 1), (2, 0)]
+  n_types   = len(list_ids)
+  ind       = range(n_types)
+  n_try     = 10
+  results   = []
+
+  for i_try in range(n_try):
+    np.random.shuffle(ind)
+    try_ids = [list_ids[j] for j in ind]
+    try_types = [list_types[j] for j in ind]
+
+    for i_type in range(n_types):
+      key   = try_types[i_type]
+      val   = try_ids[i_type]
+      try:
+        assert val == dic_types[key]
+        results.append(True)
+      except AssertionError:
+        results.append(False)
+
+  success = all(results)
+  if success:
+    logger.info('do_test_09: All tests passed')
+  else:
+    logger.error('do_test_09: At least one test with db_lib.get_dic_look_up_mode_types_id() failed')
+
+  return success 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def do_test_08(dbname):
+
+  logger.info('do_test_08: test db_lib.get_dic_look_up_rotation_rates_id()')
+  dic_rot = db_lib.get_dic_look_up_rotation_rates_id(dbname)
+  if not isinstance(dic_rot, dict):
+    logger.error('do_test_08: return type is not dictionary')
+    sys.exit(1)
+
+  n_rot    = 11
+  list_id  = np.arange(1, n_rot+1)
+  list_eta = [(i*5.0, ) for i in range(n_rot)]
+  n_try    = 10
+  results  = []
+
+  for i_try in range(n_try):
+    ind    = range(n_rot)
+    np.random.shuffle(ind)
+
+    try_id = list_id[ind]
+    try_eta= [list_eta[k] for k in ind]
+
+    for i_rot in range(n_rot):
+      key  = try_eta[i_rot]
+      val  = try_id[i_rot]
+      try:
+        assert val == dic_rot[key]
+        results.append(True)
+      except AssertionError:
+        results.append(False)
+
+  success = all(results)
+  if success:
+    logger.info('do_test_08: All tests passed')
+  else:
+    logger.error('do_test_08: At least one test with db_lib.get_dic_look_up_rotation_rates_id() failed')
+
+  return success 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def do_test_07(dbname, list_h5):
 
   n_h5 = len(list_h5)
@@ -726,8 +803,12 @@ def main(ascii_in):
   if False:
     test_gyre_h5(list_h5[0])
 
-  if True:
+  if False:
     status  = do_test_07(dbname='copy_grid', list_h5=list_h5)
+
+  status  = do_test_08(dbname=my_db)
+
+  status  = do_test_09(dbname=my_db)
 
   status  = drop_test_database(dbname=my_db)
   if status is not True:

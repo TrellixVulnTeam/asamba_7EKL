@@ -11,6 +11,129 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   F O R   M O D E _ T Y P E S   T A B L E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_look_up_mode_types_id(dbname_or_dbobj):
+  """
+  Create a look up dictionary for the "mode_types" table, to speed up fetching the mode types  ids 
+  through dictionary look up.
+  E.g. to retrieve the type id for the radial modes (l, m) = (0, 0), we do the following:
+  
+  >>>from grid import db_lib
+  >>>dic_mode_type = db_lib.get_dic_look_up_mode_types_id('grid')
+  >>>print dic_mode_type[(0,0)]
+  >>>0
+
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking model ID needs be fetched. This avoids connection overheads when thousands to 
+        millions of track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
+  @return: a look up dictionary that contains the mode_type tuples as keys, and the mode_type "id"s
+        as values. 
+  @rtype: dict
+  """
+  # fetch the "mode_types" table
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      mode_types = the_db.get_mode_types()
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    mode_types   = dbname_or_dbobj.get_mode_types()
+  #
+  else:
+    logger.error('get_dic_look_up_mode_types_id: Input type not string or db_def.grid_db!')
+    sys.exit(1)
+
+  if not isinstance(mode_types, list):
+    logger.error('get_dic_look_up_mode_types_id: failed')
+    sys.exit(1)
+
+  n   = len(mode_types)
+  if n == 0:
+    logger.error('get_dic_look_up_mode_types_id: the result list is empty')
+    sys.exit(1)
+
+  mode_types_id  = [tup[0] for tup in mode_types]
+  mode_types_l_m = [(tup[1], tup[2]) for tup in mode_types]
+  dic_mode_types = dict()
+  for key, val in zip(mode_types_l_m, mode_types_id):
+    dic_mode_types[key] = val
+
+  return dic_mode_types
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   F O R   R O T A T I O N _ R A T E S   T A B L E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
+  """
+  Create a look up dictionary for the "rotation_rates" table, to speed up fetching the mode types ids 
+  through dictionary look up.
+  E.g. to retrieve the id for the rotation rate et=30.00 percent, we do the following:
+  
+  >>>from grid import db_lib
+  >>>dic_rot_rates = db_lib.get_dic_look_up_rotation_rates_id('grid')
+  >>>tup_rot = (eta, )
+  >>>print dic_rot_rates[tup_rot]
+  >>>7
+
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking model ID needs be fetched. This avoids connection overheads when thousands to 
+        millions of track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
+  @return: a look up dictionary that contains the rotation_rate tuples as keys, and the rotation_rate "id"s
+        as values. 
+  @rtype: dict
+  """
+  # fetch the "rotation_rates" table
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      rot_rates = the_db.get_rotation_rates()
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    rot_rates   = dbname_or_dbobj.get_rotation_rates()
+  #
+  else:
+    logger.error('get_dic_look_up_rotation_rates_id: Input type not string or db_def.grid_db!')
+    sys.exit(1)
+
+  if not isinstance(rot_rates, list):
+    logger.error('get_dic_look_up_rotation_rates_id: failed')
+    sys.exit(1)
+
+  n   = len(rot_rates)
+  if n == 0:
+    logger.error('get_dic_look_up_rotation_rates_id: the result list is empty')
+    sys.exit(1)
+
+  eta_ids   = [tup[0] for tup in rot_rates]
+  eta_vals  = [(tup[1], ) for tup in rot_rates]
+  dic_rot_rates = dict()
+  for key, val in zip(eta_vals, eta_ids):
+    dic_rot_rates[key] = val
+
+  return dic_rot_rates
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -205,14 +205,6 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
                     Table "{0}" not found in the database "{1}"'.format('modes', dbname))
       sys.exit(1)
 
-    # fetch the "mode_types" table
-    mode_types     = the_db.get_mode_types()
-    mode_types_id  = [tup[0] for tup in mode_types]
-    mode_types_l_m = [(tup[1], tup[2]) for tup in mode_types]
-    dic_mode_types = dict()
-    for key, val in zip(mode_types_l_m, mode_types_id):
-      dic_mode_types[key] = val
-
     # fetch the "rotation_rates" table
     rotation_rates = the_db.get_rotation_rates()
     rotation_rates_id = np.array([ tup[0] for tup in rotation_rates ])
@@ -222,6 +214,14 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
     cmnd_prep      = prepare_insert_modes()
     the_db.execute_one(cmnd_prep, None, commit=True)
     cmnd_exec      = get_execute_insert_modes_command()
+
+    # get the look up dictionary for "mode_types" "id". The ids are the valus of
+    # the (l, m) tuple keys
+    dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
+
+    # get the look up dictionary for "rotation_rates" "id". The ids are values of 
+    # the (eta, ) keys
+    dic_rot_rates  = db_lib.get_dic_look_up_rotation_rates_id(the_db)
 
     # get the look up dictionary for "models" "id". The ids are values of the 
     # (id_track, model_number) keys!
@@ -260,8 +260,10 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       tup_model    = (id_track, model_number)
       id_model     = dic_models_id[tup_model]
 
-      ind_rot      = np.argmin(np.abs(rotation_rates - eta))
-      id_rot       = rotation_rates_id[ind_rot]
+      # ind_rot      = np.argmin(np.abs(rotation_rates - eta))
+      # id_rot       = rotation_rates_id[ind_rot]
+      tup_eta      = (eta, )
+      id_rot       = dic_rot_rates[tup_eta]
 
       # gyre output data as an object 
       modes = read.gyre_h5(h5_file)
