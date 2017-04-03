@@ -302,6 +302,8 @@ class model:
     self.center_h2         = 0.
     self.center_he3        = 0.
     self.center_he4        = 0.
+    self.center_c12        = 0.
+    self.center_c13        = 0.
     self.center_n14        = 0.
     self.center_n15        = 0.
     self.center_o16        = 0.
@@ -555,6 +557,7 @@ class modes:
     self.R_star       = None
     self.L_star       = None
     self.n_poly       = None
+    self.W_eps        = None
 
     # Attributes of the mode files (eigenfunction files)
     self.n            = None
@@ -582,6 +585,7 @@ class modes:
     self.lag_rho      = None
     self.lag_T        = None
     self.dE_dx        = None
+    self.dW_eps_dx    = None
     self.dW_dx        = None
     self.prop_type    = None
     self.K            = None
@@ -591,6 +595,12 @@ class modes:
     self.T            = None
     self.F_j          = None
     self.div_F_j      = None
+
+    # my customized attributes
+    self.freq_rot     = None
+    self.freq_crit    = None
+    self.eta_rot      = None
+    self.omega_rot    = None
 
     # Other attributes
     self.label        = None

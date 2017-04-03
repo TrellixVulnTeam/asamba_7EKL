@@ -135,7 +135,7 @@ def do_test_07(dbname, list_h5):
   logger.info('do_test_07: test insert_lib.insert_gyre_output_into_modes_table(): with "{0}" files'.format(n_h5))
   try:
     t0 = time.time()
-    insert_lib.insert_gyre_output_into_modes_table(dbname=dbname, list_h5=list_h5)
+    insert_lib.insert_gyre_output_into_modes_table(dbname=dbname, list_h5=list_h5, insert_every=100000)
     dt = time.time() - t0
     logger.info('do_test_07: succeeded. "{0}" files inserted in {1} sec'.format(n_h5, dt))
   except:
@@ -794,16 +794,16 @@ def main(ascii_in):
 
   status  = do_test_06(dbname=my_db)
 
-  # dir_    = '/STER/mesa-gyre/asamba-grid/'
-  dir_    = '/Users/ehsan/programs/asamba-grid/'
-  dir_    += 'M35.000/eta00.00/'
+  dir_    = '/STER/mesa-gyre/asamba-grid/'
+  # dir_    = '/Users/ehsan/programs/asamba-grid/'
+  dir_    += 'M35.000/eta05.00/'
   list_h5 = sorted(glob.glob(dir_ + '*.h5'))
   n_h5    = len(list_h5)
 
   if False:
     test_gyre_h5(list_h5[0])
 
-  if False:
+  if True:
     status  = do_test_07(dbname='copy_grid', list_h5=list_h5)
 
   status  = do_test_08(dbname=my_db)

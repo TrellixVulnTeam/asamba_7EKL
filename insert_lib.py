@@ -206,9 +206,10 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       sys.exit(1)
 
     # fetch the "rotation_rates" table
-    rotation_rates = the_db.get_rotation_rates()
-    rotation_rates_id = np.array([ tup[0] for tup in rotation_rates ])
-    rotation_rates = np.array([ tup[1] for tup in rotation_rates ])
+    # rotation_rates = the_db.get_rotation_rates()
+    # rotation_rates_id = np.array([ tup[0] for tup in rotation_rates ])
+    # rotation_rates = np.array([ tup[1] for tup in rotation_rates ])
+    # logger.info('insert_gyre_output_into_modes_table: ready with rotation_rates table')
 
     # prepare the insertion
     cmnd_prep      = prepare_insert_modes()
@@ -218,18 +219,22 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
     # get the look up dictionary for "mode_types" "id". The ids are the valus of
     # the (l, m) tuple keys
     dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
+    logger.info('insert_gyre_output_into_modes_table: ready with mode_types table')
 
     # get the look up dictionary for "rotation_rates" "id". The ids are values of 
     # the (eta, ) keys
     dic_rot_rates  = db_lib.get_dic_look_up_rotation_rates_id(the_db)
+    logger.info('insert_gyre_output_into_modes_table: ready with rotation_rates table')
 
     # get the look up dictionary for "models" "id". The ids are values of the 
     # (id_track, model_number) keys!
     dic_models_id  = db_lib.get_dic_look_up_models_id(the_db)
+    logger.info('insert_gyre_output_into_modes_table: ready with models table')
 
     # get the look up dictionary for "tracks" "id". The ids are values of the 
     # (M_ini, fov, Z, logD) keys!
     dic_tracks_id  = db_lib.get_dic_look_up_track_id(the_db)
+    logger.info('insert_gyre_output_into_modes_table: ready with tracks table')
 
     # iterate over input files, and insert them into the database
     rows           = []

@@ -79,10 +79,11 @@ def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
   """
   Create a look up dictionary for the "rotation_rates" table, to speed up fetching the mode types ids 
   through dictionary look up.
-  E.g. to retrieve the id for the rotation rate et=30.00 percent, we do the following:
+  E.g. to retrieve the id for the rotation rate eta=30.00 percent, we do the following:
   
   >>>from grid import db_lib
   >>>dic_rot_rates = db_lib.get_dic_look_up_rotation_rates_id('grid')
+  >>>eta = 25
   >>>tup_rot = (eta, )
   >>>print dic_rot_rates[tup_rot]
   >>>7
@@ -136,8 +137,112 @@ def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def find_missing_models(dbname, eta):
+  """
+  For a given rotation rate, eta, find the models.id that do not have a corresponding row in the 
+  modes.id_model list. These are models which the GYRE computation has either failed, or for some
+  reason, they are not still inserted into the "modes" table yet.
+  
+  @param dbname: The name of the database, e.g. "grid"
+  @type dbname: string
+  @return: list of models.id where the GYRE computaiton shall be either repeated, or the data must
+        be inserted into the modes table.
+  @rtype: list of int
+  """
+  tup_rot  = (eta, )
+  dic_rot  = get_dic_look_up_rotation_rates_id(dbname)
+  try: 
+    id_rot = dic_rot[tup_rot]
+    tup_id_rot = (id_rot, )
+    logger.info('find_missing_models: corresponding id_rot is "{0}"'.format(id_rot))
+  except:
+    logger.error('find_missing_models: eta={0} is invalid, and not supported yet!'.format(eta))
+    sys.exit(1)
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    cmnd = 'select id from models'
+    the_db.execute_one(cmnd, None)
+    id_from_models = [tup[0] for tup in the_db.fetch_all()]
+    n    = len(id_from_models)
+
+    cmnd = 'select distinct on (id_model) id_model from modes where id_rot=%s group by id_model'
+    the_db.execute_one(cmnd, tup_id_rot)
+    id_from_modes  = [tup[0] for tup in the_db.fetch_all()]
+    m    = len(id_from_modes)
+
+  # Sanity checks
+  if n == 0:
+    logger.error('find_missing_models: The "models" table is empty!')
+    sys.exit(1)
+  if m == 0:
+    logger.error('find_missing_models: The "modes" table is empty!')
+    sys.exit(1)
+  if m > n:
+    logger.error('find_missing_models: The funny case that we have more input to modes than the input models!')
+    sys.exit(1)
+
+  # The safe mode
+  if n == m:
+    logger.info('find_missing_models: All Input models have a corresponding mode list for eta="{0}"'.format(eta))
+    return None
+  else:
+    missing = set(id_from_models).symmetric_difference(set(id_from_modes))
+    n_missing = len(missing)
+    logger.info('find_missing_models: Returning missing {0} models.id values'.format(n_missing))
+    return sorted(list(missing))
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def find_missing_gyre_task(dbname, eta, h5_prefix='ad-sum'):
+  """
+  For a given rotation rate, eta, find the names of the GYRE input files, and the missing GYRE output
+  files for which the GYRE output file is absent in the database (so, may need to do the GYRE 
+  computaitons for these).
+
+  @param dbname: The name of the database to connect to
+  @type dbname: string
+  @param eta: the rotation rate in percentage
+  @type eta: float
+  @param h5_prefix: The prefix which is added at the begining of the HDF5 GYRE output files to 
+        distinguish the adiabatic/non-adiabatic summary/mode files. Set to '' to ignore it
+  @type h5_prefix: str
+  @return: two lists of strings are returned. 
+        1. The first list is the core name of the GYRE input files, e.g.
+           M35.000-ov0.010-Z0.010-logD00.00-MS-Xc0.6092-00983.gyre
+        2. The second list is the core name of the GYRE ouput files, e.g.
+           ad-sum-M35.000-ov0.010-Z0.010-logD00.00-MS-Xc0.6092-00983-eta50.00.h5
+  @rtype: tuple of two lists
+  """
+  missing = find_missing_models(dbname=dbname, eta=eta)
+  # tups    = [(val, ) for val in missing]
+  cmnd    = 'select M_ini, fov, Z, logD, model_number, Xc from tracks inner join models on tracks.id = models.id_track where models.id=%s'
+  result  = []
+  with db_def.grid_db(dbname=dbname) as the_db:
+    for i, id_model in enumerate(missing):
+      tup = (id_model, )
+      the_db.execute_one(cmnd, tup)
+      result.append(the_db.fetch_one())
+
+  list_gyre_in  = []
+  list_gyre_out = []
+  for i, tup in enumerate(result):
+    M_ini, fov, Z, logD, model_number, Xc = tup
+    core = 'M{0:6.3f}-ov{1:4.3f}-Z{2:4.3f}-logD{3:05.2f}-MS-Xc{4:5.4f}-{5:05d}'.format(
+            M_ini, fov, Z, logD, Xc, model_number)
+    gyre_in  = 'M{0:06.3f}/gyre_in/{1}.gyre'.format(M_ini, core)
+    gyre_out = 'M{0:06.3f}/gyre_out/eta{1:05.2f}/{2}-{3}-eta{4:05.2f}.h5'.format(
+                M_ini, eta, h5_prefix, core, eta) 
+    
+    list_gyre_in.append(gyre_in)
+    list_gyre_out.append(gyre_out)
+
+  return list_gyre_in, list_gyre_out
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E L S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -159,6 +264,9 @@ def get_dic_look_up_models_id(dbname_or_dbobj):
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type dbname_or_dbobj: string or db_def.grid_db object
+  @return: look up dictinary with keys as a tuple with the two elements "(id_track, model_number)" and 
+        the value as the "models.id"
+  @rtype: dict
   """
   cmnd = 'select id, id_track, model_number from models'
 
@@ -406,3 +514,88 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#  R O U T I N E S   F O R    G E N E R A L   U S E
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_tables_info(dbname):
+  """
+  Retrieve the information of the tables in the database passed by its name (as dbname). The following
+  informations are retrieved, and used as the key of the returned dictionary:
+  - user_name
+  - schema_name
+  - table_name
+  - index_name
+  - is_unique
+  - is_primary
+  - index_type
+  - indkey
+  - index_keys
+  - is_functional
+  - is_partial
+
+  Note that the value corresponding to each key is a list of strings, and the length of all these returned
+  lists are identical.
+
+  @param dbname: the database name
+  @type dbname: string
+  @return: a dictionary with the entire information, accessed through 11 keys listed above. The associated
+      value of each key is a list of strings
+  @rtype: dict
+  """
+  cmnd = 'SELECT \
+          U.usename                AS user_name, \
+          ns.nspname               AS schema_name, \
+          idx.indrelid :: REGCLASS AS table_name, \
+          i.relname                AS index_name,\
+          idx.indisunique          AS is_unique, \
+          idx.indisprimary         AS is_primary, \
+          am.amname                AS index_type, \
+          idx.indkey, \
+               ARRAY( \
+                   SELECT pg_get_indexdef(idx.indexrelid, k + 1, TRUE) \
+                   FROM \
+                     generate_subscripts(idx.indkey, 1) AS k \
+                   ORDER BY k \
+               ) AS index_keys, \
+          (idx.indexprs IS NOT NULL) OR (idx.indkey::int[] @> array[0]) AS is_functional, \
+          idx.indpred IS NOT NULL AS is_partial \
+        FROM pg_index AS idx \
+          JOIN pg_class AS i \
+            ON i.oid = idx.indexrelid \
+          JOIN pg_am AS am \
+            ON i.relam = am.oid \
+          JOIN pg_namespace AS NS ON i.relnamespace = NS.OID \
+          JOIN pg_user AS U ON i.relowner = U.usesysid \
+        WHERE NOT nspname LIKE %s; -- Excluding system tables'
+  val  = ('pg%', )
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(cmnd, val)
+    result = the_db.fetch_all()
+
+  if result is None:
+    logger.error('get_tables_info: failed')
+    sys.exit(1)
+  n       = len(result)
+
+  # arrange all info as a dictionary
+  dic     = dict()
+  dic['user_name']     = [tup[0] for tup in result]
+  dic['schema_name']   = [tup[1] for tup in result]
+  dic['table_name']    = [tup[2] for tup in result]
+  dic['index_name']    = [tup[3] for tup in result]
+  dic['is_unique']     = [tup[4] for tup in result]
+  dic['is_primary']    = [tup[5] for tup in result]
+  dic['index_type']    = [tup[6] for tup in result]
+  dic['indkey']        = [tup[7] for tup in result]
+  dic['index_keys']    = [tup[8] for tup in result]
+  dic['is_functional'] = [tup[9] for tup in result]
+  dic['is_partial']    = [tup[10] for tup in result]
+
+  return dic
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

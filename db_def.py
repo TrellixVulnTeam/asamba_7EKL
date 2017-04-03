@@ -73,6 +73,11 @@ class grid_db:
 
   # Methods
   # ...................................
+  def get_table_columns(self, table):
+    cmnd = 'select column_name from information_schema.columns where table_name = %s'
+    self.execute_one(cmnd, (table, ))
+    return [tup[0] for tup in self.fetch_all()]
+
   # ...................................
   def has_table(self, table):
     cmnd = 'select exists(select * from information_schema.tables where table_name=%s)'
@@ -83,6 +88,12 @@ class grid_db:
   def has_function(self, function_name):
     cmnd = 'select exists(select * from pg_proc where proname=%s)'
     self.execute_one(cmnd, (function_name, ))
+    return self.fetch_one()[0]
+
+  # ...................................
+  def has_prepared_statement(self, statement):
+    cmnd = 'select exists(select * from pg_prepared_statements where name=%s)'
+    self.execute_one(cmnd, (statement, ))
     return self.fetch_one()[0]
 
   # ...................................

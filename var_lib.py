@@ -254,6 +254,10 @@ def get_model_parameters_from_gyre_out_filename(filename):
   pos_mod_n = pos_Xc + 1
   pos_eta   = pos_mod_n + 1
 
+  print pos_M
+  print corename
+  sys.exit()
+
   M_ini     = float(corename[pos_M][1:])
   fov       = float(corename[pos_fov][2:])
   Z         = float(corename[pos_Z][1:])
