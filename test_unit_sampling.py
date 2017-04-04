@@ -3,9 +3,19 @@ import sys, os, glob
 import logging
 import numpy as np 
 from grid import sampler
+from grid import star
 
 
 def main():
+
+  print ' - Load the mode list from a file'
+  mode_file = 'stars/KIC_10526294.freq'
+  modes     = star.load_modes_from_file(filename=mode_file, delimiter=',')
+
+  print ' - Attach the modes to a star object'
+  TheStar   = star.star()
+  TheStar.setter('name', 'KIC_10526294')
+  TheStar.setter('modes', modes)
 
   print ' - Get an instance of the "sampling" class.'
   TheSample = sampler.sampling()
@@ -16,8 +26,10 @@ def main():
   TheSample.range_log_g = [3.0, 4.0]
   TheSample.range_eta = [0, 0]
 
+  TheSample.setter('star', TheStar)
+
   # seismic constraints
-  TheSample.set_modes_id_types([2])  # for l=1, m=0: dipole zonal modes  
+  TheSample.setter('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
   # Now, build the learning sets
   TheSample.build_learning_set()

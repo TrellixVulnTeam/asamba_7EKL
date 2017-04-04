@@ -1,6 +1,8 @@
 
 """
-
+This module provides basic classes and methods to construct a star (given its observed quantities), 
+and construct the list of observed modes (including various features) if the star is pulsating. Other
+modules (e.g. sampling) inherit the "mode" and "star" objects from this moduele.
 """
 
 import sys, os, glob
@@ -17,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  dic['list_dic_freq'] = [{'freq':0, 'freq_err':0, 'freq_unit':'cd', 'l':0, 'm':0, 'pg':''}] # see HD50230 for an example
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # M O D E
@@ -27,10 +28,14 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class mode(object):
   """
-  Container for a single pulsation mode of a star
+  Container for a single pulsation mode of a star. E.g. 
+
+  >>>from star import mode
+  >>>mode_1 = star.mode()
+  >>>mode_1.setter()
   """
   def __init__(self):
-    super(ClassName, self).__init__()
+    super(mode, self).__init__()
 
     # Mode frequency
     self.freq = 0
@@ -38,6 +43,14 @@ class mode(object):
     self.freq_err = 0
     # Unit of the mode frequency
     self.freq_unit = ''
+
+    # Mode amplitude
+    self.amplitude = 0
+    # Error on mode amplitude
+    self.amplitude_err = 0
+    # Unit of the mode amplitude
+    self.amplitude_unit = ''
+
     # Radial order (i.e. n_pg = n_p - n_g), negative for g-modes
     self.n = -999
     # Degree of the mode
@@ -56,11 +69,11 @@ class mode(object):
   ##########################
   # Setter
   ##########################
-  def setter(self, attr):
+  def setter(self, attr, val):
     if not hasattr(self, attr):
       logger.error('mode: setter: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
-    setattr(self, attr)
+    setattr(self, attr, val)
 
   ##########################
   # Getter
@@ -74,6 +87,94 @@ class mode(object):
     
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+def load_modes_from_file(filename, delimiter=''):
+  """
+  Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
+  as those of the "modes" class) into the "mode" attribute. It returns a list of modes, where each mode
+  corresponds to one line in the file. The columns are delimited based on the passed delimiter
+
+  Strict formatting of the input file:
+  - The file has two headers as the first two lines:
+    + line 1: the name of each column
+    + line 2: the Python-intrinsic format of each line, e.g. int, float, boolean
+  - The header names must be identical to the attributes of the mode object
+  - If one attribute is unknown for all modes of the same star, that column would better be omitted.
+    E.g. if for a star we do not know the modes form a frequency spacing or not, we leave this column
+    off, instead of setting it off for all modes.
+  - if a value for a mode is unknown, the column must read None or none. Never leave an unknown column
+    empty.
+  - For boolean columns, "1" means True, and "0" means False.
+
+  @param filename: the full path where the 
+  @type filename: str
+  @param delimiter: the delimiting character between the columns, e.g. ',', or space, etc. Default: ''
+  @type delimiter: str
+  @return: list of modes
+  @rtype: list
+  """
+  if not os.path.exists(filename):
+    logger.error('load_modes_from_file: The file "{0}" does not exist'.format(filename))
+    sys.exit(1)
+
+  with open(filename, 'r') as r: lines = r.readlines()
+  n_lines = len(lines)
+  if n_lines <= 2:
+    logger.error('load_modes_from_file: Input file must have two lines of header and at least one mode line')
+    sys.exit(1)
+
+  header  = lines.pop(0).rstrip('\r\n').split(delimiter)
+  header  = [val.strip() for val in header]
+  n_hdr   = len(header)
+  if n_hdr < 2:
+    logger.error('load_modes_from_file: There must be at least two columns in the file')
+    sys.exit(1)
+
+  types   = lines.pop(0).rstrip('\r\n').split(delimiter)
+  types   = [val.strip() for val in types]
+  n_types = len(types)
+  if n_types != n_hdr:
+    logger.error('load_modes_from_file: The 1st and 2nd line must have identical number of columns!')
+    sys.exit(1)
+  conv    = []
+  for k, t in enumerate(types):
+    t     = t.lower()
+    if t == 'int':
+      conv.append(int)
+    elif t == 'float':
+      conv.append(float)
+    elif t == 'boolean' or t == 'bool':
+      conv.append(bool)
+    elif t == 'str':
+      conv.append(str)
+    else:
+       print 't is: {0}'.format(t), k
+       logger.error('load_modes_from_file: 2nd line can only have "int", "float", "str" or "bool".') 
+       sys.exit(1)
+
+  # iteratively load a mode and store in a list
+  loaded  = []
+  for k, line in enumerate(lines):
+    line   = line.rstrip('\r\n').split(delimiter)
+    a_mode = mode()
+
+    for j, attr in enumerate(header):
+      val  = line[j].strip()
+      if val.lower == 'none':
+        a_mode.setattr(attr, None)
+      else:
+        func = conv[j]
+        val  = func(val)
+        try:
+          a_mode.setter(attr, val)
+        except:
+          logger.error('load_modes_from_file: Unrecognized attribute found:')
+          print k, j, func, line[j], attr, val, hasattr(a_mode, attr)
+          sys.exit(1)
+
+    loaded.append(a_mode)
+
+  return loaded
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # S T A R 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,7 +182,8 @@ class mode(object):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class star(object):
   """
-  Container for all possible observables of a star, and the uncertainties, if available
+  Container for all possible observables of a star, and the uncertainties, if available. This class
+  inherits the "mode()" class.
   """
   def __init__(self):
     super(star, self).__init__()
@@ -208,8 +310,10 @@ class star(object):
 
     #.............................
     # Asteroseismic properties
+    # Inheriting from the mode() class
     #.............................
-    self.list_modes = [mode()]
+    self.modes = [mode()]
+    self.num_modes = 0
 
     #.............................
     # Extra Information
@@ -224,11 +328,14 @@ class star(object):
   ##########################
   # Setter
   ##########################
-  def setter(self, attr):
+  def setter(self, attr, val):
     if not hasattr(self, attr):
       logger.error('star: setter: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
-    setattr(self, attr)
+    setattr(self, attr, val)
+
+    if attr == 'modes':
+      setattr(self, 'num_modes', len(self.modes))
 
   ##########################
   # Getter

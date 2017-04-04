@@ -14,7 +14,7 @@ import time
 import itertools
 import numpy as np 
 
-import utils, db_def, db_lib, query
+import utils, db_def, db_lib, query, star
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -33,10 +33,15 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class sampling:
   """
-  This class carries out sampling of the learning sets from the database
+  This class carries out sampling of the learning sets from the database. This class inherits the
+  "star.star()" object to represent a star
   """
 
   def __init__(self):
+
+    #.............................
+    # The basic search constraints
+    #.............................
     # The database to retrieve samples from
     self.dbname = ''
     # Sampling function name
@@ -54,17 +59,37 @@ class sampling:
     # The rotation_rates.id for the sample
     self.ids_rot = []
 
+    #.............................
+    # The resulting sample of attributes
+    #.............................
     # Resulting sample (type numpy.recarray)
     self.sample = None
     # The sample size 
     self.sample_size = 0
 
+    #.............................
+    # Search constraints for modes
+    #.............................
     # Modes id_types (from grid.sql) to fetch frequencies from, e.g. [0, 6]
     # for radial (0) and quadrupole zonal (6) modes
     self.modes_id_types = []
     # Modes lower and upper frequency scan range
     self.modes_freq_range = []
 
+    #.............................
+    # Frequency search plans
+    #.............................
+    # Strict search for period spacings
+    self.search_strictly_for_dP = False
+    # Strict search for frequency spacings
+    self.search_strictly_for_df = False
+    # Match from closest smallest frequency
+    # and proceed to higher frequencies
+    self.match_lowest_frequency = True
+
+    #.............................
+    # Sizes of different learning sets
+    #.............................
     # Training, cross-validation and test samples
     self.training_percentage = 0
     self.training_size = 0
@@ -75,77 +100,59 @@ class sampling:
     self.test_percentage = 0
     self.test_size = 0
 
+    #.............................
+    # Inheriting from the star module
+    #.............................
+    self.star = star.star()
+
+
   ##########################
-  # Setters
+  # Setter
   ##########################
-  def set_dbname(self, dbname):
-    self.dbname = dbname
+  def setter(self, attr, val):
+    """
+    Set a sampling attribute, e.g.
+    >>>MySample = sampler.sampling()
+    >>>MySample.setter('range_log_Teff', [4.12, 4.27])
 
-  def set_sampling_func(self, sampling_func):
-    self.sampling_func = sampling_func
-
-  def set_max_sample_size(self, max_sample_size):
-    self.max_sample_size = max_sample_size
-
-  def set_range_log_Teff(self, range_log_Teff):
-    if not isinstance(range_log_Teff, list) or len(range_log_Teff) != 2:
-      logger.error('sampling: set_range_log_Teff: Range list must have only two elements')
+    @param attr: The name of the attribute to set
+    @type attr: str
+    @param val: The corresponding data (type and value) for the attribute. 
+           Note that the users is mainly responsible for the sanity of the input values, 
+           though we internally check for some basic compatibility. The val can take any
+           datatype
+    @type val: int, float, bool, list, etc.
+    """
+    if not hasattr(self, attr):
+      logger.error('sampling: setter: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
-    self.range_log_Teff = range_log_Teff
 
-  def set_range_log_g(self, range_log_g):
-    if not isinstance(range_log_g, list) or len(range_log_g) != 2:
-      logger.error('sampling: set_range_log_g: Range list must have only two elements')
+    # Some attributes require extra care/check
+    if attr == 'range_log_g':
+      if not isinstance(val, list) or len(val) != 2:
+        logger.error('sampling: setter: range_log_g: Range list must have only two elements')
+        sys.exit(1)
+    elif attr == 'range_log_Teff':
+      if not isinstance(val, list) or len(val) != 2:
+        logger.error('sampling: setter: range_log_Teff: Range list must have only two elements')
+        sys.exit(1)
+    elif attr == 'range_eta':
+      if not isinstance(val, list) or len(val) != 2:
+        logger.error('sampling: setter: range_eta: Range list must have only two elements')
+        sys.exit(1)
+    elif attr == 'modes_id_types':
+      if not isinstance(val, list):
+        logger.error('sampling: setter: modes_id_types: Input must be a list of integers from grid.sql')
+        sys.exit(1)
+    elif attr == 'modes_freq_range':
+      if not isinstance(val, list) or len(val) != 2:
+        logger.error('sampling: setter: modes_freq_range: Range list must have only two elements')
+        sys.exit(1)
+    else:
+      logger.error('sampling: setter: The attribute "{0}" does not exist'.format(attr))
       sys.exit(1)
-    self.range_log_g = range_log_g
-
-  def set_range_eta(self, range_eta):
-    if not isinstance(range_eta, list) or len(range_eta) != 2:
-      logger.error('sampling: set_range_eta: Range list must have only two elements')
-      sys.exit(1)
-    self.range_eta = range_eta
-
-  def set_ids_models(self, ids_models):
-    self.ids_models = ids_models
-
-  def set_ids_rot(self, ids_rot):
-    self.ids_rot = ids_rot
-
-  def set_sample(self, sample):
-    self.sample = sample
-
-  def set_sample_size(self, sample_size):
-    self.sample_size = sample_size
-
-  def set_modes_id_types(self, modes_id_types):
-    if not isinstance(modes_id_types, list):
-      logger.error('sampling: set_modes_idt_types: Input must be a list of integers from grid.sql')
-      sys.exit(1)
-    self.modes_id_types = modes_id_types
-
-  def set_modes_freq_range(self, modes_freq_range):
-    if not isinstance(modes_freq_range, list) or len(modes_freq_range) != 2:
-      logger.error('sampling: set_range_eta: Range list must have only two elements')
-      sys.exit(1)
-    self.modes_freq_range = modes_freq_range
-
-  def set_training_percentage(self, percentage):
-    self.training_percentage = percentage
-
-  def set_training_size(self, size):
-    self.training_size = size 
-
-  def set_cross_valid_percentage(self, percentage):
-    self.cross_valid_percentage = percentage
-
-  def set_cross_valid_size(self, size):
-    self.cross_valid_size = size 
-
-  def set_test_percentage(self, percentage):
-    self.test_percentage = percentage
-
-  def set_test_size(self, size):
-    self.test_size = size 
+    
+    setattr(self, attr, val)
 
   ##########################
   # Getter
@@ -212,6 +219,10 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: set "max_sample_size" attribute of the class greater than zero')
     sys.exit(1)
 
+  if self.star.num_modes == 0:
+    logger.error('_build_learning_sets: The "modes" attribute of the "star" object of "sampling" not set yet!')
+    sys.exit(1)
+
   # Get the list of tuples for the (id_model, id_rot) to fetch model attributes
   # tups_ids   = sampling_func(*sampler_args)  
   if self.sampling_func is constrained_pick_models_and_rotation_ids:
@@ -241,9 +252,9 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: The sampler returned empty list of ids.')
     sys.exit(1)
   # set the class attributes
-  self.set_ids_models( [tup[0] for tup in tups_ids] )
-  self.set_ids_rot( [tup[1] for tup in tups_ids] )
-  self.set_sample_size( len(self.ids_models) )
+  self.setter('ids_models', [tup[0] for tup in tups_ids] )
+  self.setter('ids_rot', [tup[1] for tup in tups_ids]) 
+  self.setter('sample_size', len(self.ids_models) )
 
   # convert the rotation ids to actual eta values through the look up dictionary
   dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
@@ -334,10 +345,9 @@ def _build_learning_sets(self):
   reconst    = []           # destroy the list, and free up memory
   stiched    = []           # destroy the list, and free up memory
 
-  self.set_sample(rec)
-  self.set_sample_size(len(rec))
+  self.setter('sample', rec)
+  self.setter('sample_size', len(rec))
   logger.info('_build_learning_sets: the attributes sampled successfully')
-
 
   return None
 
