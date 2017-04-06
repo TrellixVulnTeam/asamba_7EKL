@@ -262,14 +262,18 @@ def _split_learning_sets(self):
     logger.error('_split_learning_sets: Change the default (-1) for self.*_percentage=-1')
     sys.exit(1)
 
-  if not all(0 <= p <= 100 for p in percentages):
+  if not all(0 <= p <= 1 for p in percentages):
     logger.error('_split_learning_sets: All three self.*_percentage must be set between 0 and 100')
     sys.exit(1)
 
+  if np.abs(1-(p_train + p_cv + p_test)) > 1e-5:
+    logger.error('_split_learning_sets: The three self.*_percentage do not all up to 1.0 (+/- 1e-5)')
+    sys.exit(1)
+
   n_learn     = self.sample_size
-  n_train     = n_learn * p_train
-  n_cv        = n_learn * p_cv
-  n_test      = n_learn * p_test
+  n_train     = int(n_learn * p_train)
+  n_cv        = int(n_learn * p_cv)
+  n_test      = int(n_learn * p_test)
 
   # due to round-off, the sum of splitted sets may not add up to sample_size, then ...
   if n_learn != n_train + n_cv + n_test:
@@ -286,8 +290,8 @@ def _split_learning_sets(self):
   ind_test    = ind_learn[n_train + n_cv :]
 
   # slice the learning set into training/cross-validation/test sets
-  learn_x     = np.array_like(self.learning_x)
-  learn_y     = np.array_like(self.learning_y)
+  learn_x     = np.empty_like(self.learning_x)
+  learn_y     = np.empty_like(self.learning_y)
   learn_x[:]  = self.learning_x
   learn_y[:]  = self.learning_y
 
@@ -468,7 +472,7 @@ def _build_learning_sets(self):
   rec_freq   = np.stack(freq_keep, axis=0)
   self.setter('learning_y', rec_freq)
 
-  self.setattr('learning_done', True)
+  self.setter('learning_done', True)
   logger.info('_build_learning_sets: the attributes sampled successfully')
 
   return None

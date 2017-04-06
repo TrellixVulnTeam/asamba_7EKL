@@ -48,12 +48,17 @@ def main():
   print '   '
 
   # Set percentages for training, cross-validation and test sets
-  TheSample.setter('training_percentage', 80)
-  TheSample.setter('cross_valid_percentage', 15)
-  TheSample.setter('test_percentage', 5)
+  TheSample.setter('training_percentage', 0.80)
+  TheSample.setter('cross_valid_percentage', 0.15)
+  TheSample.setter('test_percentage', 0.05)
 
   # Now, create the three sets from the learning set
   TheSample.split_learning_sets()
+
+  # Print sizes of each learning sets
+  print '   The Training set: X:{0}, Y:{1}'.format(TheSample.training_x.shape, TheSample.training_y.shape)
+  print '   The Cross-Validation set: X:{0}, Y:{1}'.format(TheSample.cross_valid_x.shape, TheSample.cross_valid_y.shape)
+  print '   The Test set: X:{0}, Y:{1}'.format(TheSample.test_x.shape, TheSample.test_y.shape)
 
 if __name__ == '__main__':
   status = main()

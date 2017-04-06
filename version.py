@@ -1,6 +1,6 @@
 
 __version__ = '0.5'
-__release_date__ = '10.01.2017'
+__release_date__ = '06.04.2017'
 
 # Version 0.5:
 # Release Date: 06.04.2017

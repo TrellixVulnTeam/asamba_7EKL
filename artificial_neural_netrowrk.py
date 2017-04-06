@@ -9,7 +9,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-import sampling
+import sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,11 +71,26 @@ def _solve_normal_equation(self):
     sys.exit(1)
 
   x = sample.learning_x
+  x = _prepend_with_column_1(x)
   y = sample.learning_y
 
-  return ((x.T * x) * x.T) * y
-
-
+  return (np.linalg.inv(x.T * x) * x.T) * y
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _prepend_with_column_1(matrix):
+  """
+  Add a column of ones to the m-by-n matrix, so that the result is a m-by-n+1 matrix
+  @param matrix: The general matrix of any arbitrary size with m rows and n columns
+  @type matrix: np.ndarray
+  @return: a matrix of m rows and n+1 columns where the 0-th column is all one.
+  @rtype: np.ndarray
+  """
+  if not len(matrix.shape) == 2:
+    logger.error('_prepend_with_column_1: Only 2D arrays are currently supported')
+    sys.exit(1)
 
+  col_1 = np.ones(( matrix.shape[0], 1 )) 
+
+  return np.concatenate([col_1, matrix], axis=1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
