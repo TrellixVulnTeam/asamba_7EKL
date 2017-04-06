@@ -1,6 +1,10 @@
 
-__version__ = '0.2'
+__version__ = '0.5'
 __release_date__ = '10.01.2017'
+
+# Version 0.5:
+# Release Date: 06.04.2017
+# with query and sampler to query the database, and provide learning sets
 
 # Version 0.2:
 # Release Date: 10.01.2017

@@ -19,6 +19,20 @@ logger = logging.getLogger(__name__)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+"""
+Conversion between various frequency and time units within CGS units
+"""
+d_to_sec  = 24.0 * 3600.
+sec_to_d  = 1.0 / d_to_sec
+
+Hz_to_uHz = 1e6
+uHz_to_Hz = 1e-6
+
+cd_to_Hz  = 1.0 / d_to_sec
+cd_to_uHz = cd_to_Hz * Hz_to_uHz
+Hz_to_cd  = 1.0 / cd_to_Hz
+uHz_to_cd = 1.0 / cd_to_uHz
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # M O D E

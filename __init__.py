@@ -8,14 +8,22 @@ __all__ = [
            'version',           # track versions, release dates, and the changelog
            ]
 
+import sys
 from .version import __version__
 try:
   import h5py
 except ImportError:
   print 'ImportError: Please try installing the "h5py" Python module first:'
   print 'http://docs.h5py.org/en/latest/build.html'
+  sys.exit(1)
 # try:
 #   import psycopg2
 # except ImportError:
 #   print 'ImportError: Please try installing psycopg2 first:'
 #   print '<https://pypi.python.org/pypi/psycopg2>'
+#   sys.exit(1)
+try:
+  import cython
+except ImportError:
+  print 'Please install Cython (http://cython.org)'
+  sys.exit(1)

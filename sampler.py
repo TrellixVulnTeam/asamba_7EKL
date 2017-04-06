@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # S A M P L I N G   C L A S S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class sampling:
+class sampling(object):
   """
   This class carries out sampling of the learning sets from the database. This class inherits the
   "star.star()" object to represent a star
@@ -62,8 +62,12 @@ class sampling:
     #.............................
     # The resulting sample of attributes
     #.............................
-    # Resulting sample (type numpy.recarray)
-    self.sample = None
+    # Status of the learning dataset
+    self.learning_done = False
+    # Resulting sample of features (type numpy.recarray)
+    self.learning_x = None
+    # Corresponding 2D frequency matrix for all features (type numpy.ndarray)
+    self.learning_y = None
     # The sample size 
     self.sample_size = 0
 
@@ -79,6 +83,8 @@ class sampling:
     #.............................
     # Frequency search plans
     #.............................
+    # Liberal search without any restriction
+    self.search_freely_for_frequencies = False
     # Strict search for period spacings
     self.search_strictly_for_dP = False
     # Strict search for frequency spacings
@@ -86,19 +92,31 @@ class sampling:
     # Match from closest smallest frequency
     # and proceed to higher frequencies
     self.match_lowest_frequency = True
+    # How many sigma around search frequency to consider?
+    self.sigma_match_frequency = 3.0
 
     #.............................
     # Sizes of different learning sets
+    # Default: -1, means not set yet
     #.............................
     # Training, cross-validation and test samples
-    self.training_percentage = 0
-    self.training_size = 0
+    self.training_percentage = -1
+    self.training_size = -1
+    self.training_x = -1
+    self.training_y = -1
+    self.training_set_done = False
 
-    self.cross_valid_percentage = 0
-    self.cross_valid_size = 0
+    self.cross_valid_percentage = -1
+    self.cross_valid_size = -1
+    self.cross_valid_x = -1
+    self.cross_valid_y = -1
+    self.cross_valid_set_done = False
 
-    self.test_percentage = 0
-    self.test_size = 0
+    self.test_percentage = -1
+    self.test_size = -1
+    self.test_x = -1
+    self.test_y = -1
+    self.test_set_done = False
 
     #.............................
     # Inheriting from the star module
@@ -148,9 +166,6 @@ class sampling:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: setter: modes_freq_range: Range list must have only two elements')
         sys.exit(1)
-    else:
-      logger.error('sampling: setter: The attribute "{0}" does not exist'.format(attr))
-      sys.exit(1)
     
     setattr(self, attr, val)
 
@@ -162,7 +177,7 @@ class sampling:
     General-purpose method to get the value of a canonical attribute of the object
     E.g.
 
-    >>>MySample = MyProblem.get('sample')
+    >>>MySample = MyProblem.get('learning_x')
 
     @param attr: the name of the available attribute of the class
     @type attr: string
@@ -179,32 +194,121 @@ class sampling:
   # Methods
   ##########################
   def build_learning_set(self):
+    """
+    This routine prepares a learning (training + cross-validation + test) set from the "tracks", "models",
+    and "rotation_rates" table from the database "dbname". The sampling method of the data (constrained or
+    unconstrained) is specified by passing the function name as "sampling_func", with the function arguments
+    "sampling_args".
+
+    The result from this function can be used to randomly build training, cross-validation, and/or test
+    sets by random slicing.
+
+    @param self: An instance of the sampling class
+    @type self: obj
+    @return: None. However, the "self.sample" attribute is set to a numpy record array whose columns are
+          the following:
+          - M_ini: initial mass of the model
+          - fov: overshoot free parameter
+          - Z: metallicity
+          - logD: logarithm of extra diffusive mixing
+          - Xc: central hydrogen mass fraction
+          - eta: percentage rotation rate w.r.t. to the break up
+    @rtype: None
+    """
     _build_learning_sets(self)
 
+  def split_learning_sets(self):
+    """
+    Split the learning set (prepared by calling build_learning_sets) into a training set, cross-validation
+    set, and a test set. To do such, the following three attributes of the "sampling" class is used (so, they
+    must have been already set to their non-default value):
+      - training_percentage: (default -1); valid range: 0 to 100
+      - cross_valid_percentage: (default -1); valid range: 0 to 100
+      - test_percentage: (default -1); valid range: 0 to 100
+    As a result of applying this method, the following variables are set
+      - training_size = -1
+      - training_x = -1
+      - training_y = -1
 
+      - cross_valid_size = -1
+      - cross_valid_x = -1
+      - cross_valid_y = -1
+
+      - test_size = -1
+      - test_x = -1
+      - test_y = -1
+
+    Note: once the training/cross-validation/test sets (i.e. *_x and *_y) are prepared, they are randomly
+          shuffled internally. So, no need to reshuffle them later.
+
+    @param self: An instance of the sampling class
+    @type self: obj
+    @return: the above nine parameters will be set
+    @rtype: None
+    """
+    _split_learning_sets(self)
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _split_learning_sets(self):
+  """
+  Refer to the documentation of the public method split_learning_set().  
+  """
+  p_train     = float(self.training_percentage)
+  p_cv        = float(self.cross_valid_percentage)
+  p_test      = float(self.test_percentage)
+  percentages = [p_train, p_cv, p_test]
+  if any(p < -1e-15 for p in percentages):
+    logger.error('_split_learning_sets: Change the default (-1) for self.*_percentage=-1')
+    sys.exit(1)
+
+  if not all(0 <= p <= 100 for p in percentages):
+    logger.error('_split_learning_sets: All three self.*_percentage must be set between 0 and 100')
+    sys.exit(1)
+
+  n_learn     = self.sample_size
+  n_train     = n_learn * p_train
+  n_cv        = n_learn * p_cv
+  n_test      = n_learn * p_test
+
+  # due to round-off, the sum of splitted sets may not add up to sample_size, then ...
+  if n_learn != n_train + n_cv + n_test:
+    n_train   = n_learn - (n_cv + n_test)
+  self.setter('training_size', n_train)
+  self.setter('cross_valid_size', n_cv)
+  self.setter('test_size', n_test)
+
+  # Make randomly shuffled indixes for slicing
+  ind_learn   = np.arange(n_learn)
+  np.random.shuffle(ind_learn)
+  ind_train   = ind_learn[ : n_train]
+  ind_cv      = ind_learn[n_train : n_train + n_cv]
+  ind_test    = ind_learn[n_train + n_cv :]
+
+  # slice the learning set into training/cross-validation/test sets
+  learn_x     = np.array_like(self.learning_x)
+  learn_y     = np.array_like(self.learning_y)
+  learn_x[:]  = self.learning_x
+  learn_y[:]  = self.learning_y
+
+  self.setter('training_x', learn_x[ind_train])
+  self.setter('training_y', learn_y[ind_train])
+  self.setter('training_set_done', True)
+
+  self.setter('cross_valid_x', learn_x[ind_cv])
+  self.setter('cross_valid_y', learn_y[ind_cv])
+  self.setter('cross_valid_set_done', True)
+
+  self.setter('test_x', learn_x[ind_test])
+  self.setter('test_y', learn_y[ind_test])
+  self.setter('test_set_done', True)
+
+  logger.info('_split_learning_sets" Training, Cross-Validation and Test sets are prepared')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _build_learning_sets(self):
   """
-  This routine prepares a learning (training + cross-validation + test) set from the "tracks", "models",
-  and "rotation_rates" table from the database "dbname". The sampling method of the data (constrained or
-  unconstrained) is specified by passing the function name as "sampling_func", with the function arguments
-  "sampling_args".
-
-  The result from this function can be used to randomly build training, cross-validation, and/or test
-  sets by random slicing.
-
-  @param self: An instance of the sampling class
-  @type self: obj
-  @return: None. However, the "self.sample" attribute is set to a numpy record array whose columns are
-        the following:
-        - M_ini: initial mass of the model
-        - fov: overshoot free parameter
-        - Z: metallicity
-        - logD: logarithm of extra diffusive mixing
-        - Xc: central hydrogen mass fraction
-        - eta: percentage rotation rate w.r.t. to the break up
-  @rtype: None
+  Refer to the documentation of the public method build_learning_set().
   """
   # Sanity checks ...
   if not self.dbname:
@@ -287,7 +391,7 @@ def _build_learning_sets(self):
     else:
       logger.info('_build_learning_sets: Fetched "{0}" unique models'.format(n_par))
     
-    # look-up dictionary
+    # local look-up dictionary
     dic_par  = {}
     for tup in params:
       key    = (tup[0], )   # i.e. models.id
@@ -299,16 +403,22 @@ def _build_learning_sets(self):
   dic_par    = []           # delete dic_par and release memory
 
   stiched    = [reconst[k] + eta_vals[k] for k in range(self.sample_size)]
+  reconst    = []           # destroy the list, and free up memory
   
   # Now, build the thoretical modes corresponding to each row in the sampled data
   # only accept those rows from the sample whose corresponding frequency row is useful
   # for our specific problem
-  container  = []
-  inds_keep  = []
+  # inds_keep  = []
+  rows_keep  = []
+  freq_keep  = []
   modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
                 ('id_type', 'int16'), ('freq', 'float32')]
 
   with db_def.grid_db(dbname=self.dbname) as the_db:
+    
+    # Get the mode_types look up dictionary
+    dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
+
     # Execute the prepared statement to speed up querying for self.sample_size times
     statement= 'prepared_statement_modes_from_fixed_id_model_id_rot'
     if the_db.has_prepared_statement(statement):
@@ -333,25 +443,202 @@ def _build_learning_sets(self):
 
       rec_this = utils.list_to_recarray(this, modes_dtype)
 
-      # do the trimming of bad models (wrong num freq in the range etc)
-      # decide on keeping this index k for the trainig or not 
-      # trim stiched
+      # Trim off the GYRE list to match the observations
+      rec_trim = _trim_modes(self, rec_this, dic_mode_types)
 
+      # Decide whether or not to keep this (k-th) row based on the result of trimming
+      if isinstance(rec_trim, bool) and rec_trim == False:
+        # skip this row
+        continue 
+      else:
+        # inds_keep.append(k)
+        rows_keep.append(row)
+        freq_keep.append( rec_trim['freq'] )
 
   # Next, pack the surviving columns 
   col_dtype  = [('M_ini', 'f4'), ('fov', 'f4'), ('Z', 'f4'), ('logD', 'f4'), 
                 ('Xc', 'f4'), ('eta', 'f4')] 
-  rec        = utils.list_to_recarray(stiched, col_dtype)
-  reconst    = []           # destroy the list, and free up memory
+  rec        = utils.list_to_recarray(rows_keep, col_dtype)
   stiched    = []           # destroy the list, and free up memory
 
-  self.setter('sample', rec)
+  self.setter('learning_x', rec)
   self.setter('sample_size', len(rec))
+
+  # and packing the frequencies
+  rec_freq   = np.stack(freq_keep, axis=0)
+  self.setter('learning_y', rec_freq)
+
+  self.setattr('learning_done', True)
   logger.info('_build_learning_sets: the attributes sampled successfully')
 
   return None
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _trim_modes(self, rec_gyre, dic_mode_types):
+  """
+  Plan a strategy to trim the GYRE frequency list, and adapt it to the observed list based on the 
+  requests of the user, i.e. based on the following attributes of the sampling object: 
+  - search_freely_for_frequencies (Default = False)
+  - search_strictly_for_dP (Default = False)
+  - search_strictly_for_df (Default = False)
+  - match_lowest_frequency (Default = True)
+  - match_lowest_frequency (Default = 3.0)
+
+  Note: The first three booleans specify the search method, and they are all False by defult. We check
+  internally that only one of the flags is set to True, and the rest being False!
+
+  Note: The return value from this routine is identical to the return from the following three functions:
+  - _trim_modes_freely()
+  - _trim_modes_by_dP()
+  - _trim_modes_by_df()
+
+  @param self: an instance of the "sampler.sampling" class
+  @type self: object
+  @param rec_gyre: the GYRE output list of frequencies as fetched from the database. The following
+           columns are available here:
+           - id_model: int32
+           - id_rot: int16
+           - n: int16
+           - id_type: int16
+           - freq: float32
+  @type rec_gyre: np.recarray
+  @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
+        attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
+        However, we pass it as an argument instead of fetching it internally to speed up this function.
+  @type dic_mode_types: dict
+  @return: False, if for any reason no match is found between the observed and the modeled frequency lists.
+           If successful, a matching slice of the input GYRE frequency list is returned.
+  @rtype: np.recarray or bool
+  """
+  bool_arr = np.array([self.search_freely_for_frequencies, self.search_strictly_for_dP, 
+                       self.search_strictly_for_df])
+  n_True   = np.sum( bool_arr * 1 )
+  if n_True != 1:
+    logger.error('_trim_modes: Only one of the frequency search flags must be True, and the rest False.')
+    sys.exit(1)
+
+  if self.search_freely_for_frequencies:
+    return _trim_modes_freely()
+  elif self.search_strictly_for_dP:
+    return _trim_modes_by_dP(self.star.modes, rec_gyre, self.match_lowest_frequency, dic_mode_types)
+  elif self.search_strictly_for_df:
+    return _trim_modes_by_df()
+  else:
+    logger.error('_trim_modes: unexpected frequency search plan')
+    sys.exit(1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _trim_modes_freely():
+  """
+  Choose matching frequencies with all liberty, without any restrictions/constraint.
+  Not developed yet
+  """
+  logger.error('_trim_modes_freely: Not developed yet')
+  sys.exit(1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
+  """
+  
+  @param modes: The observed modes, where each mode in the list is an instance of the "star.mode" class
+  @type modes: list of star.mode
+  @param rec_gyre: The numpy record array from GYRE frequency list coming from one GYRE output file
+  @type rec_gyre: np.recarray
+  @param match_lowest_frequency: flag to specify whether to start matching the dP series from the lowest
+        observed frequency (and move towards higher frequency modes), or the opposite?
+  @type match_lowest_frequency: bool
+  @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
+        attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
+        However, we pass it as an argument instead of fetching it internally to speed up this function.
+  @type dic_mode_types: dict
+  @return: False if, for one among many reasons, it is not possible to trim the GYRE list based on the 
+        observed modes. If it succeeds, the input GYRE list will be trimmed to match the size of the input
+        modes, and then it will be returned.
+  @rtype: np.recarray or bool
+  """
+  n_modes = len(modes)
+  n_rec   = len(rec_gyre)
+  if n_rec < n_modes:
+    logger.warning('_trim_modes_by_dP: The number of observed modes is greater than the GYRE frequency list')
+    return False
+
+  freq_unit= modes[0].freq_unit
+  if freq_unit == 'Hz':
+    conv   = 1.0
+  elif freq_unit == 'uHz':
+    conv   = star.uHz_to_Hz
+  elif freq_unit == 'cd':
+    conv   = star.cd_to_Hz
+  else:
+    logger.error('_trim_modes_by_dP: The observed freq_unit: "{0}" is ambigious'.format(freq_unit))
+    sys.exit(1)
+
+  # From observations, we have ...
+  obs_freq = np.array([mode.freq for mode in modes]) * conv # now in Hz, similar to the GYRE frequencies
+  obs_l    = np.array([mode.l for mode in modes])
+  obs_m    = np.array([mode.m for mode in modes])
+  obs_n    = np.array([mode.n for mode in modes])
+
+  the_l    = list(set(obs_l))[0]
+  the_m    = list(set(obs_m))[0]
+  the_key  = (the_l, the_m)
+  the_id   = dic_mode_types[the_key]
+
+  # From the GYRE output, we also have ...
+  rec_types= rec_gyre['id_type']
+
+  ind_l_m  = np.where(rec_types == the_id)[0]
+  n_ind    = len(ind_l_m)
+  if n_ind == 0:
+    logger.error('_trim_modes_by_dP: No match between (l,m) of observed and model modes list')
+    return False
+
+  rec_gyre = rec_gyre[ind_l_m]
+  rec_freq = rec_gyre['freq']
+  n_rec    = len(rec_gyre)
+  if n_rec < n_modes:
+    logger.error('_trim_modes_by_dP: Frequency list is too short for this observations')
+    return False
+
+  if match_lowest_frequency:
+    anchor_freq = np.min(obs_freq)
+  else:
+    anchor_freq = np.max(obs_freq)
+
+  ind_match= np.argmin(np.abs(rec_freq - anchor_freq))
+
+  if match_lowest_frequency:
+    ind_from= ind_match
+    ind_to  = ind_match + n_modes
+  else:
+    ind_from= ind_match + 1 - n_modes
+    ind_to  = ind_match + 1
+  
+  try:
+    trimmed = rec_gyre[ ind_from : ind_to ]
+    n_trim  = len(trimmed)
+  except:
+    logger.error('_trim_modes_by_dP: The frequency list too short. could not trim it')
+    return False
+
+  if n_trim != n_modes:
+    logger.warning('_trim_modes_by_dP: The trimmed array is smaller than the list of observed modes!')
+    return False
+
+  return trimmed
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _trim_modes_by_df():
+  """
+  Choose matching frequencies based on regularities/spacings in frequency domain
+  Not developed yet
+  """
+  logger.error('_trim_modes_by_df: Not developed yet')
+  sys.exit(1)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #  S A M P L I N G   T H E   I N P U T   M O D E L S
