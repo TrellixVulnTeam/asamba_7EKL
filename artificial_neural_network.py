@@ -9,7 +9,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-import sampler
+import star, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -27,7 +27,7 @@ class neural_net(object):
     #.............................
     # Inheriting from sampler.sampling()
     #.............................
-    self.sampling = sampler.sampling()
+    self.sampling = None # sampler.sampling()
 
     #.............................
     # Normal Equation
@@ -48,7 +48,7 @@ class neural_net(object):
       logger.error('neural_net: get: Attribute "{0}" is unavailable.')
       sys.exit(1)
 
-    return getattr(self, val)
+    return getattr(self, attr)
 
   # Methods
   def solve_normal_equation(self):
@@ -70,11 +70,29 @@ def _solve_normal_equation(self):
     logger.error('_solve_normal_equation: The sampling is not done yet. Call sampler.sampling.build_sampling_sets() first')
     sys.exit(1)
 
-  x = sample.learning_x
-  x = _prepend_with_column_1(x)
-  y = sample.learning_y
+  x = sample.learning_x                # (m, n)
+  x = _prepend_with_column_1(x)        # (m, n+1)
+  y = sample.learning_y                # (m, K)
 
-  return (np.linalg.inv(x.T * x) * x.T) * y
+  a = np.dot(x.T, x)                   # (n+1, n+1)
+  b = np.linalg.inv(a)                 # (n+1, n+1)
+  # c = np.dot(b, x.T)                   # (n+1, m)
+  # d = np.dot(c, y)                     # (n+1, K)
+  c = np.dot(x.T, y)
+  d = np.dot(b, c)
+
+  theta = d[:]                         # (n+1, K)
+  self.setter('theta_normal_equation', theta)
+
+  # observed frequency from list of modes
+  modes = sample.star.modes
+  freqs = np.array([ mode.freq for mode in modes ]).T 
+
+  e = np.dot(theta, theta.T)           # (n+1, n+1)
+  f = np.dot(theta, freqs)             # (n+1, K) x (K, 1) == (n+1, 1)
+  g = np.dot(e, f)                     # (n+1, n+1) x (n+1, 1)  == (n+1, 1)
+
+  print g
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _prepend_with_column_1(matrix):
@@ -86,6 +104,8 @@ def _prepend_with_column_1(matrix):
   @rtype: np.ndarray
   """
   if not len(matrix.shape) == 2:
+    print matrix.shape
+    print len(matrix.shape)
     logger.error('_prepend_with_column_1: Only 2D arrays are currently supported')
     sys.exit(1)
 

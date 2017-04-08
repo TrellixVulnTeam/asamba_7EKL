@@ -47,7 +47,7 @@ class sampling(object):
     # Sampling function name
     self.sampling_func = None
     # Maximum sample size to slice from all possible combinations
-    self.max_sample_size = 0
+    self.max_sample_size = -1
     # The range in log_Teff to constrain 
     self.range_log_Teff = []
     # The range in log_g to constrain
@@ -64,6 +64,10 @@ class sampling(object):
     #.............................
     # Status of the learning dataset
     self.learning_done = False
+    # Exclude eta = 0 from features (avoid singular matrix)
+    self.exclude_eta_column = False
+    # Names of learning features in the order queried from database
+    self.feature_names = ['']
     # Resulting sample of features (type numpy.recarray)
     self.learning_x = None
     # Corresponding 2D frequency matrix for all features (type numpy.ndarray)
@@ -323,10 +327,6 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: specify "sampling_func" attribute of the class')
     sys.exit(1)
 
-  if self.max_sample_size == 0:
-    logger.error('_build_learning_sets: set "max_sample_size" attribute of the class greater than zero')
-    sys.exit(1)
-
   if self.star.num_modes == 0:
     logger.error('_build_learning_sets: The "modes" attribute of the "star" object of "sampling" not set yet!')
     sys.exit(1)
@@ -406,7 +406,11 @@ def _build_learning_sets(self):
   reconst    = [dic_par[(key, )] for key in self.ids_models]
   dic_par    = []           # delete dic_par and release memory
 
-  stiched    = [reconst[k] + eta_vals[k] for k in range(self.sample_size)]
+  # whether or not include the eta column
+  if self.exclude_eta_column:
+    stiched  = reconst[:]
+  else:
+    stiched  = [reconst[k] + eta_vals[k] for k in range(self.sample_size)]
   reconst    = []           # destroy the list, and free up memory
   
   # Now, build the thoretical modes corresponding to each row in the sampled data
@@ -459,17 +463,16 @@ def _build_learning_sets(self):
         rows_keep.append(row)
         freq_keep.append( rec_trim['freq'] )
 
-  # Next, pack the surviving columns 
-  col_dtype  = [('M_ini', 'f4'), ('fov', 'f4'), ('Z', 'f4'), ('logD', 'f4'), 
-                ('Xc', 'f4'), ('eta', 'f4')] 
-  rec        = utils.list_to_recarray(rows_keep, col_dtype)
+  matrix     = np.stack(rows_keep, axis=0)
   stiched    = []           # destroy the list, and free up memory
 
-  self.setter('learning_x', rec)
-  self.setter('sample_size', len(rec))
+  self.setter('feature_names', ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta'])
+  self.setter('learning_x', matrix)
+  self.setter('sample_size', len(matrix))
 
-  # and packing the frequencies
+  # and packing the frequencies followed by forced conversion to cycles per day
   rec_freq   = np.stack(freq_keep, axis=0)
+  rec_freq   /= star.Hz_to_cd
   self.setter('learning_y', rec_freq)
 
   self.setter('learning_done', True)
@@ -567,18 +570,15 @@ def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
     return False
 
   freq_unit= modes[0].freq_unit
-  if freq_unit == 'Hz':
-    conv   = 1.0
-  elif freq_unit == 'uHz':
-    conv   = star.uHz_to_Hz
-  elif freq_unit == 'cd':
-    conv   = star.cd_to_Hz
-  else:
-    logger.error('_trim_modes_by_dP: The observed freq_unit: "{0}" is ambigious'.format(freq_unit))
+  if freq_unit != 'cd':
+    logger.error('_trim_modes_by_dP: The observed freq_unit: "{0}" must be "cd".'.format(freq_unit))
     sys.exit(1)
 
   # From observations, we have ...
-  obs_freq = np.array([mode.freq for mode in modes]) * conv # now in Hz, similar to the GYRE frequencies
+  obs_freq = np.array([mode.freq for mode in modes]) # unit: per day
+  d_freq   = obs_freq[1:] - obs_freq[:-1]
+  d_freq_lo= d_freq[0]  
+  d_freq_hi= d_freq[-1] 
   obs_l    = np.array([mode.l for mode in modes])
   obs_m    = np.array([mode.m for mode in modes])
   obs_n    = np.array([mode.n for mode in modes])
@@ -604,31 +604,17 @@ def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
     logger.error('_trim_modes_by_dP: Frequency list is too short for this observations')
     return False
 
-  if match_lowest_frequency:
-    anchor_freq = np.min(obs_freq)
-  else:
-    anchor_freq = np.max(obs_freq)
-
-  ind_match= np.argmin(np.abs(rec_freq - anchor_freq))
-
-  if match_lowest_frequency:
-    ind_from= ind_match
-    ind_to  = ind_match + n_modes
-  else:
-    ind_from= ind_match + 1 - n_modes
-    ind_to  = ind_match + 1
-  
-  try:
-    trimmed = rec_gyre[ ind_from : ind_to ]
-    n_trim  = len(trimmed)
-  except:
-    logger.error('_trim_modes_by_dP: The frequency list too short. could not trim it')
-    return False
+  freq_lo   = obs_freq[0] - d_freq_lo / 2.
+  freq_hi   = obs_freq[-1] + d_freq_hi / 2.
+  ind_trim  = np.where((rec_freq >= freq_lo) & (rec_freq <= freq_hi))[0]
+  n_trim    = len(ind_trim)
 
   if n_trim != n_modes:
     logger.warning('_trim_modes_by_dP: The trimmed array is smaller than the list of observed modes!')
     return False
 
+  trimmed   = rec_gyre[ind_trim]
+  
   return trimmed
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -679,10 +665,6 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
          second element being the rotation_rate id.
   @rtype: list of tuples
   """
-  if n < 1:
-    logger.error('constrained_pick_models_and_rotation_ids: Specify n > 1')
-    sys.exit(1)
-
   if not (len(range_log_Teff) == len(range_log_g) == len(range_eta) == 2):
     logger.error('constrained_pick_models_and_rotation_ids: Input "range" lists must have size = 2')
     sys.exit(1)
@@ -716,8 +698,6 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
       logger.error('constrained_pick_models_and_rotation_ids: Found no matching rotation rates')
       sys.exit(1)
 
-  # if n_mod * n_rot > n: n = n_mod * n_rot
-
   np.random.shuffle(ids_models)
   np.random.shuffle(ids_rot)
 
@@ -725,7 +705,10 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
 
-  return combo[:n]
+  if n > 0:
+    return combo[:n]
+  else:
+    return combo
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def randomly_pick_models_and_rotation_ids(dbname, n):

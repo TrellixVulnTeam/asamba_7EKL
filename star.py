@@ -46,7 +46,12 @@ class mode(object):
 
   >>>from star import mode
   >>>mode_1 = star.mode()
-  >>>mode_1.setter()
+  >>>mode_1.setter('freq_unit', 'cd')
+
+  Note that the frequency unit is converted to "per day" if not already in this unit. This is convenient
+  because the typical frequencies of massive stars are around a day, and further feature normalization
+  is not really needed for frequencies. Whereas with Hertz, there is roughly a factor of 10^{-6} always
+  hanging around without any added value.
   """
   def __init__(self):
     super(mode, self).__init__()
@@ -186,6 +191,13 @@ def load_modes_from_file(filename, delimiter=''):
           sys.exit(1)
 
     loaded.append(a_mode)
+  
+  # check frequency monotonicity
+  freqs  = np.array([this.freq for this in loaded])
+  d_freq = freqs[1:] - freqs[:-1]
+  if not all(df > 0 for df in d_freq):
+    logger.error('load_modes_from_file: The mode frequencies must be strictly increasing')
+    sys.exit(1)
 
   return loaded
 
