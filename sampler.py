@@ -66,6 +66,8 @@ class sampling(object):
     self.learning_done = False
     # Exclude eta = 0 from features (avoid singular matrix)
     self.exclude_eta_column = False
+    # Explicit the number of features
+    self.num_features = 0
     # Names of learning features in the order queried from database
     self.feature_names = ['']
     # Resulting sample of features (type numpy.recarray)
@@ -96,8 +98,10 @@ class sampling(object):
     # Match from closest smallest frequency
     # and proceed to higher frequencies
     self.match_lowest_frequency = True
-    # How many sigma around search frequency to consider?
-    self.sigma_match_frequency = 3.0
+    # What fraction of frequency difference around
+    # the lowest and highest modes to keep the mode?
+    # This cannot exceed 0.5
+    self.trim_delta_freq_factor = 0.25
 
     #.............................
     # Sizes of different learning sets
@@ -406,7 +410,7 @@ def _build_learning_sets(self):
   reconst    = [dic_par[(key, )] for key in self.ids_models]
   dic_par    = []           # delete dic_par and release memory
 
-  # whether or not include the eta column
+  # whether or not include the eta column (must do for non-rot models, i.e. singular cases)
   if self.exclude_eta_column:
     stiched  = reconst[:]
   else:
@@ -416,7 +420,6 @@ def _build_learning_sets(self):
   # Now, build the thoretical modes corresponding to each row in the sampled data
   # only accept those rows from the sample whose corresponding frequency row is useful
   # for our specific problem
-  # inds_keep  = []
   rows_keep  = []
   freq_keep  = []
   modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
@@ -451,28 +454,31 @@ def _build_learning_sets(self):
 
       rec_this = utils.list_to_recarray(this, modes_dtype)
 
+      # convert GYRE frequencies from "Hz" to "cd" for several benefits!
+      rec_this['freq'] *= star.Hz_to_cd 
+
       # Trim off the GYRE list to match the observations
       rec_trim = _trim_modes(self, rec_this, dic_mode_types)
 
       # Decide whether or not to keep this (k-th) row based on the result of trimming
       if isinstance(rec_trim, bool) and rec_trim == False:
-        # skip this row
-        continue 
+        continue            # skip this row
       else:
-        # inds_keep.append(k)
         rows_keep.append(row)
         freq_keep.append( rec_trim['freq'] )
 
   matrix     = np.stack(rows_keep, axis=0)
   stiched    = []           # destroy the list, and free up memory
 
-  self.setter('feature_names', ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta'])
+  names      = ['M_ini', 'fov', 'Z', 'logD', 'Xc'] if self.exclude_eta_column else ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta']
+  self.setter('feature_names', names)
+  self.setter('num_features', len(self.feature_names))
   self.setter('learning_x', matrix)
   self.setter('sample_size', len(matrix))
 
   # and packing the frequencies followed by forced conversion to cycles per day
   rec_freq   = np.stack(freq_keep, axis=0)
-  rec_freq   /= star.Hz_to_cd
+  # rec_freq   /= star.Hz_to_cd
   self.setter('learning_y', rec_freq)
 
   self.setter('learning_done', True)
@@ -527,7 +533,7 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
   if self.search_freely_for_frequencies:
     return _trim_modes_freely()
   elif self.search_strictly_for_dP:
-    return _trim_modes_by_dP(self.star.modes, rec_gyre, self.match_lowest_frequency, dic_mode_types)
+    return _trim_modes_by_dP(self.star.modes, rec_gyre, dic_mode_types, self.trim_delta_freq_factor)
   elif self.search_strictly_for_df:
     return _trim_modes_by_df()
   else:
@@ -544,20 +550,23 @@ def _trim_modes_freely():
   sys.exit(1)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
+def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   """
   
   @param modes: The observed modes, where each mode in the list is an instance of the "star.mode" class
   @type modes: list of star.mode
   @param rec_gyre: The numpy record array from GYRE frequency list coming from one GYRE output file
   @type rec_gyre: np.recarray
-  @param match_lowest_frequency: flag to specify whether to start matching the dP series from the lowest
-        observed frequency (and move towards higher frequency modes), or the opposite?
-  @type match_lowest_frequency: bool
   @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
         attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
         However, we pass it as an argument instead of fetching it internally to speed up this function.
   @type dic_mode_types: dict
+  @param trim_delta_freq_factor: This is the fraction of the frequency difference (delta_f) between the 
+        first and last observed frequencies. Default:0.25. This delta is used to select models which have
+        frequencies (f) in the range [f-df*factor , f+df*factor], where df is the frequency difference between
+        two consecutive modes for the lowest and highest observed modes. If this factor is set to greater than
+        0.5, the theoretical modes for two neighboring modes will overlap, and that will mess up the analysis.
+        In that case, we raise an exception and terminate the program.
   @return: False if, for one among many reasons, it is not possible to trim the GYRE list based on the 
         observed modes. If it succeeds, the input GYRE list will be trimmed to match the size of the input
         modes, and then it will be returned.
@@ -571,7 +580,7 @@ def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
 
   freq_unit= modes[0].freq_unit
   if freq_unit != 'cd':
-    logger.error('_trim_modes_by_dP: The observed freq_unit: "{0}" must be "cd".'.format(freq_unit))
+    logger.error('_trim_modes_by_dP: The observed frequencies must be in "per day (cd)" unit')
     sys.exit(1)
 
   # From observations, we have ...
@@ -603,9 +612,13 @@ def _trim_modes_by_dP(modes, rec_gyre, match_lowest_frequency, dic_mode_types):
   if n_rec < n_modes:
     logger.error('_trim_modes_by_dP: Frequency list is too short for this observations')
     return False
-
-  freq_lo   = obs_freq[0] - d_freq_lo / 2.
-  freq_hi   = obs_freq[-1] + d_freq_hi / 2.
+ 
+  factor    = trim_delta_freq_factor
+  if factor > 0.5 :
+    logger.error('_trim_modes_by_dP: We strongly recommend to lower trim_delta_freq_factor below 0.5. E.g. 0.25')
+    sys.exit(1)
+  freq_lo   = obs_freq[0] - d_freq_lo * factor
+  freq_hi   = obs_freq[-1] + d_freq_hi * factor
   ind_trim  = np.where((rec_freq >= freq_lo) & (rec_freq <= freq_hi))[0]
   n_trim    = len(ind_trim)
 

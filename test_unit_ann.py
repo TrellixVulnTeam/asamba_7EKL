@@ -21,7 +21,27 @@ def main():
   # Set the relevant attributes
   TheANN.solve_normal_equation()
 
-  theta_Neq = TheANN.get('theta_normal_equation')
+  theta_Neq = TheANN.get('normal_equation_theta')
+
+  X_Neq     = TheANN.get('normal_equation_features')
+  print ' - Solution from the Normal Equation:'
+  print '   Intercept:{0:0.4f}, mass:{1:0.3f}, fov:{2:0.3f}'.format(X_Neq[0], X_Neq[1], X_Neq[2])
+  print '   Z:{0:0.3f}, logD:{1:0.2f}, Xc:{2:0.4f}'.format(X_Neq[3], X_Neq[4], X_Neq[5])
+  if not TheSample.exclude_eta_column:
+    print '   eta:{0:0.2f}'.format(X_Neq[-1])
+  print '   Cost is: J={0:0.2e} \n'.format(TheANN.normal_equation_cost)
+  
+  # compare the observed and predicted frequencies from the normal equation
+  if False:
+    theta     = TheANN.normal_equation_theta
+    g         = TheANN.normal_equation_features
+    h_theta   = np.dot(g.T, theta)           # (n+1, 1).T x (n+1, K) = (1, K)
+    K         = len(h_theta)
+    modes     = TheSample.star.modes
+    obs_freqs = np.array([mode.freq for mode in modes])
+    for j in range(K):
+      print '   mode {0}: Obs:{1}, modeled:{2}'.format(j+1, obs_freqs[j], h_theta[j])
+
 
   return TheANN
 

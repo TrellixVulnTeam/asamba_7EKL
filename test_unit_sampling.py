@@ -31,8 +31,8 @@ def main():
   TheSample.setter('dbname', 'grid')
   TheSample.setter('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
   TheSample.setter('max_sample_size', 5000)
-  TheSample.setter('range_log_Teff', [4.0, 4.15])
-  TheSample.setter('range_log_g', [3.0, 4.0])
+  TheSample.setter('range_log_Teff', [3.95, 4.11])
+  TheSample.setter('range_log_g', [3.9, 4.3])
   TheSample.setter('range_eta', [0, 0])
 
   TheSample.setter('star', TheStar)
@@ -42,6 +42,7 @@ def main():
 
   # search plan for matching frequencies
   TheSample.setter('search_strictly_for_dP', True)
+  TheSample.setter('trim_delta_freq_factor', 0.25)
 
   # For non-rotating models, exclude eta column (which is just 0.0) to avoid singular X matrix
   TheSample.setter('exclude_eta_column', True)
@@ -60,6 +61,7 @@ def main():
   print '   '
 
   # Plot the histogram of the learning Y sample
+  plot_sampler.hist_learning_x(TheSample, 'plots/KIC-10526294-hist-X.png')
   plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
 
   # Set percentages for training, cross-validation and test sets

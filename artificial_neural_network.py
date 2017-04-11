@@ -32,7 +32,12 @@ class neural_net(object):
     #.............................
     # Normal Equation
     #.............................
-    self.theta_normal_equation = 0
+    # Analytic solution to the coefficients
+    self.normal_equation_theta = 0
+    # Solution of the features given analytic theta, and the observed y
+    self.normal_equation_features = 0
+    # The cost from the optimized theta and features
+    self.normal_equation_cost = 0
 
   # Setter
   def setter(self, attr, val):
@@ -53,7 +58,35 @@ class neural_net(object):
   # Methods
   def solve_normal_equation(self):
     """
+    Find the analytic solution for the unknown hypothesis coefficients \f$\theta\f$, which minimizes the
+    cost function \f$ J(\theta) \f$ as defined below.
+    
+    \f[ J(\theta)= \frac{1}{2m} (\theta^T X-y)^T \cdot (\theta^T X-y) \f]
+    
+    For more information refer to: 
+    <a href="http://eli.thegreenplace.net/2014/derivation-of-the-normal-equation-for-linear-regression">Click to Open</a> 
+    Consequently, the analytic solution to \f$\theta\f$ is:
+    
+    \f[ \theta_0 = (X^T \cdot X)^{-1} \cdot X^{-1} \cdot y. \f]
 
+    Once \f$\theta_0\f$ is analytically derived, then the cost function has obtained its minimum value. If we assume
+    this set of coefficients make the cost function approach zero \f$J(\theta_0)\approx 0\f$, intuitively 
+    \f$ \theta_0^T\cdot X \approx y \f$. 
+
+    One can immediately solve for the unknown feature vector \f$ X \f$, which reproduces the observations \f$ y_0\f$, 
+    given the corresponding coefficients \f$ \theta_0 \f$. To that end, we multiply both sides of the last equation 
+    by \f$ \theta \f$, followed by a multiplication with \f$ (\theta_0 \cdot \theta_0^T)^{-1} \f$ to yield \f$ X \f$:
+    
+    \f[ X_0 \approx (\theta_0 \cdot \theta_0^T)^{-1} \cdot (\theta \cdot y_0) \f]
+    
+    Notes:
+    - The resulting coefficients are saved as the following attribute self.normal_equation_theta, and the resulting
+      feature vector \f$ X_0 \f$ is stored as the attribute self.normal_equation_features.
+    - The model frequencies \f$ y \f$ and the observed frequencies \f$ y_0 \f$ are converted to the per day 
+      (\f$ d^{-1} \f$) unit for a fair comparison.
+
+    @param self: instance of the neural_net class
+    @type self: object
     """
     _solve_normal_equation(self)
 
@@ -76,23 +109,27 @@ def _solve_normal_equation(self):
 
   a = np.dot(x.T, x)                   # (n+1, n+1)
   b = np.linalg.inv(a)                 # (n+1, n+1)
-  # c = np.dot(b, x.T)                   # (n+1, m)
-  # d = np.dot(c, y)                     # (n+1, K)
   c = np.dot(x.T, y)
   d = np.dot(b, c)
 
   theta = d[:]                         # (n+1, K)
-  self.setter('theta_normal_equation', theta)
+  self.setter('normal_equation_theta', theta)
 
   # observed frequency from list of modes
   modes = sample.star.modes
-  freqs = np.array([ mode.freq for mode in modes ]).T 
 
-  e = np.dot(theta, theta.T)           # (n+1, n+1)
+  # Now, solve for the "best-value" features using theta from above
+  freqs = np.array([ mode.freq for mode in modes ]).T # (K, 1)
+
+  e = np.linalg.inv(np.dot(theta, theta.T)) # (n+1, n+1)
   f = np.dot(theta, freqs)             # (n+1, K) x (K, 1) == (n+1, 1)
   g = np.dot(e, f)                     # (n+1, n+1) x (n+1, 1)  == (n+1, 1)
 
-  print g
+  self.setter('normal_equation_features', g)
+
+  J = np.sum(np.dot(g.T, theta) - freqs) / (2 * len(freqs))
+
+  self.setter('normal_equation_cost', J)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _prepend_with_column_1(matrix):
