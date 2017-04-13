@@ -4,7 +4,7 @@ import logging
 import numpy as np 
 import psycopg2
 
-from grid import db_def
+from grid import db_def, query
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -374,6 +374,21 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
   return id
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_models_log_Teff_log_g_by_id(dbname, list_ids):
+  """
+
+  """
+  result = []
+  n_ids  = len(list_ids)
+  if n_ids == 0:
+    logger.error('get_models_log_Teff_log_g_by_id: The input "list_ids" is empty')
+    sys.exit(1)
+  
+  with db_def.grid_db(dbname=dbname) as the_db:
+    q_id  = query
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -487,7 +502,7 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
   @type Z: float
   @param logD: the logarithm of the diffusive mixing coefficient
   @type logD: float
-  @return: the id of the corresponding row, if the row exists, and if the querry succeeds.
+  @return: the id of the corresponding row, if the row exists, and if the query succeeds.
         In case of a failure, we return False
   @rtype: integer
   """

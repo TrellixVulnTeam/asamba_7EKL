@@ -46,7 +46,7 @@ class mode(object):
 
   >>>from star import mode
   >>>mode_1 = star.mode()
-  >>>mode_1.setter('freq_unit', 'cd')
+  >>>mode_1.set('freq_unit', 'cd')
 
   Note that the frequency unit is converted to "per day" if not already in this unit. This is convenient
   because the typical frequencies of massive stars are around a day, and further feature normalization
@@ -88,9 +88,9 @@ class mode(object):
   ##########################
   # Setter
   ##########################
-  def setter(self, attr, val):
+  def set(self, attr, val):
     if not hasattr(self, attr):
-      logger.error('mode: setter: Attribute "{0}" is unavailable'.format(attr))
+      logger.error('mode: set: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
     setattr(self, attr, val)
 
@@ -184,7 +184,7 @@ def load_modes_from_file(filename, delimiter=''):
         func = conv[j]
         val  = func(val)
         try:
-          a_mode.setter(attr, val)
+          a_mode.set(attr, val)
         except:
           logger.error('load_modes_from_file: Unrecognized attribute found:')
           print k, j, func, line[j], attr, val, hasattr(a_mode, attr)
@@ -354,14 +354,12 @@ class star(object):
   ##########################
   # Setter
   ##########################
-  def setter(self, attr, val):
+  def set(self, attr, val):
     if not hasattr(self, attr):
-      logger.error('star: setter: Attribute "{0}" is unavailable'.format(attr))
+      logger.error('star: set: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
     setattr(self, attr, val)
-
-    if attr == 'modes':
-      setattr(self, 'num_modes', len(self.modes))
+    _do_extra(self, attr, val)
 
   ##########################
   # Getter
@@ -374,3 +372,55 @@ class star(object):
     return getattr(self, attr)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _do_extra(self, attr, val):
+  """
+  Some assignemnt to the star() object requires taking care of other attributes decently. This routine
+  ensures the consistency of the assignments. E.g. if you set Teff, the log_Teff will be assigend here.
+  Note: for asymmetric errors in logarithmic scale, we use the taylor expnsion of the following form
+
+  \f[ 
+      \log(x\pm\epsilon)\approx\log(x)\pm\frac{\epsilon}{(\ln10)x}-\frac{\epsilon^2}{(2\ln10)x^2}.
+  \f]
+  """
+  if attr == 'Teff' and self.log_Teff == 0:
+    self.log_Teff = np.log10(val)
+
+  if attr == 'log_Teff' and self.Teff == 0:
+    self.Teff = np.power(10, val)
+
+  if attr == 'Teff_err_lower' and self.log_Teff_err_lower == 0:
+    if self.Teff == 0:
+      logger.error('_do_extra: Specify Teff first')
+      sys.exit(1)
+    x, eps, ln10 = self.Teff, val, np.log(10.)
+    self.log_Teff_err_lower = eps/(ln10 * x) + eps**2/(2*ln10*x**2)
+
+  if attr == 'Teff_err_upper' and self.log_Teff_err_upper == 0:
+    if self.Teff == 0:
+      logger.error('_do_extra: Specify Teff first')
+      sys.exit(1)
+    x, eps, ln10 = self.Teff, val, np.log(10.)
+    self.log_Teff_err_upper = eps/(ln10 * x) - eps**2/(2*ln10*x**2)
+
+  if attr == 'log_Teff_err_lower' and self.Teff_err_lower == 0:
+    if self.log_Teff == 0 or self.log_Teff_err_lower == 0:
+      logger.error('_do_extra: Specify log_Teff and log_Teff_err_lower first')
+      sys.exit(1)
+    self.Teff_err_lower = np.power(10, self.log_Teff) - \
+                          np.power(10, self.log_Teff - val)
+
+  if attr == 'log_Teff_err_upper' and self.Teff_err_upper == 0:
+    if self.log_Teff == 0 or self.log_Teff_err_upper == 0:
+      logger.error('_do_extra: Specify log_Teff and log_Teff_err_upper first')
+      sys.exit(1)
+    self.Teff_err_upper = np.power(10, self.log_Teff + val) - \
+                          np.power(10, self.log_Teff) 
+
+  if attr == 'modes':
+    setattr(self, 'num_modes', len(self.modes))
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+

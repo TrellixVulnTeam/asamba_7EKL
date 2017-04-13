@@ -5,6 +5,8 @@ import numpy as np
 from test_unit_sampling import main as main_sampling
 import artificial_neural_network as ann
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
 def main():
   """
   This test unit is built on top of the test_unit_sampling, because it calls that, and uses the "sampling"
@@ -16,7 +18,7 @@ def main():
   TheANN    = ann.neural_net()
 
   # Insert the TheSample into TheANN object
-  TheANN.setter('sampling', TheSample)
+  TheANN.set('sampling', TheSample)
 
   # Set the relevant attributes
   TheANN.solve_normal_equation()
@@ -42,6 +44,13 @@ def main():
     for j in range(K):
       print '   mode {0}: Obs:{1}, modeled:{2}'.format(j+1, obs_freqs[j], h_theta[j])
 
+  # Maximum a posteriori analysis
+  TheANN.set('MAP_use_log_Teff_log_g_prior', True)
+  TheANN.set('frequency_sigma_factor', 1.)
+  TheANN.set('rescale_chi_square', True)
+  MAP       = TheANN.max_a_posteriori()
+  marg_M_ini= TheANN.marginalize(wrt='M_ini')
+  print marg_M_ini
 
   return TheANN
 

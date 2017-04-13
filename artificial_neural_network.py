@@ -9,7 +9,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-import star, sampler
+import utils, star, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -32,6 +32,8 @@ class neural_net(object):
     #.............................
     # Normal Equation
     #.............................
+    # Status of the procedure
+    self.normal_equation_done = False
     # Analytic solution to the coefficients
     self.normal_equation_theta = 0
     # Solution of the features given analytic theta, and the observed y
@@ -39,15 +41,59 @@ class neural_net(object):
     # The cost from the optimized theta and features
     self.normal_equation_cost = 0
 
+    #.............................
+    # Maximum a posteriori (MAP)
+    #.............................
+    # Use uniform prior distribution or not
+    self.MAP_uniform_prior = False
+    # Set prior based on log_Teff and log_g
+    self.MAP_use_log_Teff_log_g_prior = False
+    # The prior values, i.e. P(h)
+    self.MAP_prior = 0
+    # The prior in natural log scale
+    self.MAP_ln_prior = 0
+
+    # Status of the chi square computations
+    self.chi_square_done = False
+    # Enhance observed frequencies by this factor for chi square computation
+    self.frequency_sigma_factor = 1.0
+    # 2-D matrix of chi^2_i(j) for the scaled squared frequency difference
+    # for the i-th mode compared with that of the i-th mode of the j-th model
+    self.MAP_chi_square_matrix = 0
+    # sum over MAP_chi_square_matrix along the 2nd axis to give the total 
+    # chi square for each input model. This is ln( P(D|h) )
+    self.MAP_chi_square = 0
+    # Rescale chi squares by subtracting the min(chi square) from all
+    self.rescale_chi_square = True
+
+    # The evidence
+    self.MAP_evidence = 0
+    # The evidence in natural log scale
+    self.MAP_ln_evidence = 0
+
+    # The posterior
+    self.MAP_posterior = 0
+    # The posterior in natural log scale
+    self.MAP_ln_posterior = 0
+
+    # The best-model feature that maximize the likelihood (MAP)
+    # That's what you want to look at!
+    self.MAP_feature = 0
+
+
+  ##########################
   # Setter
-  def setter(self, attr, val):
+  ##########################
+  def set(self, attr, val):
     if not hasattr(self, attr):
-      logger.error('neural_net: setter: Attribute "{0}" is unavailable.')
+      logger.error('neural_net: set: Attribute "{0}" is unavailable.')
       sys.exit(1)
 
     setattr(self, attr, val)
 
+  ##########################
   # Getter
+  ##########################
   def get(self, attr):
     if not hasattr(self, attr):
       logger.error('neural_net: get: Attribute "{0}" is unavailable.')
@@ -55,7 +101,9 @@ class neural_net(object):
 
     return getattr(self, attr)
 
+  ##########################
   # Methods
+  ##########################
   def solve_normal_equation(self):
     """
     Find the analytic solution for the unknown hypothesis coefficients \f$\theta\f$, which minimizes the
@@ -69,7 +117,11 @@ class neural_net(object):
     
     \f[ \theta_0 = (X^T \cdot X)^{-1} \cdot X^{-1} \cdot y. \f]
 
-    Once \f$\theta_0\f$ is analytically derived, then the cost function has obtained its minimum value. If we assume
+    A brief remark on the dimensionality of the terms: For a learning set of size \f$ m\f$, with \f$ n+1\f$ features
+    (including the intercept coefficient), and for the observed/trained output \f$ y \f$ being a matrix of \f$ m\times K\f$
+    (for \f$ K\f$ modes), then the coefficient matrix \f$ \theta_0\f$ is \f$ (n+1) \times K \f$.
+
+    Once \f$\theta_0\f$ is analytically derived, then the cost function is minimized. If we assume
     this set of coefficients make the cost function approach zero \f$J(\theta_0)\approx 0\f$, intuitively 
     \f$ \theta_0^T\cdot X \approx y \f$. 
 
@@ -78,6 +130,8 @@ class neural_net(object):
     by \f$ \theta \f$, followed by a multiplication with \f$ (\theta_0 \cdot \theta_0^T)^{-1} \f$ to yield \f$ X \f$:
     
     \f[ X_0 \approx (\theta_0 \cdot \theta_0^T)^{-1} \cdot (\theta \cdot y_0) \f]
+
+    Needless to highlight that \f$X_0\f$ is a vector of size \f$(n+1)\f$, for an intercept and \f n\f$ features.
     
     Notes:
     - The resulting coefficients are saved as the following attribute self.normal_equation_theta, and the resulting
@@ -89,8 +143,78 @@ class neural_net(object):
     @type self: object
     """
     _solve_normal_equation(self)
+    self.set('normal_equation_done', True)
+
+  ##########################
+  def chi_square(self):
+    """
+    We define the \f$ \chi^2\f$ score between the i-th observed frequency \f$ f_i^{\rm (obs)}, and the model
+    frequency \f$ f_i^{\rm (mod)}\f$ (coming from e.g. the learning set) as the following
+
+    \f[ \chi^2 = \sum_{i=1}^{K} \chi^2_i = \sum_{i=1}^{K} \frac{1}{2}
+                 \left(\frac{f_i^{\rm (obs) - f_i^{\rm (mod)}{\sigma_i^2}\right)^2. 
+    \f]
+
+    Here, \f$ K\f$ is the total number of observed modes, and \f$\sigma_i\f$ is the 1-\f$\sigma\f$ uncertainty
+    around each observed frequency.
+
+    @param self: An instance of the neural_net() class
+    @type self: obj
+    @return: the "MAP_chi_square_matrix" and "MAP_chi_square" attributes of the class will be set
+    @rtype: None
+    """
+    _chi_square(self)
+    self.set('chi_square_done', True)
+
+  ##########################
+  def max_a_posteriori(self):
+    """
+    This routine finds the attributes of the model which maximizes the posterior likelihood function, hence MAP. 
+    It consists of the following steps:
+    
+    1. Priors: Either set uniformly, or are set based on a comparison between log_Teff and log_g of the model and
+       the star. For each hypothesis \f$h\f$, we return the prior information \f$P(h)\f$, and \f$\ln P(h)\f$.
+    
+    2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data given the hypothesis, 
+       i.e. \f$\chi^2=\ln P(D|h) = K^{-1}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
+       A recommended option here is to "rescale" the chi-square values to avoid numerical overflow.
+
+    3. Evidence, which is basically an inner dot product between the prior vector and the likelihood vector:
+       \f$P(D)=\sum_h P(D\h) P(h) \f$. We return both \f$P(D)\f$ and \f$\ln P(D)\f$.
+
+    4. Posterior \f$P(h|D)\f$: Based on the Bayes Theorem, the posterior is 
+
+       \f[
+           \frac{P(h|D)}{s}=\frac{\frac{P(D|h)}{s}P(h)}{P(D)},
+       \f]
+
+       where \f$s\f$ is an optional "scaling" factor used to "rescale" the loglikelihood. Indeed, setting \f$s=1\f$
+       recovers the Bayes theorem in its original form. This scaling is allowed, since we only make relative 
+       comparison between the models.
+
+    @param self: an instance of the neural_net() class    
+    @type self: obj
+    """
+    _max_a_posteriori(self)
+
+  ##########################
+  def marginalize(self, wrt):
+    """
+    Marginalize the learning features (learning_x), with respect to (hence "wrt") one of the feature columns (whose names
+    are available as self.sampling.feature_names)
+
+    @param self: an instance of the neural_net() class
+    @type self: obj
+    @param wrt: marginalize with respect to
+    @type wrt: str
+    """
+    return _marginalize(self, wrt)
+
+  ##########################
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# A N A L Y T I C   S O L U T I O N
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _solve_normal_equation(self):
   """
@@ -104,7 +228,7 @@ def _solve_normal_equation(self):
     sys.exit(1)
 
   x = sample.learning_x                # (m, n)
-  x = _prepend_with_column_1(x)        # (m, n+1)
+  x = utils.prepend_with_column_1(x)        # (m, n+1)
   y = sample.learning_y                # (m, K)
 
   a = np.dot(x.T, x)                   # (n+1, n+1)
@@ -113,7 +237,7 @@ def _solve_normal_equation(self):
   d = np.dot(b, c)
 
   theta = d[:]                         # (n+1, K)
-  self.setter('normal_equation_theta', theta)
+  self.set('normal_equation_theta', theta)
 
   # observed frequency from list of modes
   modes = sample.star.modes
@@ -125,29 +249,186 @@ def _solve_normal_equation(self):
   f = np.dot(theta, freqs)             # (n+1, K) x (K, 1) == (n+1, 1)
   g = np.dot(e, f)                     # (n+1, n+1) x (n+1, 1)  == (n+1, 1)
 
-  self.setter('normal_equation_features', g)
+  self.set('normal_equation_features', g)
 
-  J = np.sum(np.dot(g.T, theta) - freqs) / (2 * len(freqs))
+  h = np.dot(g.T, theta) - freqs
+  J = np.dot(h.T, h) / (2 * len(freqs))
 
-  self.setter('normal_equation_cost', J)
+  self.set('normal_equation_cost', J)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _prepend_with_column_1(matrix):
+# M A X I M U M   L I K E L I H O O D   E S T I M A T I O N 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _max_a_posteriori(self):
   """
-  Add a column of ones to the m-by-n matrix, so that the result is a m-by-n+1 matrix
-  @param matrix: The general matrix of any arbitrary size with m rows and n columns
-  @type matrix: np.ndarray
-  @return: a matrix of m rows and n+1 columns where the 0-th column is all one.
-  @rtype: np.ndarray
+  Refer to the documentation below the max_a_posteriori() method for further details
   """
-  if not len(matrix.shape) == 2:
-    print matrix.shape
-    print len(matrix.shape)
-    logger.error('_prepend_with_column_1: Only 2D arrays are currently supported')
+  _set_priors(self)
+  _chi_square(self)
+  _set_evidence(self)
+  _set_posterior(self)
+  
+  ln_posterior     = self.get('MAP_ln_posterior')
+  ind_min_posterior= np.argmin(ln_posterior)
+  sample           = self.get('sampling')
+  learning_x       = sample.get('learning_x')
+  MAP_feature      = learning_x[ind_min_posterior]
+  self.set('MAP_feature', MAP_feature)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _set_posterior(self):
+  """
+  Refer to the documentation below the max_a_posteriori() method for further details
+  """
+  ln_prior     = self.get('MAP_ln_prior')
+  chi_2        = self.get('MAP_chi_square')
+  ln_evidence  = self.get('MAP_ln_evidence')
+
+  ln_posterior = chi_2 + ln_prior - ln_evidence
+  posterior    = np.exp(ln_posterior)
+
+  self.set('MAP_posterior', posterior)
+  self.set('MAP_ln_posterior', ln_posterior)
+  print 'ranges in ln_posterior: ', ln_posterior.min(), ln_posterior.max()
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _set_evidence(self):
+  """
+  Refer to the documentation below the max_a_posteriori() method for further details
+  """
+  prior    = self.get('MAP_prior')      # == P(h)
+  chi_2    = self.get('MAP_chi_square') # == ln(P(D|h))
+  P_D_h    = np.exp(chi_2)              # P(D|h)
+  P_D      = np.sum(P_D_h * prior)      # P(D)
+
+
+  P_D      = 1.0
+
+  self.set('MAP_evidence', P_D)
+  self.set('MAP_ln_evidence', np.log(P_D))
+  print 'evidence done: ', self.MAP_ln_evidence
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _set_priors(self):
+  """
+  Refer to the documentation below the max_a_posteriori() method for further details
+  """
+  bool_arr    = np.array([self.MAP_uniform_prior, self.MAP_use_log_Teff_log_g_prior])
+  n_bool      = np.sum(bool_arr * 1)
+  if n_bool   != 1:
+    logger.error('_set_priors: set only one of "MAP_uniform_prior" or "MAP_use_log_Teff_log_g_prior" to True:')
     sys.exit(1)
 
-  col_1 = np.ones(( matrix.shape[0], 1 )) 
+  sample     = self.get('sampling')
+  learning_y = sample.get('learning_y')
+  m, K       = learning_y.shape
 
-  return np.concatenate([col_1, matrix], axis=1)
+  if self.MAP_uniform_prior:
+    prior    = np.ones(m) / float(m)
+  elif self.MAP_use_log_Teff_log_g_prior:
+    # get observed log_Teff and log_g together with their errors from the star
+    star         = sample.get('star')
+    if star.log_Teff_err_lower == 0 or star.log_Teff_err_upper == 0:
+      logger.error('_set_priors: set star.log_Teff_err_lower and star.log_Teff_err_upper first')
+      sys.exit(1)
+
+    obs_log_Teff = star.log_Teff
+    obs_log_Teff_err = np.max([ star.log_Teff_err_lower, star.log_Teff_err_upper ])
+    obs_log_g    = star.log_g
+    obs_log_g_err= np.max([ star.log_g_err_lower, star.log_g_err_upper ])
+    if not all([ obs_log_Teff != 0, obs_log_Teff_err != 0, 
+                 obs_log_g != 0, obs_log_g_err != 0 ]):
+      logger.error('_set_priors: Specify the log_Teff, log_g and their errors properly')
+      sys.exit(1)
+
+    sample   = self.sampling
+
+    lrn_log_Teff = sample.learning_log_Teff[:]
+    lrn_log_g    = sample.learning_log_g[:]
+
+    prior_log_Teff = utils.gaussian(x=lrn_log_Teff, mu=obs_log_Teff, sigma=obs_log_Teff_err)
+    prior_log_g    = utils.gaussian(x=lrn_log_g, mu=obs_log_g, sigma=obs_log_g_err)
+
+    prior     = prior_log_Teff * prior_log_g
+
+  ln_prior    = np.log(prior)
+
+  self.set('MAP_prior', prior)
+  self.set('MAP_ln_prior', ln_prior)
+  print 'ranges in ln_prior: ', ln_prior.min(), ln_prior.max()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _chi_square(self):
+  """
+  Refer to the documentation below the chi_square() method for further details  
+  """
+  sample = self.get('sampling')
+  modes  = sample.star.modes
+  freqs  = np.array([ mode.freq for mode in modes ])
+  sigma  = np.array([ mode.freq_err for mode in modes ])
+  sigma  *= self.frequency_sigma_factor
+  n_freq = len(freqs)                    # (1, K)
+
+  learning_y = sample.get('learning_y')  # (m, K)
+  m, K   = learning_y.shape
+  try:
+    assert n_freq == K
+  except AssertionError:
+    logger.error('_chi_square: The number of observed frequencies ({0}) not equal to the number of columns of learning_y ({1})'.format(n_freq, K))
+    sys.exit(1)
+
+  # duplicate/reapeat the frequency vector m times to form identical matrix to learning_y
+  freqs_matrix = np.tile(freqs, m).reshape(m, K) # (m, K)
+  sigma_matrix = np.tile(sigma, m).reshape(m, K) # (m, K)
+
+  # calculate the chi^2 in a vectorized form, i.e. element-by-element operation in abstract form
+  chi_2_matrix = np.power((freqs_matrix - learning_y)/sigma_matrix, 2.0) / 2.0
+  chi_2        = np.sum(chi_2_matrix, axis=1) / K
+
+  # Rescale the chi square values to bring them to a smaller range, and avoid numerical overflow/underflow
+  if self.rescale_chi_square:
+    ln_scale   = np.min(chi_2)
+    chi_2      -= ln_scale
+    chi_2_matrix-= ln_scale
+    logger.info('_chi_square: rescaling chi squares with ln_scale={0:.2f}'.format(ln_scale))
+
+  # save the above two chi squares as attributes of the class
+  self.set('MAP_chi_square_matrix', chi_2_matrix)
+  self.set('MAP_chi_square', chi_2)
+  print 'ranges in chi square: ', chi_2.min(), chi_2.max()
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _marginalize(self, wrt):
+  """
+  For the full documentation refer to the marginalize() method.
+  """
+  sample  = self.get('sampling')
+  x_names = sample.get('feature_names')
+  if wrt not in x_names:
+    logger.error('_marginalize: The column "{0}" is not among the available features'.format(wrt))
+    sys.exit(1)
+  
+  learning_x = sample.get('learning_x')
+  dtypes  = [(name, 'f4') for name in x_names]
+  rec     = utils.ndarray_to_recarray(learning_x, dtypes)
+
+  set_wrt = set(list(rec[wrt]))
+  n_wrt   = len(set_wrt)
+  arr_wrt = np.array(list(set_wrt))
+  arr_wrt = np.sort(arr_wrt)
+  post_wrt= np.zeros(n_wrt)            # to store the marginalized posterior probabilities
+
+  post    = self.get('MAP_posterior')
+
+  for i_wrt, val_wrt in enumerate(arr_wrt):
+    ind_wrt  = np.where(rec[wrt] == val_wrt)[0]
+    post_wrt[i_wrt] = np.sum(post[ind_wrt])
+
+  return post_wrt
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# G E N E R I C   R O U T I N E S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

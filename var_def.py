@@ -44,39 +44,51 @@ class track:
 
     self.filename = ''
 
+  # ...................................
   def __exit__(self, type, value, traceback):
     pass
 
+  # ...................................
   def set_M_ini(self, M_ini):
     self.M_ini = M_ini
 
+  # ...................................
   def set_Z(self, Z):
     self.Z = Z
 
+  # ...................................
   def set_fov(self, fov):
     self.fov = fov
 
+  # ...................................
   def set_logD(self, logD):
     self.logD = logD
 
+  # ...................................
   def set_filename(self, filename):
     self.filename = filename
 
+  # ...................................
   def get_M_ini(self):
     return self.M_ini
 
+  # ...................................
   def get_Z(self):
     return self.Z
 
+  # ...................................
   def get_fov(self):
     return self.fov 
 
+  # ...................................
   def get_logD(self):
     return self.logD 
 
+  # ...................................
   def get_filename(self):
     return self.filename
 
+  # ...................................
   def get_attr_as_dic(self):
     """
     Convert the attributes of the "track" object into a dictionary, with the attribute names as keys
@@ -117,37 +129,48 @@ class tracks:
     self.n_tracks = 0
     self.list_tracks = []
 
+  # ...................................
   def __enter__(self):
     return self 
 
+  # ...................................
   def __exit__(self, type, value, traceback):
     pass
 
+  # ...................................
   # Setters
   def set_dir_repos(self, dir_repos):
     self.dir_repos = dir_repos
 
+  # ...................................
   def set_mass_search_pattern(self, mass_search_pattern):
     self.mass_search_pattern = mass_search_pattern
 
+  # ...................................
   def set_hist_search_pattern(self, hist_search_pattern):
     self.hist_search_pattern = hist_search_pattern
 
+  # ...................................
   def set_hist_extension(self, hist_extension):
     self.hist_extension = hist_extension
 
+  # ...................................
   def set_n_dirs_M_ini(self, n_dirs_M_ini):
     self.n_dirs_M_ini = n_dirs_M_ini
 
+  # ...................................
   def set_list_dirs_M_ini(self, list_dirs_M_ini):
     self.list_dirs_M_ini = list_dirs_M_ini
 
+  # ...................................
   def set_n_tracks(self, n_tracks):
     self.n_tracks = n_tracks
 
+  # ...................................
   def set_list_tracks(self, list_tracks):
     self.list_tracks = list_tracks
 
+  # ...................................
   def set_mass_directories(self):
     """
     Return the list of directories labelled with track initial masses residing in the repository path.
@@ -172,6 +195,7 @@ class tracks:
     logger.info('set_mass_directories: Found "{0}" directories with "{1}"'.format(
            n_dirs, mass_search_pattern))
 
+  # ...................................
   def set_track_parameters(self):
     """
     Glob and find all available tracks that are organized inside the repository (hence dir_repos).
@@ -235,28 +259,36 @@ class tracks:
     self.set_list_tracks(list_tracks)
     logger.info('set_track_parameters: Setting track numbers and list done.')
 
+  # ...................................
   # Getters
   def get_dir_repos(self):
     return self.dir_repos
 
+  # ...................................
   def get_mass_search_pattern(self):
     return self.mass_search_pattern
 
+  # ...................................
   def get_hist_search_pattern(self):
     return self.hist_search_pattern
 
+  # ...................................
   def get_hist_extension(self):
     return self.hist_extension
 
+  # ...................................
   def get_n_dirs_M_ini(self):
     return self.n_dirs_M_ini
 
+  # ...................................
   def get_list_dirs_M_ini(self):
     return self.list_dirs_M_ini
 
+  # ...................................
   def get_n_tracks(self):
     return self.n_tracks
 
+  # ...................................
   def get_list_tracks(self):
     return self.list_tracks
 
@@ -348,13 +380,17 @@ class model:
     self.J_Lp              = 0.
     self.K_M               = 0.
 
+  # ...................................
   def __enter__(self):
     return self 
 
+  # ...................................
   def __exit__(self, type, value, traceback):
     pass
 
+  # ...................................
   # Setters
+  # ...................................
   def set_filename(self, filename):
     self.filename = filename
 
@@ -362,6 +398,7 @@ class model:
   #   self.track = track 
     
   # setter (by dictionary) for the rest of the class attribute
+  # ...................................
   def set_by_dic(self, dic):
     """
     Since the "model" class has many attributes, instead of writing a setter for all 
@@ -390,6 +427,7 @@ class model:
         sys.exit(1)
       setattr(self, key, value)
 
+  # ...................................
   def set(self, attr, val):
     """
     Set the value of the specific attribute "attr" of the model object
@@ -399,7 +437,9 @@ class model:
       sys.exit(1)
     setattr(self, attr, val)
     
+  # ...................................
   # Getter
+  # ...................................
   def get(self, attr):
     """
     General-purpose method to get the value of a canonical attribute of the object
@@ -442,28 +482,37 @@ class models:
 
     self.list_models = []
 
+  # ...................................
   def __enter__(self):
     return self 
 
+  # ...................................
   def __exit__(self, type, value, traceback):
     pass
 
+  # ...................................
   # Setters
+  # ...................................
   def set_model_search_pattern(self, model_search_pattern):
     self.model_search_pattern = model_search_pattern
 
+  # ...................................
   def set_model_extension(self, model_extension):
     self.model_extension = model_extension
 
+  # ...................................
   def set_n_models(self, n_models):
     self.n_models = n_models
 
+  # ...................................
   def set_list_filenames(self, list_filenames):
     self.list_filenames = list_filenames
 
+  # ...................................
   def set_list_models(self, list_models):
     self.list_models = list_models
 
+  # ...................................
   def find_list_filenames(self):
     """
     Find present models on the disk that match the search pattern.
@@ -496,6 +545,7 @@ class models:
     self.set_list_filenames(list_filenames)
     logger.info('find_list_filenames: found "{0}" model files'.format(n_files))
 
+  # ...................................
   def sort_list_filenames(self):
     # filenames  = self.get_list_filenames()
     # n_files    = len(files)
@@ -504,19 +554,25 @@ class models:
       sys.exit(1)
     self.list_filenames.sort()
 
+  # ...................................
   # Getters
+  # ...................................
   def get_model_search_pattern(self):
     return self.model_search_pattern
 
+  # ...................................
   def get_model_extension(self):
     return self.model_extension
 
+  # ...................................
   def get_list_filenames(self):
     return self.list_filenames
 
+  # ...................................
   def get_list_models(self):
     return self.list_models
 
+  # ...................................
   def get_n_models(self):
     return self.n_models
 
@@ -605,13 +661,17 @@ class modes:
     # Other attributes
     self.label        = None
 
+  # ...................................
   def __enter__(self):
     return self 
 
+  # ...................................
   def __exit__(self, type, value, traceback):
     pass
 
+  # ...................................
   # Setters
+  # ...................................
   def set(self, attr, val):
     """
     Set the value of an attribute
@@ -621,6 +681,7 @@ class modes:
       sys.exit(1)
     setattr(self, attr, val)
 
+  # ...................................
   def set_by_dic(self, dic):
     """
     Set the attributes of the object through the available items (key, values) in the passed 

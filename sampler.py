@@ -54,10 +54,18 @@ class sampling(object):
     self.range_log_g = []
     # The range in rotation rate (percentage)
     self.range_eta = []
+
+    #.............................
+    # Return of the basic search
+    #.............................
     # The models.id for the sample
     self.ids_models = []
     # The rotation_rates.id for the sample
     self.ids_rot = []
+    # log_Teff of models
+    # self.log_Teff_models = []
+    # log_g of models
+    # self.log_g_models = []
 
     #.............................
     # The resulting sample of attributes
@@ -70,12 +78,22 @@ class sampling(object):
     self.num_features = 0
     # Names of learning features in the order queried from database
     self.feature_names = ['']
+    # model ids of the learning set
+    self.learning_ids_models = []
+    # rotation ids of the learning set
+    self.learning_ids_rot = []
     # Resulting sample of features (type numpy.recarray)
     self.learning_x = None
     # Corresponding 2D frequency matrix for all features (type numpy.ndarray)
     self.learning_y = None
     # The sample size 
     self.sample_size = 0
+    # Include corresponding log_Teff and log_g?
+    # self.include_learning_log_Teff_log_g = False
+    # log_Teff for the learning set
+    self.learning_log_Teff = []
+    # log_g for the learning set
+    self.learning_log_g = []
 
     #.............................
     # Search constraints for modes
@@ -112,18 +130,24 @@ class sampling(object):
     self.training_size = -1
     self.training_x = -1
     self.training_y = -1
+    self.training_log_Teff = []
+    self.training_log_g = []
     self.training_set_done = False
 
     self.cross_valid_percentage = -1
     self.cross_valid_size = -1
     self.cross_valid_x = -1
     self.cross_valid_y = -1
+    self.cross_valid_log_Teff = []
+    self.cross_valid_log_g = []
     self.cross_valid_set_done = False
 
     self.test_percentage = -1
     self.test_size = -1
     self.test_x = -1
     self.test_y = -1
+    self.test_log_Teff = []
+    self.test_log_g = []
     self.test_set_done = False
 
     #.............................
@@ -135,11 +159,11 @@ class sampling(object):
   ##########################
   # Setter
   ##########################
-  def setter(self, attr, val):
+  def set(self, attr, val):
     """
     Set a sampling attribute, e.g.
     >>>MySample = sampler.sampling()
-    >>>MySample.setter('range_log_Teff', [4.12, 4.27])
+    >>>MySample.set('range_log_Teff', [4.12, 4.27])
 
     @param attr: The name of the attribute to set
     @type attr: str
@@ -150,29 +174,29 @@ class sampling(object):
     @type val: int, float, bool, list, etc.
     """
     if not hasattr(self, attr):
-      logger.error('sampling: setter: Attribute "{0}" is unavailable'.format(attr))
+      logger.error('sampling: set: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
 
     # Some attributes require extra care/check
     if attr == 'range_log_g':
       if not isinstance(val, list) or len(val) != 2:
-        logger.error('sampling: setter: range_log_g: Range list must have only two elements')
+        logger.error('sampling: set: range_log_g: Range list must have only two elements')
         sys.exit(1)
     elif attr == 'range_log_Teff':
       if not isinstance(val, list) or len(val) != 2:
-        logger.error('sampling: setter: range_log_Teff: Range list must have only two elements')
+        logger.error('sampling: set: range_log_Teff: Range list must have only two elements')
         sys.exit(1)
     elif attr == 'range_eta':
       if not isinstance(val, list) or len(val) != 2:
-        logger.error('sampling: setter: range_eta: Range list must have only two elements')
+        logger.error('sampling: set: range_eta: Range list must have only two elements')
         sys.exit(1)
     elif attr == 'modes_id_types':
       if not isinstance(val, list):
-        logger.error('sampling: setter: modes_id_types: Input must be a list of integers from grid.sql')
+        logger.error('sampling: set: modes_id_types: Input must be a list of integers from grid.sql')
         sys.exit(1)
     elif attr == 'modes_freq_range':
       if not isinstance(val, list) or len(val) != 2:
-        logger.error('sampling: setter: modes_freq_range: Range list must have only two elements')
+        logger.error('sampling: set: modes_freq_range: Range list must have only two elements')
         sys.exit(1)
     
     setattr(self, attr, val)
@@ -224,7 +248,19 @@ class sampling(object):
     @rtype: None
     """
     _build_learning_sets(self)
+    self.set('learning_done', True)
 
+  ##########################
+  def learning_log_Teff_log_g(self):
+    """
+    Fill up the "models_log_Teff" and "models_log_g" attributes of the class with the corresponding values retrieved
+    from the models_ids. The resulting arrays are significantly important when dealing with priors for the Bayesian
+    learning (see, e.g. artificial_neural_network.set_priors() method).
+    """
+    _learning_log_Teff_log_g(self)
+    # self.set('include_learning_log_Teff_log_g', True)
+
+  ##########################
   def split_learning_sets(self):
     """
     Split the learning set (prepared by calling build_learning_sets) into a training set, cross-validation
@@ -247,7 +283,8 @@ class sampling(object):
       - test_y = -1
 
     Note: once the training/cross-validation/test sets (i.e. *_x and *_y) are prepared, they are randomly
-          shuffled internally. So, no need to reshuffle them later.
+          shuffled internally. So, one shall never reshuffle them, else the ordering of different arrays 
+          become inconsistent.
 
     @param self: An instance of the sampling class
     @type self: obj
@@ -255,6 +292,9 @@ class sampling(object):
     @rtype: None
     """
     _split_learning_sets(self)
+    self.set('training_set_done', True)
+    self.set('cross_valid_set_done', True)
+    self.set('test_set_done', True)
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -286,13 +326,18 @@ def _split_learning_sets(self):
   # due to round-off, the sum of splitted sets may not add up to sample_size, then ...
   if n_learn != n_train + n_cv + n_test:
     n_train   = n_learn - (n_cv + n_test)
-  self.setter('training_size', n_train)
-  self.setter('cross_valid_size', n_cv)
-  self.setter('test_size', n_test)
+  self.set('training_size', n_train)
+  self.set('cross_valid_size', n_cv)
+  self.set('test_size', n_test)
 
   # Make randomly shuffled indixes for slicing
   ind_learn   = np.arange(n_learn)
   np.random.shuffle(ind_learn)
+
+  # reset various arrays according to the new indixes
+  self.set('ids_models', self.ids_models[ind_learn])
+  self.set('ids_rot', self.ids_rot[ind_learn])
+
   ind_train   = ind_learn[ : n_train]
   ind_cv      = ind_learn[n_train : n_train + n_cv]
   ind_test    = ind_learn[n_train + n_cv :]
@@ -303,17 +348,25 @@ def _split_learning_sets(self):
   learn_x[:]  = self.learning_x
   learn_y[:]  = self.learning_y
 
-  self.setter('training_x', learn_x[ind_train])
-  self.setter('training_y', learn_y[ind_train])
-  self.setter('training_set_done', True)
+  self.set('training_x', learn_x[ind_train])
+  self.set('training_y', learn_y[ind_train])
 
-  self.setter('cross_valid_x', learn_x[ind_cv])
-  self.setter('cross_valid_y', learn_y[ind_cv])
-  self.setter('cross_valid_set_done', True)
+  self.set('cross_valid_x', learn_x[ind_cv])
+  self.set('cross_valid_y', learn_y[ind_cv])
 
-  self.setter('test_x', learn_x[ind_test])
-  self.setter('test_y', learn_y[ind_test])
-  self.setter('test_set_done', True)
+  self.set('test_x', learn_x[ind_test])
+  self.set('test_y', learn_y[ind_test])
+
+  # In some casas, the log_Teff and log_g values for the learning set is available too, which we fix now
+  # if self.include_learning_log_Teff_log_g: # len(self.learning_log_Teff) > 0:
+  self.set('training_log_Teff', self.learning_log_Teff[ind_train])
+  self.set('cross_valid_log_Teff', self.learning_log_Teff[ind_cv])
+  self.set('test_log_Teff', self.learning_log_Teff[ind_test])
+
+  # if self.include_learning_log_Teff_log_g: # len(self.learning_log_g) > 0:
+  self.set('training_log_g', self.learning_log_g[ind_train])
+  self.set('cross_valid_log_g', self.learning_log_g[ind_cv])
+  self.set('test_log_g', self.learning_log_g[ind_test])
 
   logger.info('_split_learning_sets" Training, Cross-Validation and Test sets are prepared')
 
@@ -364,9 +417,9 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: The sampler returned empty list of ids.')
     sys.exit(1)
   # set the class attributes
-  self.setter('ids_models', [tup[0] for tup in tups_ids] )
-  self.setter('ids_rot', [tup[1] for tup in tups_ids]) 
-  self.setter('sample_size', len(self.ids_models) )
+  self.set('ids_models', np.array([tup[0] for tup in tups_ids]) )
+  self.set('ids_rot', np.array([tup[1] for tup in tups_ids]) ) 
+  self.set('sample_size', len(self.ids_models) )
 
   # convert the rotation ids to actual eta values through the look up dictionary
   dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
@@ -422,6 +475,8 @@ def _build_learning_sets(self):
   # for our specific problem
   rows_keep  = []
   freq_keep  = []
+  model_keep = []
+  rot_keep   = []
   modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
                 ('id_type', 'int16'), ('freq', 'float32')]
 
@@ -466,25 +521,63 @@ def _build_learning_sets(self):
       else:
         rows_keep.append(row)
         freq_keep.append( rec_trim['freq'] )
+        model_keep.append(id_model)
+        rot_keep.append(id_rot)
 
   matrix     = np.stack(rows_keep, axis=0)
   stiched    = []           # destroy the list, and free up memory
 
   names      = ['M_ini', 'fov', 'Z', 'logD', 'Xc'] if self.exclude_eta_column else ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta']
-  self.setter('feature_names', names)
-  self.setter('num_features', len(self.feature_names))
-  self.setter('learning_x', matrix)
-  self.setter('sample_size', len(matrix))
+  self.set('feature_names', names)
+  self.set('num_features', len(self.feature_names))
+  self.set('learning_x', matrix)
+  self.set('sample_size', len(matrix))
+  self.set('learning_ids_models', np.array(model_keep))
+  self.set('learning_ids_rot', np.array(rot_keep))
 
   # and packing the frequencies followed by forced conversion to cycles per day
   rec_freq   = np.stack(freq_keep, axis=0)
   # rec_freq   /= star.Hz_to_cd
-  self.setter('learning_y', rec_freq)
+  self.set('learning_y', rec_freq)
 
-  self.setter('learning_done', True)
+  # Include log_Teff and log_g for the learning set, at a cost of additional database query
+  # if self.include_learning_log_Teff_log_g:
+  _learning_log_Teff_log_g(self)
+
   logger.info('_build_learning_sets: the attributes sampled successfully')
 
   return None
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _learning_log_Teff_log_g(self):
+  """
+  This routine iteratively finds the log_Teff and log_g for each of the models present in the learning
+  set, based on their stored model ids. It can be used later to assign prior information based on Teff
+  and log_g, if the user asks for it. So, this operation is not always needed.
+  @param self: An instance of the sampling() class
+  @type self: obj
+  @return: The "learning_log_Teff" and "learning_log_g" attributes will be assigned
+  @rtype: None
+  """
+  model_keep = self.get('learning_ids_models')
+  n_keep     = len(model_keep)
+  arr_log_Teff = np.empty(n_keep, dtype=np.float64)
+  arr_log_g    = np.empty(n_keep, dtype=np.float64)
+
+  with db_def.grid_db(dbname=self.dbname) as the_db:
+    for i in range(n_keep):
+      id_model = model_keep[i]
+      q_models = query.get_log_Teff_log_g_from_models_id(id_model)
+      the_db.execute_one(q_models, None)
+      tup_res  = the_db.fetch_one()
+      arr_log_Teff[i] = tup_res[0]
+      arr_log_g[i]    = tup_res[1]
+
+  # Add the filled-up arrays to the correct attributes of the sampling class
+  self.set('learning_log_Teff', arr_log_Teff)
+  logger.info('learning_log_Teff_log_g: Attribute learning_log_Teff is assigned')
+  self.set('learning_log_g', arr_log_g)
+  logger.info('learning_log_Teff_log_g: Attribute learning_log_g is assigned')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes(self, rec_gyre, dic_mode_types):
@@ -711,12 +804,14 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
       logger.error('constrained_pick_models_and_rotation_ids: Found no matching rotation rates')
       sys.exit(1)
 
-  np.random.shuffle(ids_models)
-  np.random.shuffle(ids_rot)
+  # np.random.shuffle(ids_models)
+  # np.random.shuffle(ids_rot)
 
   combo      = [] 
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
+
+  np.random.shuffle(combo)
 
   if n > 0:
     return combo[:n]
@@ -760,15 +855,16 @@ def randomly_pick_models_and_rotation_ids(dbname, n):
 
   n_mod      = len(ids_models)
   n_eta      = len(id_rot)
-  # if n > n_mod*n_eta: n = n_mod * n_eta
 
-  np.random.shuffle(ids_models)
-  np.random.shuffle(ids_rot)
+  # np.random.shuffle(ids_models)
+  # np.random.shuffle(ids_rot)
   t4         = time.time()
   print 'Shuffling took {0:.2f} sec'.format(t4-t3)
   combo      = []
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
+
+  np.random.shuffle(combo)
 
   t5         = time.time()
   print 'The combo list took {0:.2f} sec'.format(t5-t4)

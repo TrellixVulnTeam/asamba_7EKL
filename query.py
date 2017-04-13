@@ -1,6 +1,7 @@
 
 """
-This module offers pre-composed queries to retrieve data from the database.
+This module offers pre-composed queries to retrieve data from the database for a suite of 
+recurring queries.
 The outcome of most (if not all) of the routines in this module is basically the SQL query in 
 string format. Therefore, external routines that call these functions just need to execute these
 SQL querries.
@@ -157,6 +158,25 @@ def get_M_ini_fov_Z_logD_Xc_from_models_id(models_ids):
        where (models.id_track=tracks.id) and (models.id in ({0}))'.format(str_ids)
 
   return the_query
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_log_Teff_log_g_from_models_id(id_model):
+  """
+  Return the followng fixed query statement, ready to be executed:
+  @param id_model: The id of the model
+  @type id_model: integer
+  @return: The following SQL query is returned: "select log_Teff, log_g from models where id=?", where 
+        the "?" is replaced internally by the id of the desired model.
+  @rtype: str
+  """
+  if not isinstance(id_model, int):
+    logger.error('get_log_Teff_log_g_from_models_id: The input "id_model" must be integer')
+    sys.exit(1)
+
+  return 'select log_Teff, log_g from models where id={0}'.format(id_model)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Q U E R Y I N G   T H E   R O T A T I O N _ R A T E S   T A B L E

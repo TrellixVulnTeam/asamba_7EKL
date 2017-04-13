@@ -23,29 +23,37 @@ def main():
 
   print ' - Attach the modes to a star object'
   TheStar   = star.star()
-  TheStar.setter('name', 'KIC_10526294')
-  TheStar.setter('modes', modes)
+  TheStar.set('name', 'KIC_10526294')
+
+  TheStar.set('Teff', 11500.)
+  TheStar.set('Teff_err_lower', 500.)
+  TheStar.set('Teff_err_upper', 500.)
+  TheStar.set('log_g', 4.1)
+  TheStar.set('log_g_err_lower', 0.2)
+  TheStar.set('log_g_err_upper', 0.2)
+
+  TheStar.set('modes', modes)
 
   print ' - Get an instance of the "sampling" class.'
   TheSample = sampler.sampling()
-  TheSample.setter('dbname', 'grid')
-  TheSample.setter('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
-  TheSample.setter('max_sample_size', 5000)
-  TheSample.setter('range_log_Teff', [3.95, 4.11])
-  TheSample.setter('range_log_g', [3.9, 4.3])
-  TheSample.setter('range_eta', [0, 0])
+  TheSample.set('dbname', 'grid')
+  TheSample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+  TheSample.set('max_sample_size', 5000)
+  TheSample.set('range_log_Teff', [3.95, 4.11])
+  TheSample.set('range_log_g', [3.9, 4.3])
+  TheSample.set('range_eta', [0, 0])
 
-  TheSample.setter('star', TheStar)
+  TheSample.set('star', TheStar)
 
   # seismic constraints
-  TheSample.setter('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
+  TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
   # search plan for matching frequencies
-  TheSample.setter('search_strictly_for_dP', True)
-  TheSample.setter('trim_delta_freq_factor', 0.25)
+  TheSample.set('search_strictly_for_dP', True)
+  TheSample.set('trim_delta_freq_factor', 0.25)
 
   # For non-rotating models, exclude eta column (which is just 0.0) to avoid singular X matrix
-  TheSample.setter('exclude_eta_column', True)
+  TheSample.set('exclude_eta_column', True)
 
   # Now, build the learning sets
   TheSample.build_learning_set()
@@ -65,9 +73,9 @@ def main():
   plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
 
   # Set percentages for training, cross-validation and test sets
-  TheSample.setter('training_percentage', 0.80)
-  TheSample.setter('cross_valid_percentage', 0.15)
-  TheSample.setter('test_percentage', 0.05)
+  TheSample.set('training_percentage', 0.80)
+  TheSample.set('cross_valid_percentage', 0.15)
+  TheSample.set('test_percentage', 0.05)
 
   # Now, create the three sets from the learning set
   TheSample.split_learning_sets()
