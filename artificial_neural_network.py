@@ -98,8 +98,11 @@ class neural_net(object):
     #.............................
     # Marginalization
     #.............................
+    # List of marginalized feature arrays with identical order as in
+    # sampling.feature_names, dtype: list of tuples (two ndarrays each)
+    self.marginal_results  = []
     # List of marginalized feature values with identical order as in
-    # sampling.feature_names
+    # sampling.feature_names, i.e. basically the MAP value from marginal_results
     self.marginal_features = []
 
   ##########################
@@ -241,8 +244,17 @@ class neural_net(object):
   def marginalize(self):
     """
     Iterate over all features in the learning set (whose names are stored in self.sampling.feature_names),
-    and marginalize with respect to each of these quantities. The outcome of the marginalization will be stored as
-    the "marginal_features" attribute of the neural_net class
+    and marginalize with respect to each of these quantities. The outcome of the marginalization will be stored in
+    two attribute of the neural_net class:
+    
+    1. marginal_results: which is a list of tuples; read the documentation of marginalize_wrt() method for more info.
+    
+    2. marginal_features: which is basically cherrypicking of the most likely value from the marginal_features list.
+       The order of the outputs here matches exactly that of sampling.features_names
+
+    The return structure of "self.marginal_results" is noteworthy. Because we iteratively call the
+    marginalize_wrt() method and collect its results (tuple with two ndarrays), the "self.marginal_results"
+    is a list of tuples.
     """
     _marginalize(self)
   ##########################
@@ -456,9 +468,11 @@ def _set_likelihood(self):
   self.set('MAP_likelihood', np.exp(ln_L))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# M A R G I N A L I Z A T I O N   R O U T I N E S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _marginalize_wrt(self, wrt):
   """
-  For the full documentation refer to the marginalize() method.
+  For the full documentation refer to the marginalize_wrt() method.
   """
   sample  = self.get('sampling')
   x_names = sample.get('feature_names')
@@ -483,6 +497,28 @@ def _marginalize_wrt(self, wrt):
     post_wrt[i_wrt] = np.sum(post[ind_wrt])
 
   return (arr_wrt, post_wrt)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _marginalize(self):
+  """
+  For the full documentation refer to the marginalize() method.
+  """
+  sample = self.get('sampling')
+  names  = sample.get('feature_names')
+  n_names= len(names)
+  result = []
+  vals   = np.zeros(n_names)
+
+  for i, name in enumerate(names):
+    tup  = self.marginalize_wrt(wrt=name)
+    result.append(tup)
+
+    vals[i] = tup[0][ np.argmax(tup[1]) ]
+
+  self.set('marginal_results', result)
+  self.set('marginal_features', vals)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # G E N E R I C   R O U T I N E S

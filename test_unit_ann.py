@@ -62,11 +62,11 @@ def main():
   print '   ln(P(h|D)): min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_post), np.max(ln_post))
   
   print '\n - Marginalized features' 
+  TheANN.marginalize()
   features  = TheSample.get('feature_names')
-  for name in features:
-    tup     = TheANN.marginalize(wrt=name)
-    val     = tup[0][ np.argmax(tup[1]) ]
-    print '   {0} = {1:.4f}'.format(name, val)
+  marg_vals = TheANN.get('marginal_features')
+  for i, name in enumerate(features):
+    print '   {0} = {1:.4f}'.format(name, marg_vals[i])
 
   return TheANN
 
