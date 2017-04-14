@@ -22,10 +22,14 @@ logger = logging.getLogger(__name__)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    #####    ###  ### ######  ###     ###   #####
+    #    #    #    #  #     #  #       #   #     #
+    #     #   #    #  #     #  #       #  #
+    #    #    #    #  ######   #       #  #
+    #####     #    #  #     #  #       #  #
+    #         #    #  #     #  #    #  #   #     #
+    #          ####   ######  ####### ###   #####
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -295,6 +299,17 @@ class sampling(object):
     self.set('training_set_done', True)
     self.set('cross_valid_set_done', True)
     self.set('test_set_done', True)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    #####    #####    ###  ###  ###    ###    ###########  ######### 
+    #    #   #    #    #    #    #     # #    #    #    #  #       #
+    #     #  #     #   #    #    #     # #         #       #
+    #    #   #    #    #     #  #     #   #        #       ####
+    #####    #####     #     #  #     #####        #       #
+    #        #  #      #      #      #     #       #       #       #
+    #        #    #   ###    ###    ###   ###      #       #########
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -668,7 +683,7 @@ def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   n_modes = len(modes)
   n_rec   = len(rec_gyre)
   if n_rec < n_modes:
-    logger.warning('_trim_modes_by_dP: The number of observed modes is greater than the GYRE frequency list')
+    # logger.warning('_trim_modes_by_dP: The number of observed modes is greater than the GYRE frequency list')
     return False
 
   freq_unit= modes[0].freq_unit
@@ -716,7 +731,7 @@ def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   n_trim    = len(ind_trim)
 
   if n_trim != n_modes:
-    logger.warning('_trim_modes_by_dP: The trimmed array is smaller than the list of observed modes!')
+    # logger.warning('_trim_modes_by_dP: The trimmed array is smaller than the list of observed modes!')
     return False
 
   trimmed   = rec_gyre[ind_trim]
@@ -804,9 +819,6 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
       logger.error('constrained_pick_models_and_rotation_ids: Found no matching rotation rates')
       sys.exit(1)
 
-  # np.random.shuffle(ids_models)
-  # np.random.shuffle(ids_rot)
-
   combo      = [] 
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
@@ -856,8 +868,6 @@ def randomly_pick_models_and_rotation_ids(dbname, n):
   n_mod      = len(ids_models)
   n_eta      = len(id_rot)
 
-  # np.random.shuffle(ids_models)
-  # np.random.shuffle(ids_rot)
   t4         = time.time()
   print 'Shuffling took {0:.2f} sec'.format(t4-t3)
   combo      = []

@@ -17,6 +17,16 @@ logger = logging.getLogger(__name__)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+    #####    ###  ### ######  ###     ###   #####
+    #    #    #    #  #     #  #       #   #     #
+    #     #   #    #  #     #  #       #  #
+    #    #    #    #  ######   #       #  #
+    #####     #    #  #     #  #       #  #
+    #         #    #  #     #  #    #  #   #     #
+    #          ####   ######  ####### ###   #####
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class neural_net(object):
   """
@@ -63,8 +73,13 @@ class neural_net(object):
     # sum over MAP_chi_square_matrix along the 2nd axis to give the total 
     # chi square for each input model. This is ln( P(D|h) )
     self.MAP_chi_square = 0
-    # Rescale chi squares by subtracting the min(chi square) from all
-    self.rescale_chi_square = True
+
+    # The likelihood probability distribution, P(D\h)
+    self.MAP_likelihood = 0
+    # The likelihood in natural log scale
+    self.MAP_ln_likelihood = 0
+    # Rescale ln(likelihood) by subtracting the median(ln(likelihood)) from all
+    self.rescale_ln_likelihood = True
 
     # The evidence
     self.MAP_evidence = 0
@@ -80,6 +95,12 @@ class neural_net(object):
     # That's what you want to look at!
     self.MAP_feature = 0
 
+    #.............................
+    # Marginalization
+    #.............................
+    # List of marginalized feature values with identical order as in
+    # sampling.feature_names
+    self.marginal_features = []
 
   ##########################
   # Setter
@@ -198,7 +219,7 @@ class neural_net(object):
     _max_a_posteriori(self)
 
   ##########################
-  def marginalize(self, wrt):
+  def marginalize_wrt(self, wrt):
     """
     Marginalize the learning features (learning_x), with respect to (hence "wrt") one of the feature columns (whose names
     are available as self.sampling.feature_names)
@@ -207,10 +228,36 @@ class neural_net(object):
     @type self: obj
     @param wrt: marginalize with respect to
     @type wrt: str
+    @return: a tuple with two members:
+         - (ndarray) sorted array of the values of the attribute whose name was passed as wrt, e.g. 'logD'. Note that
+           the values in this array are unique, and all repetitions are marginalized over
+         - (ndarray) the marginalized posterior probability distribution associated with each of the values in the
+           first element of the tuple
+    @rtype: tuple
     """
-    return _marginalize(self, wrt)
+    return _marginalize_wrt(self, wrt)
 
   ##########################
+  def marginalize(self):
+    """
+    Iterate over all features in the learning set (whose names are stored in self.sampling.feature_names),
+    and marginalize with respect to each of these quantities. The outcome of the marginalization will be stored as
+    the "marginal_features" attribute of the neural_net class
+    """
+    _marginalize(self)
+  ##########################
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    #####    #####    ###  ###  ###    ###    ###########  ######### 
+    #    #   #    #    #    #    #     # #    #    #    #  #       #
+    #     #  #     #   #    #    #     # #         #       #
+    #    #   #    #    #     #  #     #   #        #       ####
+    #####    #####     #     #  #     #####        #       #
+    #        #  #      #      #      #     #       #       #       #
+    #        #    #   ###    ###    ###   ###      #       #########
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -267,6 +314,7 @@ def _max_a_posteriori(self):
   """
   _set_priors(self)
   _chi_square(self)
+  _set_likelihood(self)
   _set_evidence(self)
   _set_posterior(self)
   
@@ -282,16 +330,16 @@ def _set_posterior(self):
   """
   Refer to the documentation below the max_a_posteriori() method for further details
   """
-  ln_prior     = self.get('MAP_ln_prior')
-  chi_2        = self.get('MAP_chi_square')
-  ln_evidence  = self.get('MAP_ln_evidence')
+  ln_prior      = self.get('MAP_ln_prior')
+  chi_2         = self.get('MAP_chi_square')
+  ln_likelihood = self.get('MAP_ln_likelihood') 
+  ln_evidence   = self.get('MAP_ln_evidence')
 
-  ln_posterior = chi_2 + ln_prior - ln_evidence
-  posterior    = np.exp(ln_posterior)
+  ln_posterior  = ln_likelihood + ln_prior - ln_evidence
+  posterior     = np.exp(ln_posterior)
 
   self.set('MAP_posterior', posterior)
   self.set('MAP_ln_posterior', ln_posterior)
-  print 'ranges in ln_posterior: ', ln_posterior.min(), ln_posterior.max()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_evidence(self):
@@ -299,16 +347,13 @@ def _set_evidence(self):
   Refer to the documentation below the max_a_posteriori() method for further details
   """
   prior    = self.get('MAP_prior')      # == P(h)
-  chi_2    = self.get('MAP_chi_square') # == ln(P(D|h))
-  P_D_h    = np.exp(chi_2)              # P(D|h)
+  # chi_2    = self.get('MAP_chi_square') # == ln(P(D|h))
+  ln_L     = self.get('MAP_ln_likelihood')
+  P_D_h    = np.exp(ln_L)               # P(D|h)
   P_D      = np.sum(P_D_h * prior)      # P(D)
-
-
-  P_D      = 1.0
 
   self.set('MAP_evidence', P_D)
   self.set('MAP_ln_evidence', np.log(P_D))
-  print 'evidence done: ', self.MAP_ln_evidence
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_priors(self):
@@ -357,7 +402,6 @@ def _set_priors(self):
 
   self.set('MAP_prior', prior)
   self.set('MAP_ln_prior', ln_prior)
-  print 'ranges in ln_prior: ', ln_prior.min(), ln_prior.max()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _chi_square(self):
@@ -385,29 +429,41 @@ def _chi_square(self):
 
   # calculate the chi^2 in a vectorized form, i.e. element-by-element operation in abstract form
   chi_2_matrix = np.power((freqs_matrix - learning_y)/sigma_matrix, 2.0) / 2.0
-  chi_2        = np.sum(chi_2_matrix, axis=1) / K
-
-  # Rescale the chi square values to bring them to a smaller range, and avoid numerical overflow/underflow
-  if self.rescale_chi_square:
-    ln_scale   = np.min(chi_2)
-    chi_2      -= ln_scale
-    chi_2_matrix-= ln_scale
-    logger.info('_chi_square: rescaling chi squares with ln_scale={0:.2f}'.format(ln_scale))
+  chi_2        = np.sum(chi_2_matrix, axis=1) 
 
   # save the above two chi squares as attributes of the class
   self.set('MAP_chi_square_matrix', chi_2_matrix)
   self.set('MAP_chi_square', chi_2)
-  print 'ranges in chi square: ', chi_2.min(), chi_2.max()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _marginalize(self, wrt):
+def _set_likelihood(self):
+  """
+  For the full documentation refer to the max_a_posteriori() method
+  """
+  star  = self.get('sampling').get('star')
+  modes = star.get('modes')
+  errs  = np.array([ mode.freq_err for mode in modes ])
+  chi_2 = self.get('MAP_chi_square')
+  ln_L  = -np.log(2*np.pi)/2 - np.sum(np.log(errs)) - chi_2
+
+  # Rescale the chi square values to bring them to a smaller range, and "improve" numerical overflow/underflow
+  if self.rescale_ln_likelihood:
+    ln_scale   = np.max(ln_L)
+    ln_L       -= ln_scale
+    logger.info('_set_likelihood: rescaling ln(likelihood) with ln_scale={0:.2f}'.format(ln_scale))
+
+  self.set('MAP_ln_likelihood', ln_L)
+  self.set('MAP_likelihood', np.exp(ln_L))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _marginalize_wrt(self, wrt):
   """
   For the full documentation refer to the marginalize() method.
   """
   sample  = self.get('sampling')
   x_names = sample.get('feature_names')
   if wrt not in x_names:
-    logger.error('_marginalize: The column "{0}" is not among the available features'.format(wrt))
+    logger.error('_marginalize_wrt: The column "{0}" is not among the available features'.format(wrt))
     sys.exit(1)
   
   learning_x = sample.get('learning_x')
@@ -426,7 +482,7 @@ def _marginalize(self, wrt):
     ind_wrt  = np.where(rec[wrt] == val_wrt)[0]
     post_wrt[i_wrt] = np.sum(post[ind_wrt])
 
-  return post_wrt
+  return (arr_wrt, post_wrt)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # G E N E R I C   R O U T I N E S

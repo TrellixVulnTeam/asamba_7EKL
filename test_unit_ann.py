@@ -47,10 +47,26 @@ def main():
   # Maximum a posteriori analysis
   TheANN.set('MAP_use_log_Teff_log_g_prior', True)
   TheANN.set('frequency_sigma_factor', 1.)
-  TheANN.set('rescale_chi_square', True)
+  TheANN.set('rescale_ln_likelihood', True)
   MAP       = TheANN.max_a_posteriori()
-  marg_M_ini= TheANN.marginalize(wrt='M_ini')
-  print marg_M_ini
+  
+  ln_prior  = TheANN.get('MAP_ln_prior')
+  ln_L      = TheANN.get('MAP_ln_likelihood')
+  ln_evid   = TheANN.get('MAP_ln_evidence')
+  ln_post   = TheANN.get('MAP_ln_posterior')
+  #
+  print ' - Maximum Likelihood Results:'
+  print '   ln(P(h)):   min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_prior), np.max(ln_prior))
+  print '   ln(P(D|h)): min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_L), np.max(ln_L))
+  print '   ln(P(D)) = {0:.2f}'.format(ln_evid)
+  print '   ln(P(h|D)): min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_post), np.max(ln_post))
+  
+  print '\n - Marginalized features' 
+  features  = TheSample.get('feature_names')
+  for name in features:
+    tup     = TheANN.marginalize(wrt=name)
+    val     = tup[0][ np.argmax(tup[1]) ]
+    print '   {0} = {1:.4f}'.format(name, val)
 
   return TheANN
 
