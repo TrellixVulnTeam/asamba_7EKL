@@ -92,12 +92,14 @@ class sampling(object):
     self.learning_y = None
     # The sample size 
     self.sample_size = 0
-    # Include corresponding log_Teff and log_g?
-    # self.include_learning_log_Teff_log_g = False
     # log_Teff for the learning set
     self.learning_log_Teff = []
     # log_g for the learning set
     self.learning_log_g = []
+    # Corresponding mode radial orders
+    self.learning_radial_orders = []
+    # Corresponding mode types (defined in grid.sql)
+    self.learning_mode_types = []
 
     #.............................
     # Search constraints for modes
@@ -262,7 +264,6 @@ class sampling(object):
     learning (see, e.g. artificial_neural_network.set_priors() method).
     """
     _learning_log_Teff_log_g(self)
-    # self.set('include_learning_log_Teff_log_g', True)
 
   ##########################
   def split_learning_sets(self):
@@ -373,12 +374,10 @@ def _split_learning_sets(self):
   self.set('test_y', learn_y[ind_test])
 
   # In some casas, the log_Teff and log_g values for the learning set is available too, which we fix now
-  # if self.include_learning_log_Teff_log_g: # len(self.learning_log_Teff) > 0:
   self.set('training_log_Teff', self.learning_log_Teff[ind_train])
   self.set('cross_valid_log_Teff', self.learning_log_Teff[ind_cv])
   self.set('test_log_Teff', self.learning_log_Teff[ind_test])
 
-  # if self.include_learning_log_Teff_log_g: # len(self.learning_log_g) > 0:
   self.set('training_log_g', self.learning_log_g[ind_train])
   self.set('cross_valid_log_g', self.learning_log_g[ind_cv])
   self.set('test_log_g', self.learning_log_g[ind_test])
@@ -490,6 +489,8 @@ def _build_learning_sets(self):
   # for our specific problem
   rows_keep  = []
   freq_keep  = []
+  n_pg_keep  = []
+  types_keep = []
   model_keep = []
   rot_keep   = []
   modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
@@ -536,27 +537,33 @@ def _build_learning_sets(self):
       else:
         rows_keep.append(row)
         freq_keep.append( rec_trim['freq'] )
+        n_pg_keep.append( rec_trim['n'] )
+        types_keep.append( rec_trim['id_type'] )
         model_keep.append(id_model)
         rot_keep.append(id_rot)
 
-  matrix     = np.stack(rows_keep, axis=0)
+  # list of ndarrays to 2-D ndarrays
+  mtrx_rows  = np.stack(rows_keep, axis=0)
   stiched    = []           # destroy the list, and free up memory
 
   names      = ['M_ini', 'fov', 'Z', 'logD', 'Xc'] if self.exclude_eta_column else ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta']
   self.set('feature_names', names)
   self.set('num_features', len(self.feature_names))
-  self.set('learning_x', matrix)
-  self.set('sample_size', len(matrix))
+  self.set('learning_x', mtrx_rows)
+  self.set('sample_size', len(mtrx_rows))
   self.set('learning_ids_models', np.array(model_keep))
   self.set('learning_ids_rot', np.array(rot_keep))
 
-  # and packing the frequencies followed by forced conversion to cycles per day
+  # and packing the frequencies (cycles per day) and friends
   rec_freq   = np.stack(freq_keep, axis=0)
-  # rec_freq   /= star.Hz_to_cd
+  mtrx_n_pg  = np.stack(n_pg_keep, axis=0)
+  mtrx_types = np.stack(types_keep, axis=0)
+
   self.set('learning_y', rec_freq)
+  self.set('learning_radial_orders', mtrx_n_pg)
+  self.set('learning_mode_types', mtrx_types)
 
   # Include log_Teff and log_g for the learning set, at a cost of additional database query
-  # if self.include_learning_log_Teff_log_g:
   _learning_log_Teff_log_g(self)
 
   logger.info('_build_learning_sets: the attributes sampled successfully')

@@ -59,7 +59,24 @@ def main():
   print '   ln(P(h)):   min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_prior), np.max(ln_prior))
   print '   ln(P(D|h)): min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_L), np.max(ln_L))
   print '   ln(P(D)) = {0:.2f}'.format(ln_evid)
-  print '   ln(P(h|D)): min:{0:.2f}, max:{1:.2f}'.format(np.min(ln_post), np.max(ln_post))
+  print '   ln(P(h|D)): min:{0:.2f}, max:{1:.2f}\n'.format(np.min(ln_post), np.max(ln_post))
+
+  print ' - Radial orders of the MAP model:'
+  print TheANN.get('MAP_radial_orders'), '\n'
+
+  if True:
+    print ' - Assert all radial orders in the training set are contiguous'
+    all_n_pg= TheSample.get('learning_radial_orders')
+    Catch   = False
+    for k, row in enumerate(all_n_pg):
+      diffs = row[1:] - row[:-1]
+      if np.mean(diffs) != 1:
+        Catch = True
+        print k, row
+    if Catch:
+      logging.warning('At least one instance found where n_pg are not contiguous')
+    else:
+      logging.info('All radial orders in the learning set are contiguous')
   
   print '\n - Marginalized features' 
   TheANN.marginalize()

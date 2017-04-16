@@ -94,6 +94,12 @@ class neural_net(object):
     # The best-model feature that maximize the likelihood (MAP)
     # That's what you want to look at!
     self.MAP_feature = 0
+    # The frequencies corresponding to MAP_feature (from GYRE output)
+    self.MAP_frequencies = 0
+    # The radial orders corresponing to the MAP_feature
+    self.MAP_radial_orders = 0
+    # The mode identification types (from grid.sql) corresponding the MAP_feature
+    self.MAP_mode_types = 0
 
     #.............................
     # Marginalization
@@ -334,8 +340,17 @@ def _max_a_posteriori(self):
   ind_min_posterior= np.argmin(ln_posterior)
   sample           = self.get('sampling')
   learning_x       = sample.get('learning_x')
+  learning_y       = sample.get('learning_y')
+  learning_n_pg    = sample.get('learning_radial_orders')
+  learning_types   = sample.get('learning_mode_types')
   MAP_feature      = learning_x[ind_min_posterior]
+  MAP_frequencies  = learning_y[ind_min_posterior]
+  MAP_n_pg         = learning_n_pg[ind_min_posterior]
+  MAP_mode_types   = learning_types[ind_min_posterior]
   self.set('MAP_feature', MAP_feature)
+  self.set('MAP_frequencies', MAP_frequencies)
+  self.set('MAP_radial_orders', MAP_n_pg)
+  self.set('MAP_mode_types', MAP_mode_types)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_posterior(self):
