@@ -1,4 +1,13 @@
 
+"""
+This module is the user's frontend to open a graphical user interface, GUI, and interact with the 
+underlying grid database and a (limited) suite of functionalities in the backend. There are millions 
+of ways one can design the GUI, provide different functionalities, and/or allow the user to interact 
+with the database. What is provided here is one way out of the millions of possibilities, and is a 
+basic attempt to start with the GUI. Indeed, this GUI is pretty extensible, and flexible to grow and
+accommodate additional tools for analysis.
+"""
+
 import sys
 import Tkinter as tk 
 from grid import backend as bk
@@ -9,7 +18,7 @@ from grid import backend as bk
 ##########################################
 root = tk.Tk()
 frame_conn = tk.Frame(root, highlightbackground='grey', highlightcolor='grey', highlightthickness=1, bd=0)
-frame_conn.pack(side='top', expand=True, fill='both')
+frame_conn.pack(side='top', expand=True, fill='both', padx=10, pady=10)
 
 frame_inputs = tk.Frame(root, highlightbackground='grey', highlightcolor='grey', highlightthickness=1, bd=0)
 frame_inputs.pack(side='top', expand=True, fill='both')
@@ -20,18 +29,18 @@ frame_sample.pack(side='top')
 frame_MAP = tk.Frame(root)
 frame_MAP.pack(side='top')
 
+frame_stat_bar = tk.Frame(root, highlightbackground='grey', highlightcolor='grey', highlightthickness=1, bd=0)
+frame_stat_bar.pack(side='top', fill='x', padx=4, pady=4)
+
 ##########################################
 # The connection frame
 ##########################################
 # define the left, middle and right insets
-conn_left         = tk.Frame(frame_conn, highlightbackground='grey', highlightcolor='grey', 
-                             highlightthickness=1, bd=0)
+conn_left         = tk.Frame(frame_conn, padx=20, pady=10)
 conn_left.pack(side='left')
-conn_middle       = tk.Frame(frame_conn, highlightbackground='grey', highlightcolor='grey', 
-                             highlightthickness=1, bd=0)
+conn_middle       = tk.Frame(frame_conn, padx=20, pady=10)
 conn_middle.pack(side='left')
-conn_right        = tk.Frame(frame_conn, highlightbackground='grey', highlightcolor='grey', 
-                             highlightthickness=1, bd=0)
+conn_right        = tk.Frame(frame_conn, padx=20, pady=10)
 conn_right.pack(side='left')
 
 lbl_choice_var    = tk.StringVar()
@@ -43,26 +52,27 @@ lbl_choice.pack(side='left')
 rad_but_var       = tk.IntVar()
 rad_but_loc_val   = 1   # 'grid'
 rad_but_ivs_val   = 2   # Institute of Astronomy
-rad_but_https_val = 3  # 'https://'
+rad_but_https_val = 3   # 'https://'
 rad_but_loc       = tk.Radiobutton(conn_left, text='Local Disk', variable=rad_but_var, 
-                                   value=rad_but_loc_val, command=None)
+                                   value=rad_but_loc_val, command=bk.connection_manager)
 rad_but_loc.pack(side='left')
 rad_but_ivs       = tk.Radiobutton(conn_left, text='Inst. of Astron.', variable=rad_but_var,
-                                   value=rad_but_ivs_val, command=None)
+                                   value=rad_but_ivs_val, command=bk.connection_manager)
 rad_but_ivs.pack(side='left')
 rad_but_https     = tk.Radiobutton(conn_left, text='HTTPS', variable=rad_but_var,
-                                   value=rad_but_https_val, command=None)
+                                   value=rad_but_https_val, command=bk.connection_manager)
 rad_but_https.pack(side='left')
 
 # txt_result        = tk.Text(frame_conn, exportselection=0)
 # txt_result.insert('insert', 'Result: ')
 # txt_result.pack(side='right')
 
-but_conn          = tk.Button(conn_middle, text='Test Connection', command=None)
+but_conn          = tk.Button(conn_middle, text='Test Connection') #, command=bk.connection_manager)
+but_conn.bind('<Button-1>', bk.connection_manager)
 but_conn.pack(side='right')
 
 lbl_status_var    = tk.StringVar()
-lbl_status        = tk.Label(conn_right, textvariable=lbl_status_var, relief='groove', command=None)
+lbl_status        = tk.Label(conn_right, textvariable=lbl_status_var, relief='groove')
 lbl_status_var.set('Inactive!')
 lbl_status.pack(side='right')
 
@@ -120,6 +130,12 @@ chk_1       = tk.Checkbutton(frame_MAP, text='Check this box if you like', comma
                              selectcolor='green', state='active', variable=chk_var_1)
 chk_1.pack()
 chk_1.flash()
+
+##########################################
+# Status Bar
+##########################################
+stat        = tk.Label(frame_stat_bar, text='Status: ', bd=1, relief='flat', anchor='w')
+stat.pack(side='bottom', fill='x')
 
 ##########################################
 # The main loop to keep the GUI alive
