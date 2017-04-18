@@ -50,6 +50,8 @@ class sampling(object):
     self.dbname = ''
     # Sampling function name
     self.sampling_func = None
+    # shuffle the sample
+    self.sampling_shuffle = True
     # Maximum sample size to slice from all possible combinations
     self.max_sample_size = -1
     # The range in log_Teff to constrain 
@@ -410,14 +412,15 @@ def _build_learning_sets(self):
       logger.error('_build_learning_sets: specify "ranges" properly')
       sys.exit(1)
 
-    tups_ids = constrained_pick_models_and_rotation_ids(dbname=self.dbname,
-                    n=self.max_sample_size, range_log_Teff=self.range_log_Teff,
-                    range_log_g=self.range_log_g, range_eta=self.range_eta)
+    tups_ids = constrained_pick_models_and_rotation_ids(self) 
+                    # (dbname=self.dbname,
+                    # n=self.max_sample_size, range_log_Teff=self.range_log_Teff,
+                    # range_log_g=self.range_log_g, range_eta=self.range_eta)
 
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
   elif self.sampling_func is randomly_pick_models_and_rotation_ids:
-    tups_ids = randomly_pick_models_and_rotation_ids(dbname=self.dbname, n=self.max_sample_size)
+    tups_ids = randomly_pick_models_and_rotation_ids(self) #(dbname=self.dbname, n=self.max_sample_size)
 
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
 
@@ -763,8 +766,9 @@ def _trim_modes_by_df():
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def constrained_pick_models_and_rotation_ids(dbname, n, 
-               range_log_Teff=[3.5, 5], range_log_g=[0, 5], range_eta=[0, 51]):
+def constrained_pick_models_and_rotation_ids(self): 
+               # (dbname, n, 
+               # range_log_Teff=[3.5, 5], range_log_g=[0, 5], range_eta=[0, 51])
   """
   Return a combination of "models" id and "rotation_rate" id by applying constraints on log_Teff,
   log_g and rotation rates. For a totally random (unconstrained) 
@@ -793,6 +797,12 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
          second element being the rotation_rate id.
   @rtype: list of tuples
   """
+  dbname         = self.get('dbname')
+  n              = self.get('max_sample_size')
+  range_log_Teff = self.get('range_log_Teff')
+  range_log_g    = self.get('range_log_g')
+  range_eta      = self.get('range_eta')
+
   if not (len(range_log_Teff) == len(range_log_g) == len(range_eta) == 2):
     logger.error('constrained_pick_models_and_rotation_ids: Input "range" lists must have size = 2')
     sys.exit(1)
@@ -829,8 +839,9 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
   combo      = [] 
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
-
-  np.random.shuffle(combo)
+  
+  if self.sampling_shuffle:
+    np.random.shuffle(combo)
 
   if n > 0:
     return combo[:n]
@@ -838,7 +849,7 @@ def constrained_pick_models_and_rotation_ids(dbname, n,
     return combo
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def randomly_pick_models_and_rotation_ids(dbname, n):
+def randomly_pick_models_and_rotation_ids(self): 
   """
   Return a randomly-selected models together with their rotation rates from the grid.
   This function fetches all model "id" number from the "models" table, in addition to all the "id"
@@ -856,6 +867,9 @@ def randomly_pick_models_and_rotation_ids(dbname, n):
      - the rotaiton id
   @rtype: list of tuples
   """
+  dbname = self.get('dbname')
+  n      = self.get('max_sample_size')
+
   if n < 1:
     logger.error('randomly_pick_models_and_rotation_ids: Specify n > 1')
     sys.exit(1)
@@ -881,7 +895,8 @@ def randomly_pick_models_and_rotation_ids(dbname, n):
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
 
-  np.random.shuffle(combo)
+  if self.sampling_shuffle:
+    np.random.shuffle(combo)
 
   t5         = time.time()
   print 'The combo list took {0:.2f} sec'.format(t5-t4)

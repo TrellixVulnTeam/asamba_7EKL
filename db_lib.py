@@ -376,7 +376,7 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_models_log_Teff_log_g_by_id(dbname, list_ids):
   """
-
+  TBD ...
   """
   result = []
   n_ids  = len(list_ids)

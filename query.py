@@ -137,6 +137,49 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Q U E R Y I N G   T H E   M O D E L S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_models_id_from_M_ini_fov_Z_logD_Xc(M_ini_range, fov_range, Z_range, logD_range, Xc_range):
+  """
+  Retrieve the basic model/track attributes from the "tracks" and "models" tables in the database,
+  by providing the ranges in M_ini, fov, Z, logD and Xc, respectively.  
+
+  @param _range: the lower and upper range for searching the database for each parameter (both extremes
+         inclusive).
+  @type _range: 2-element list of floats
+  @return: a SQL search/query string
+  @rtype: str
+  """
+  try:
+    assert len(M_ini_range) == 2
+    assert M_ini_range[0] <= M_ini_range[1]
+
+    assert len(fov_range) == 2
+    assert fov_range[0] <= fov_range[1]
+
+    assert len(Z_range) == 2
+    assert Z_range[0] <= Z_range[1]
+
+    assert len(logD_range) == 2
+    assert logD_range[0] <= logD_range[1]
+
+    assert len(Xc_range) == 2
+    assert Xc_range[0] <= Xc_range[1]
+
+  except AssertionError:
+    logger.error('get_models_id_from_M_ini_fov_Z_logD_Xc: Input range arguments must have length=2')
+    sys.exit(1)
+
+  where_M_ini = '(M_ini between {0} and {1})'.format(M_ini_range)
+  where_fov   = '(fov between {0} and {1})'.format(fov_range)
+  where_Z     = '(Z between {0} and {1})'.format(Z_range)
+  where_logD  = '(logD between {0} and {1})'.format(logD_range)
+  where_Xc    = '(Xc between {0} and {1})'.format(Xc_range)
+  where_      = ' and '.join([where_M_ini, where_fov, where_Z, where_logD, where_Xc])
+
+  the_query   = 'select models.id, M_ini, fov, Z, logD, Xc from models, tracks \
+                 where (models.id=tracks.id) where {0}'
+  return the_query
+                 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_M_ini_fov_Z_logD_Xc_from_models_id(models_ids):
   """
   Retrieve the basic model/track attributes from the "tracks" and "models" tables in the database,

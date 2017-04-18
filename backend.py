@@ -10,10 +10,149 @@ extention here, which can be provided gradually as new needs emerge.
 import sys, os, glob
 import logging
 import numpy as np 
-from grid import *
+from grid import star, db_def, sampler, artificial_neural_network
 
-def connection_manager(event):
-  print 'hello from connection manager: var={0}'.format(dir(event))
-  # print but_conn.get()
-  # for attr in dir(event):
-  #   print attr, getattr(event, attr)
+logger = logging.getLogger(__name__)
+
+####################################################################################
+# U S E R  -  C O N T R O L L E D   P A R A M E T E R S :
+# B A C K E N D    O B J E C T S   T H A T   D O   T H E   R E A L   W O R K
+####################################################################################
+bk_star   = star.star()
+
+bk_sample = sampler.sampling()
+bk_sample.set('star', bk_star)
+
+bk_ann    = artificial_neural_network.neural_net()
+bk_ann.set('sampling', bk_sample)
+
+####################################################################################
+# B A C K E N D   F U N C T I O N S
+####################################################################################
+
+####################################################################################
+def do_connect(dbname):
+  """
+  Make a trial attempt to the connection port, passed as "dbname", and assert if the 
+  connection is possible (returns True) or not (returns False). If successful, we set
+  the connection name in the backend instance of the sampling() class.
+
+  @param dbname: The full name of the connection port, e.g. 'grid' for local machine. 
+         This value is passed by the frontend.GUI.dbname attribute
+  @type dbname: str
+  @return: True if the connection is possible, and False, otherwise
+  @rtype: bool
+  """
+  if not isinstance(dbname, str):
+    logger.error('do_connect: The input argument must be a string')
+    sys.exit(1)
+
+  if db_def.exists(dbname):
+    bk_sample.set('dbname', dbname)
+    return True
+  else:
+    return False
+
+####################################################################################
+def set_input_freq_file(filename):
+  """
+  Set the modes file for reading by star.load_modes_from_file()
+  @param filename: full path to the local frequency list file
+  @type filename: str
+  """
+  if not os.path.exists(filename):
+    logger.error('set_input_freq_file: The file "{0}" not found'.format(filename))
+    sys.exit()
+
+  modes = star.load_modes_from_file(filename, delimiter=',')
+  bk_star.set('modes', modes)
+
+####################################################################################
+def get_example_input_freq():
+  """
+  Return a long string that gives an example of how the input frequency list must be structured
+  @return: example text
+  @rtype: str
+  """
+
+  ex_lines =  '\n'
+  ex_lines += 'amplitude, freq,  freq_err, freq_unit, l,   m,   g_mode, in_dP, p_mode, in_df \n'
+  ex_lines += 'float,          float, float,         str,     int,    int, bool,   bool,  bool,   bool \n'
+  ex_lines += '148.7,        2.472, 0.019,    cd,        0,   0,   0,        0,     1,      0 \n'
+  ex_lines += '162.6 ,       3.086, 0.021,    cd,        1,   1,   0,        0,     1,      1 \n'
+  ex_lines += '218.4 ,       0.986, 0.016,    cd,        1,   0,   1,        1,     0,      0 \n'
+  ex_lines += '... \n\n\n'
+  ex_lines += 'Notes: \n' 
+  ex_lines += ' - The input must be an ASCII machine-readable file. \n'
+  ex_lines += ' - All fields are comma-delimited. This is a mandatory format. \n'
+  ex_lines += ' - The first line gives the column names. \n'
+  ex_lines += ' - The second line gives the format of the corresponding column. \n'
+  ex_lines += ' - The amplitude information (first column) can be left with zeros. \n'
+  ex_lines += ' - The preferred frequency unit is "per day" noted as "cd" as a string. \n'
+  ex_lines += ' - The degree (l) and azimuthal order (m) of the modes are integers. \n'
+  ex_lines += ' - g_mode? if yes, then insert "1", else insert "0". \n'
+  ex_lines += ' - Is this mode part of a g-mode period spacing? If so put "1", else put "0". \n'
+  ex_lines += ' - p_mode? if yes, then insert "1", else insert "0". \n'
+  ex_lines += ' - Is this mode part of a p-mode frequency spacing? If so put "1", else put "0". \n'
+  ex_lines += ' - The last four columns have type "bool" but given values 0/1. The values are \n'
+  ex_lines += '   internally converted to True/False using the "bool" operator. \n'
+  ex_lines += '\n'
+  ex_lines += 'What do the three example lines above mean? \n'
+  ex_lines += ' - The first one is a radial mode. \n'
+  ex_lines += ' - The second one is a dipole radial p-mode, which is also part of a frequency \n'
+  ex_lines += '   spacing series. \n'
+  ex_lines += ' - The last one is a dipole zonal g-mode, which is a member of a period \n'
+  ex_lines += '   spacing series. \n'
+  ex_lines += '\n'
+
+  return ex_lines
+
+####################################################################################
+def set_obs_log_Teff(val, err):
+  """
+  Set using the observed effective temperature 
+  """
+  bk_star.set('log_Teff', val)
+  bk_star.set('log_Teff_err_lower', err)
+  bk_star.set('log_Teff_err_upper', err)
+
+####################################################################################
+def set_obs_log_g(val, err):
+  """
+  Set using the observed surface gravity
+  """
+  bk_star.set('log_g', val)
+  bk_star.set('log_g_err_lower', err)
+  bk_star.set('log_g_err_upper', err)
+
+####################################################################################
+def set_sampling_function(choice):
+  """
+  Set the one of the two sampling functions from the sampler module. True means choosing
+  the "sampler.constrained_pick_models_and_rotation_ids" function and False means 
+  selecting "sampler.randomly_pick_models_and_rotation_ids"
+  """
+  if choice is True:
+    bk_sample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+  else:
+    bk_sample.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
+
+####################################################################################
+def set_shuffling(choice):
+  """
+  Set the sampling shuffling mode. choice=True means apply the shuffling of the learning
+  set, and False means otherwise.
+  """
+  bk_sample.set('sampling_shuffle', choice)
+
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+
+
+
+

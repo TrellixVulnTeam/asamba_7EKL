@@ -387,6 +387,7 @@ def _do_extra(self, attr, val):
 
   if attr == 'log_Teff' and self.Teff == 0:
     self.Teff = np.power(10, val)
+    print '1'
 
   if attr == 'Teff_err_lower' and self.log_Teff_err_lower == 0:
     if self.Teff == 0:
@@ -403,14 +404,14 @@ def _do_extra(self, attr, val):
     self.log_Teff_err_upper = eps/(ln10 * x) - eps**2/(2*ln10*x**2)
 
   if attr == 'log_Teff_err_lower' and self.Teff_err_lower == 0:
-    if self.log_Teff == 0 or self.log_Teff_err_lower == 0:
+    if self.log_Teff == 0:
       logger.error('_do_extra: Specify log_Teff and log_Teff_err_lower first')
       sys.exit(1)
     self.Teff_err_lower = np.power(10, self.log_Teff) - \
                           np.power(10, self.log_Teff - val)
 
   if attr == 'log_Teff_err_upper' and self.Teff_err_upper == 0:
-    if self.log_Teff == 0 or self.log_Teff_err_upper == 0:
+    if self.log_Teff == 0:
       logger.error('_do_extra: Specify log_Teff and log_Teff_err_upper first')
       sys.exit(1)
     self.Teff_err_upper = np.power(10, self.log_Teff + val) - \
