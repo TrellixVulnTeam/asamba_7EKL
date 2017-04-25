@@ -524,6 +524,7 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
 
   if result is None:
     logger.warning('get_track_id: failed: %s' % tup)
+    return False
   else:
     return result[0]
 

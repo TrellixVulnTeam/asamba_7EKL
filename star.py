@@ -103,56 +103,100 @@ class mode(object):
       sys.exit(1)
 
     return getattr(self, attr)
-    
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+class modes(mode):
+
+  def __init__(self):
+    super(modes, self).__init__()
+
+    self.modes = []
+    self.num_modes = 0
+  
+  ##########################
+  # Setter
+  ##########################
+  def set(self, attr, val):
+    super(modes, self).set(attr, val)
+    if not hasattr(self, attr):
+      logger.error('modes: set: Attribute "{0}" is unavailable'.format(attr))
+      sys.exit(1)
+    setattr(self, attr, val)
+
+  ##########################
+  # Getter
+  ##########################
+  def get(self, attr):
+    if not hasattr(self, attr):
+      logger.error('mode: get: Attribute "{0}" is unavailable'.format(attr))
+      sys.exit(1)
+
+    try:
+      super(modes, self).get(attr)
+    except:
+      return getattr(self, attr)
+
+  ##########################
+  # Methods
+  ##########################
+  def load_modes_from_file(self, filename, delimiter=''):
+    """
+    Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
+    as those of the "modes" class) into the "mode" attribute. It returns a list of modes, where each mode
+    corresponds to one line in the file. The columns are delimited based on the passed delimiter
+
+    Strict formatting of the input file:
+    - The file has two headers as the first two lines:
+      + line 1: the name of each column
+      + line 2: the Python-intrinsic format of each line, e.g. int, float, boolean
+    - The header names must be identical to the attributes of the mode object
+    - If one attribute is unknown for all modes of the same star, that column would better be omitted.
+      E.g. if for a star we do not know the modes form a frequency spacing or not, we leave this column
+      off, instead of setting it off for all modes.
+    - if a value for a mode is unknown, the column must read None or none. Never leave an unknown column
+      empty.
+    - For boolean columns, "1" means True, and "0" means False.
+
+    @param filename: the full path where the 
+    @type filename: str
+    @param delimiter: the delimiting character between the columns, e.g. ',', or space, etc. Default: ''
+    @type delimiter: str
+    @return: list of modes
+    @rtype: list
+    """
+    modes = _load_modes_from_file(filename=filename, delimiter=delimiter)
+    n     = len(modes)
+    self.set('modes', modes)
+    self.set('num_modes', n)
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-def load_modes_from_file(filename, delimiter=''):
+def _load_modes_from_file(filename, delimiter=''):
   """
-  Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
-  as those of the "modes" class) into the "mode" attribute. It returns a list of modes, where each mode
-  corresponds to one line in the file. The columns are delimited based on the passed delimiter
-
-  Strict formatting of the input file:
-  - The file has two headers as the first two lines:
-    + line 1: the name of each column
-    + line 2: the Python-intrinsic format of each line, e.g. int, float, boolean
-  - The header names must be identical to the attributes of the mode object
-  - If one attribute is unknown for all modes of the same star, that column would better be omitted.
-    E.g. if for a star we do not know the modes form a frequency spacing or not, we leave this column
-    off, instead of setting it off for all modes.
-  - if a value for a mode is unknown, the column must read None or none. Never leave an unknown column
-    empty.
-  - For boolean columns, "1" means True, and "0" means False.
-
-  @param filename: the full path where the 
-  @type filename: str
-  @param delimiter: the delimiting character between the columns, e.g. ',', or space, etc. Default: ''
-  @type delimiter: str
-  @return: list of modes
-  @rtype: list
+  For detailed documentation, please refer to the method modes.load_modes_from_file()
   """
   if not os.path.exists(filename):
-    logger.error('load_modes_from_file: The file "{0}" does not exist'.format(filename))
+    logger.error('_load_modes_from_file: The file "{0}" does not exist'.format(filename))
     sys.exit(1)
 
   with open(filename, 'r') as r: lines = r.readlines()
   n_lines = len(lines)
   if n_lines <= 2:
-    logger.error('load_modes_from_file: Input file must have two lines of header and at least one mode line')
+    logger.error('_load_modes_from_file: Input file must have two lines of header and at least one mode line')
     sys.exit(1)
 
   header  = lines.pop(0).rstrip('\r\n').split(delimiter)
   header  = [val.strip() for val in header]
   n_hdr   = len(header)
   if n_hdr < 2:
-    logger.error('load_modes_from_file: There must be at least two columns in the file')
+    logger.error('_load_modes_from_file: There must be at least two columns in the file')
     sys.exit(1)
 
   types   = lines.pop(0).rstrip('\r\n').split(delimiter)
   types   = [val.strip() for val in types]
   n_types = len(types)
   if n_types != n_hdr:
-    logger.error('load_modes_from_file: The 1st and 2nd line must have identical number of columns!')
+    logger.error('_load_modes_from_file: The 1st and 2nd line must have identical number of columns!')
     sys.exit(1)
   conv    = []
   for k, t in enumerate(types):
@@ -167,7 +211,7 @@ def load_modes_from_file(filename, delimiter=''):
       conv.append(str)
     else:
        print 't is: {0}'.format(t), k
-       logger.error('load_modes_from_file: 2nd line can only have "int", "float", "str" or "bool".') 
+       logger.error('_load_modes_from_file: 2nd line can only have "int", "float", "str" or "bool".') 
        sys.exit(1)
 
   # iteratively load a mode and store in a list
@@ -186,7 +230,7 @@ def load_modes_from_file(filename, delimiter=''):
         try:
           a_mode.set(attr, val)
         except:
-          logger.error('load_modes_from_file: Unrecognized attribute found:')
+          logger.error('_load_modes_from_file: Unrecognized attribute found:')
           print k, j, func, line[j], attr, val, hasattr(a_mode, attr)
           sys.exit(1)
 
@@ -196,7 +240,7 @@ def load_modes_from_file(filename, delimiter=''):
   freqs  = np.array([this.freq for this in loaded])
   d_freq = freqs[1:] - freqs[:-1]
   if not all(df > 0 for df in d_freq):
-    logger.error('load_modes_from_file: The mode frequencies must be strictly increasing')
+    logger.error('_load_modes_from_file: The mode frequencies must be strictly increasing')
     sys.exit(1)
 
   return loaded
@@ -206,7 +250,7 @@ def load_modes_from_file(filename, delimiter=''):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class star(object):
+class star(modes):
   """
   Container for all possible observables of a star, and the uncertainties, if available. This class
   inherits the "mode()" class.
@@ -335,13 +379,6 @@ class star(object):
     self.center_He_err = 0
 
     #.............................
-    # Asteroseismic properties
-    # Inheriting from the mode() class
-    #.............................
-    self.modes = [mode()]
-    self.num_modes = 0
-
-    #.............................
     # Extra Information
     #.............................
     # Does this star has a PI as part of a main project?
@@ -416,11 +453,6 @@ def _do_extra(self, attr, val):
       sys.exit(1)
     self.Teff_err_upper = np.power(10, self.log_Teff + val) - \
                           np.power(10, self.log_Teff) 
-
-  if attr == 'modes':
-    setattr(self, 'num_modes', len(self.modes))
-
-
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

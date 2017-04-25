@@ -1,3 +1,4 @@
+#! /usr/bin/python
 
 import sys, os, glob
 import logging
@@ -19,23 +20,24 @@ def main():
 
   print ' - Load the mode list from a file'
   mode_file = 'stars/KIC_10526294.freq'
-  modes     = star.load_modes_from_file(filename=mode_file, delimiter=',')
-
-  print ' - Attach the modes to a star object'
-  TheStar   = star.star()
-  TheStar.set('name', 'KIC_10526294')
-
-  TheStar.set('Teff', 11500.)
-  TheStar.set('Teff_err_lower', 500.)
-  TheStar.set('Teff_err_upper', 500.)
-  TheStar.set('log_g', 4.1)
-  TheStar.set('log_g_err_lower', 0.2)
-  TheStar.set('log_g_err_upper', 0.2)
-
-  TheStar.set('modes', modes)
 
   print ' - Get an instance of the "sampling" class.'
   TheSample = sampler.sampling()
+
+  print ' - Attach the modes to a star object'
+  # TheStar   = star.star()
+  TheSample.set('name', 'KIC_10526294')
+
+  TheSample.set('Teff', 11500.)
+  TheSample.set('Teff_err_lower', 500.)
+  TheSample.set('Teff_err_upper', 500.)
+  TheSample.set('log_g', 4.1)
+  TheSample.set('log_g_err_lower', 0.2)
+  TheSample.set('log_g_err_upper', 0.2)
+
+  # TheSample.set('modes', modes)
+  TheSample.load_modes_from_file(filename=mode_file, delimiter=',')
+
   TheSample.set('dbname', 'grid')
   TheSample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
   TheSample.set('max_sample_size', 5000)
@@ -43,7 +45,7 @@ def main():
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])
 
-  TheSample.set('star', TheStar)
+  # TheSample.set('star', TheStar)
 
   # seismic constraints
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
@@ -69,8 +71,9 @@ def main():
   print '   '
 
   # Plot the histogram of the learning Y sample
-  plot_sampler.hist_learning_x(TheSample, 'plots/KIC-10526294-hist-X.png')
-  plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
+  if False:
+    plot_sampler.hist_learning_x(TheSample, 'plots/KIC-10526294-hist-X.png')
+    plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
 
   # Set percentages for training, cross-validation and test sets
   TheSample.set('training_percentage', 0.80)

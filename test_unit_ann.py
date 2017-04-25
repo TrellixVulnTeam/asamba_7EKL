@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 import sys, os, glob
 import logging
 import numpy as np 
@@ -12,13 +14,23 @@ def main():
   This test unit is built on top of the test_unit_sampling, because it calls that, and uses the "sampling"
   object returned from that test.
   """
-  TheSample = main_sampling()
+  # TheSample = main_sampling()
 
   # Get an instance of the ANN class
   TheANN    = ann.neural_net()
 
-  # Insert the TheSample into TheANN object
-  TheANN.set('sampling', TheSample)
+  # Insert the TheSample attributes into TheANN object
+  # TheANN.set('sampling', TheSample)
+  # dic_sample= TheSample.__dict__
+  # for key, val in dic_sample.items():
+  #   print 'transferring: {0}'.format(key)
+  #   TheANN.set(key, val)
+
+
+
+
+
+
 
   # Set the relevant attributes
   TheANN.solve_normal_equation()

@@ -5,7 +5,9 @@ artificial neural network. This is achieved through the "sampling" class, which
 handles the task of collecting the models properly from the grid.
 
 This module inherits from the "star" module, in order to sample the model frequencies
-based on the observed frequencies.
+based on the observed frequencies. On the flip side, it serves as superclass for the 
+interpolator.interpolation() class, who inherits/needs several of the functionlaities 
+offered in here. 
 """
 
 import sys, os, glob
@@ -35,13 +37,16 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # S A M P L I N G   C L A S S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class sampling(object):
+class sampling(star.star):
   """
   This class carries out sampling of the learning sets from the database. This class inherits the
   "star.star()" object to represent a star
   """
 
+  global_ = 0
+
   def __init__(self):
+    super(sampling, self).__init__()
 
     #.............................
     # The basic search constraints
@@ -55,11 +60,11 @@ class sampling(object):
     # Maximum sample size to slice from all possible combinations
     self.max_sample_size = -1
     # The range in log_Teff to constrain 
-    self.range_log_Teff = []
+    self.range_log_Teff = [-1, -1]
     # The range in log_g to constrain
-    self.range_log_g = []
+    self.range_log_g = [-1, -1]
     # The range in rotation rate (percentage)
-    self.range_eta = []
+    self.range_eta = [-1, -1]
 
     #.............................
     # Return of the basic search
@@ -106,7 +111,7 @@ class sampling(object):
     #.............................
     # Search constraints for modes
     #.............................
-    # Modes id_types (from grid.sql) to fetch frequencies from, e.g. [0, 6]
+    # Modes id_types (as defined in grid.sql) to fetch frequencies from, e.g. [0, 6]
     # for radial (0) and quadrupole zonal (6) modes
     self.modes_id_types = []
     # Modes lower and upper frequency scan range
@@ -115,6 +120,8 @@ class sampling(object):
     #.............................
     # Frequency search plans
     #.............................
+    # Search function/callable used for sampling
+    self.search_function        = None
     # Liberal search without any restriction
     self.search_freely_for_frequencies = False
     # Strict search for period spacings
@@ -158,10 +165,10 @@ class sampling(object):
     self.test_log_g = []
     self.test_set_done = False
 
-    #.............................
-    # Inheriting from the star module
-    #.............................
-    self.star = star.star()
+    # #.............................
+    # # Inheriting from the star module
+    # #.............................
+    # self.star = star.star()
 
 
   ##########################
@@ -181,30 +188,41 @@ class sampling(object):
            datatype
     @type val: int, float, bool, list, etc.
     """
+    super(sampling, self).set(attr, val)
+
     if not hasattr(self, attr):
       logger.error('sampling: set: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
 
     # Some attributes require extra care/check
-    if attr == 'range_log_g':
+    if attr == 'range_log_g' and val:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: set: range_log_g: Range list must have only two elements')
         sys.exit(1)
-    elif attr == 'range_log_Teff':
+      if self.get(attr)[0] == self.get(attr)[1] == -1:
+        logger.error('sampling: set: You must specify the attribute: "{0}"'.format(attr))
+        sys.exit(1)
+    elif attr == 'range_log_Teff' and val:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: set: range_log_Teff: Range list must have only two elements')
         sys.exit(1)
-    elif attr == 'range_eta':
+      if self.get(attr)[0] == self.get(attr)[1] == -1:
+        logger.error('sampling: set: You must specify the attribute: "{0}"'.format(attr))
+        sys.exit(1)
+    elif attr == 'range_eta' and val:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: set: range_eta: Range list must have only two elements')
         sys.exit(1)
-    elif attr == 'modes_id_types':
-      if not isinstance(val, list):
-        logger.error('sampling: set: modes_id_types: Input must be a list of integers from grid.sql')
+      if self.get(attr)[0] == self.get(attr)[1] == -1:
+        logger.error('sampling: set: You must specify the attribute: "{0}"'.format(attr))
         sys.exit(1)
-    elif attr == 'modes_freq_range':
+    elif attr == 'modes_freq_range' and val:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: set: modes_freq_range: Range list must have only two elements')
+        sys.exit(1)
+    elif attr == 'modes_id_types' and val:
+      if not isinstance(val, list):
+        logger.error('sampling: set: modes_id_types: Input must be a list of integers from grid.sql')
         sys.exit(1)
     
     setattr(self, attr, val)
@@ -224,6 +242,8 @@ class sampling(object):
     @return: the value of the attribute
     @rtype: float
     """
+    super(sampling, self).get(attr)
+
     if not hasattr(self, attr):
       logger.error('sampling: get: The attribute "{0}" is undefined'.format(attr))
       sys.exit(1)
@@ -302,6 +322,139 @@ class sampling(object):
     self.set('training_set_done', True)
     self.set('cross_valid_set_done', True)
     self.set('test_set_done', True)
+
+  ##########################
+  def get_M_ini_fov_Z_logD_Xc_from_models_id(self, list_ids_models):
+    """
+    This routine queries the models table in the database, and returns tuples of the global attributes
+    (M_ini, fov, Z, logD, Xc) that match the models.id passed by as the "list_ids_models" argument.
+    This routine can lie in the heart of many applications which require retrieving of the global attributes
+    by only providing/knowing the corresponding model id.
+
+    Note: Even if one model id is passed (repeated) several times in the following query, only the first
+    occurance is effective. Therefore, the size of the returned results from the following query
+    is a factor (len(set(ids_rot))) larger than the result of the query. Then, the problem of 1-to-1
+    matching is resolved by setting up a look-up dictionary, internally.
+
+    @param self: an instance of the sampler.sampling class
+    @type self: object
+    @param list_ids_models: the list of models.id (integers) giving the exact models.id as in the database
+    @type list_ids_models: list of integers
+    @return: tuples of the corresponding attributes/feature values (M_ini, fov, Z, logD, Xc) for the unique
+          values in the input list_ids_models. The repeated ids will be reconstructed by walking through the
+          input models.id and putting the excluded attributes back in their place.
+    @rtype: list of tuples
+    """
+    return _get_M_ini_fov_Z_logD_Xc_from_models_id(self, list_ids_models)
+
+  ##########################
+  def extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot, list_rows):
+    """
+    This finds a GYRE outputs for a model given its id_model, and id_rot. Then, it slices the
+    modes based on the observed list, to ensure that there is a "reasonable" match between the
+    model and observed frequencies. It returns various useful info, only for those models that
+    survive the frequency filtering.
+
+    @param self: an instance of the sampler class
+    @type self: object
+    @param list_ids_models: is a list of the id_model for all input models
+    @type list_ids_models: list
+    @param list_ids_rot: is a list of the id_rot for all input models
+    @type list_ids_rot: list
+    @param list_rows: a list of tuples, where each tuple is e.g. (M_ini, fov, Z, logD, Xc) for
+             the input models. 
+    @tupe list_rows: list
+    @return: The following items are packed into the returned data structure:
+           - list of (M_ini, fov, Z, logD) attribute tuples which fulfil the trimming condition. 
+           - list of id_model which fulfil the trimming condition. This is basically
+             a subset of the input list.
+           - List of id_rot which fulfil the trimming condition. This is basically
+             a subset of the input list.
+           - List of record arrays for the corresponding models which fulfil the frequency
+             filtering criteria.
+    @rtype: tuple
+    """
+    return _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot, list_rows)
+
+  ##########################
+  # Trimming Functions
+  # Note: The signatures of the following three functions must be identical, because they are
+  #       tossed into self.search_function, and can be called from external (inherited) modules
+  ##########################
+  def trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
+    """ Not developed yet """
+    _trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor)
+
+  ##########################
+  def trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
+    """
+    As the name explains, this function receives a record array of GYRE modes summary, and trims/clips
+    the modes based on their period spacing pattern
+
+    @param modes: The observed modes, where each mode in the list is an instance of the "star.mode" class
+    @type modes: list of star.mode
+    @param rec_gyre: The numpy record array from GYRE frequency list coming from one GYRE output file
+    @type rec_gyre: np.recarray
+    @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
+          attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
+          However, we pass it as an argument instead of fetching it internally to speed up this function.
+    @type dic_mode_types: dict
+    @param trim_delta_freq_factor: This is the fraction of the frequency difference (delta_f) between the 
+          first and last observed frequencies. Default:0.25. This delta is used to select models which have
+          frequencies (f) in the range [f-df*factor , f+df*factor], where df is the frequency difference between
+          two consecutive modes for the lowest and highest observed modes. If this factor is set to greater than
+          0.5, the theoretical modes for two neighboring modes will overlap, and that will mess up the analysis.
+          In that case, we raise an exception and terminate the program.
+    @return: False if, for one among many reasons, it is not possible to trim the GYRE list based on the 
+          observed modes. If it succeeds, the input GYRE list will be trimmed to match the size of the input
+          modes, and then it will be returned.
+    @rtype: np.recarray or bool
+    """
+    _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor)
+
+  ##########################
+  def trim_modes_by_df(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
+    """ Not developed yet """
+    _trim_modes_by_df(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor)
+
+  ##########################
+  def trim_modes(self, rec_gyre, dic_mode_types):
+    """
+    Plan a strategy to trim the GYRE frequency list, and adapt it to the observed list based on the 
+    requests of the user, i.e. based on the following attributes of the sampling object: 
+    - search_freely_for_frequencies (Default = False)
+    - search_strictly_for_dP (Default = False)
+    - search_strictly_for_df (Default = False)
+    - match_lowest_frequency (Default = True)
+    - match_lowest_frequency (Default = 3.0)
+
+    Note: The first three booleans specify the search method, and they are all False by defult. We check
+    internally that only one of the flags is set to True, and the rest being False!
+
+    Note: The return value from this routine is identical to the return from the following three functions:
+    - _trim_modes_freely()
+    - _trim_modes_by_dP()
+    - _trim_modes_by_df()
+
+    @param self: an instance of the "sampler.sampling" class
+    @type self: object
+    @param rec_gyre: the GYRE output list of frequencies as fetched from the database. The following
+             columns are available here:
+             - id_model: int32
+             - id_rot: int16
+             - n: int16
+             - id_type: int16
+             - freq: float32
+    @type rec_gyre: np.recarray
+    @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
+          attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
+          However, we pass it as an argument instead of fetching it internally to speed up this function.
+    @type dic_mode_types: dict
+    @return: False, if for any reason no match is found between the observed and the modeled frequency lists.
+             If successful, a matching slice of the input GYRE frequency list is returned.
+    @rtype: np.recarray or bool
+    """
+    _trim_modes(self, rec_gyre, dic_mode_types)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -400,7 +553,8 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: specify "sampling_func" attribute of the class')
     sys.exit(1)
 
-  if self.star.num_modes == 0:
+  # if self.star.num_modes == 0:
+  if self.get('num_modes') == 0:
     logger.error('_build_learning_sets: The "modes" attribute of the "star" object of "sampling" not set yet!')
     sys.exit(1)
 
@@ -453,97 +607,24 @@ def _build_learning_sets(self):
   eta_vals   = [ ( np.float32(dic_rot_inv[(id_rot,)]), ) for id_rot in self.ids_rot ]
   logger.info('_build_learning_sets: all eta values successfully collected')
 
-  # Even if one model id is passed (repeated) several times in the following query, only the first
-  # occurance is effective. Therefore, the size of the returned results from the following query
-  # is a factor (len(set(ids_rot))) larger than the result of the query. Then, the problem of 1-to-1
-  # matching is resolved by setting up a look-up dictionary
-  the_query  = query.get_M_ini_fov_Z_logD_Xc_from_models_id(self.ids_models)
-  
-  with db_def.grid_db(dbname=self.dbname) as the_db:
-    the_db.execute_one(the_query, None)
-    params   = the_db.fetch_all()
-    n_par    = len(params)
-    if n_par == 0:
-      logger.error('_build_learning_sets: Found no matching model attributes')
-      sys.exit(1)
-    else:
-      logger.info('_build_learning_sets: Fetched "{0}" unique models'.format(n_par))
-    
-    # local look-up dictionary
-    dic_par  = {}
-    for tup in params:
-      key    = (tup[0], )   # i.e. models.id
-      val    = tup[1:]      # i.e. (M_ini, fov, Z, logD, Xc)
-      dic_par[key] = val
-    logger.info('_build_learning_sets: Look up dictionary for models is built')
+  # Now, get the list of tuples for the features (M_ini, fov, ...) model per each
+  features     = _get_M_ini_fov_Z_logD_Xc_from_models_id(self, self.ids_models)
 
-  reconst    = [dic_par[(key, )] for key in self.ids_models]
-  dic_par    = []           # delete dic_par and release memory
-
-  # whether or not include the eta column (must do for non-rot models, i.e. singular cases)
+  # whether or not include the eta column (must do for non-rot models, avoiding singular matrixes)
   if self.exclude_eta_column:
-    stiched  = reconst[:]
+    stiched  = features[:]
   else:
-    stiched  = [reconst[k] + eta_vals[k] for k in range(self.sample_size)]
-  reconst    = []           # destroy the list, and free up memory
-  
+    stiched  = [features[k] + eta_vals[k] for k in range(self.sample_size)]
+
   # Now, build the thoretical modes corresponding to each row in the sampled data
   # only accept those rows from the sample whose corresponding frequency row is useful
   # for our specific problem
-  rows_keep  = []
-  freq_keep  = []
-  n_pg_keep  = []
-  types_keep = []
-  model_keep = []
-  rot_keep   = []
-  modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
-                ('id_type', 'int16'), ('freq', 'float32')]
-
-  with db_def.grid_db(dbname=self.dbname) as the_db:
-    
-    # Get the mode_types look up dictionary
-    dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
-
-    # Execute the prepared statement to speed up querying for self.sample_size times
-    statement= 'prepared_statement_modes_from_fixed_id_model_id_rot'
-    if the_db.has_prepared_statement(statement):
-      the_db.execute_one('deallocate {0}'.format(statement), None)
-
-    tup_query= query.modes_from_fixed_id_model_id_rot_prepared_statement(statement,
-                     id_type=self.modes_id_types, freq_range=self.modes_freq_range)
-    prepared_statement = tup_query[0]
-    exec_statement     = tup_query[1]
-    the_db.execute_one(prepared_statement, None)
-
-    # Now, query the database iteratively for all sampling ids
-    for k, row in enumerate(stiched):
-      id_model = self.ids_models[k]
-      id_rot   = self.ids_rot[k]
-
-      # pack all query constraints into a tuple
-      tup_exec = (id_model, id_rot) + tuple(self.modes_id_types) + tuple(self.modes_freq_range)
-
-      the_db.execute_one(exec_statement, tup_exec)
-      this     = the_db.fetch_all()
-
-      rec_this = utils.list_to_recarray(this, modes_dtype)
-
-      # convert GYRE frequencies from "Hz" to "cd" for several benefits!
-      rec_this['freq'] *= star.Hz_to_cd 
-
-      # Trim off the GYRE list to match the observations
-      rec_trim = _trim_modes(self, rec_this, dic_mode_types)
-
-      # Decide whether or not to keep this (k-th) row based on the result of trimming
-      if isinstance(rec_trim, bool) and rec_trim == False:
-        continue            # skip this row
-      else:
-        rows_keep.append(row)
-        freq_keep.append( rec_trim['freq'] )
-        n_pg_keep.append( rec_trim['n'] )
-        types_keep.append( rec_trim['id_type'] )
-        model_keep.append(id_model)
-        rot_keep.append(id_rot)
+  tup_extract= _extract_gyre_modes_from_id_model_id_rot(self, self.ids_models, 
+                                                        self.ids_rot, stiched)
+  rows_keep  = tup_extract[0]
+  model_keep = tup_extract[1]
+  rot_keep   = tup_extract[2]
+  rec_keep   = tup_extract[3]
 
   # list of ndarrays to 2-D ndarrays
   mtrx_rows  = np.stack(rows_keep, axis=0)
@@ -554,13 +635,13 @@ def _build_learning_sets(self):
   self.set('num_features', len(self.feature_names))
   self.set('learning_x', mtrx_rows)
   self.set('sample_size', len(mtrx_rows))
-  self.set('learning_ids_models', np.array(model_keep))
-  self.set('learning_ids_rot', np.array(rot_keep))
+  self.set('learning_ids_models', np.array( model_keep ))
+  self.set('learning_ids_rot', np.array( rot_keep ))
 
   # and packing the frequencies (cycles per day) and friends
-  rec_freq   = np.stack(freq_keep, axis=0)
-  mtrx_n_pg  = np.stack(n_pg_keep, axis=0)
-  mtrx_types = np.stack(types_keep, axis=0)
+  rec_freq   = np.stack([rec_['freq'] for rec_ in rec_keep], axis=0) # np.stack(freq_keep, axis=0)
+  mtrx_n_pg  = np.stack([rec_['n'] for rec_ in rec_keep], axis=0) # np.stack(n_pg_keep, axis=0)
+  mtrx_types = np.stack([rec_['id_type'] for rec_ in rec_keep], axis=0) # np.stack(types_keep, axis=0)
 
   self.set('learning_y', rec_freq)
   self.set('learning_radial_orders', mtrx_n_pg)
@@ -605,41 +686,102 @@ def _learning_log_Teff_log_g(self):
   logger.info('learning_log_Teff_log_g: Attribute learning_log_g is assigned')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _get_M_ini_fov_Z_logD_Xc_from_models_id(self, list_ids_models):
+  """
+  For detailed documentation, please refer to get_M_ini_fov_Z_logD_Xc_from_models_id()
+  """
+  the_query  = query.get_M_ini_fov_Z_logD_Xc_from_models_id(list_ids_models)
+
+  with db_def.grid_db(dbname=self.dbname) as the_db:
+    the_db.execute_one(the_query, None)
+    params   = the_db.fetch_all()
+    n_par    = len(params)
+    if n_par == 0:
+      logger.error('_get_M_ini_fov_Z_logD_Xc_from_models_id: Found no matching model attributes')
+      sys.exit(1)
+    else:
+      logger.info('_get_M_ini_fov_Z_logD_Xc_from_models_id: Fetched "{0}" unique models'.format(n_par))
+    
+    # local look-up dictionary
+    dic_par  = {}
+    for tup in params:
+      key    = (tup[0], )   # i.e. models.id
+      val    = tup[1:]      # i.e. (M_ini, fov, Z, logD, Xc)
+      dic_par[key] = val
+    # logger.info('_get_M_ini_fov_Z_logD_Xc_from_models_id: Look up dictionary for models is built')
+
+  features   = [dic_par[(key, )] for key in list_ids_models]
+  n_f        = len(features)
+
+  logger.info('_get_M_ini_fov_Z_logD_Xc_from_models_id: Returned "{0}" model attributes\n'.format(n_f))
+
+  return features
+  
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot, list_rows):
+  """
+  For detailed documentation, please refer to extract_gyre_modes_from_id_model_id_rot()
+  """
+  rows_keep  = []
+  rec_keep   = []
+  model_keep = []
+  rot_keep   = []
+
+  modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
+                ('id_type', 'int16'), ('freq', 'float32')]
+
+  with db_def.grid_db(dbname=self.dbname) as the_db:
+    
+    # Get the mode_types look up dictionary
+    dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
+
+    # Execute the prepared statement to speed up querying for self.sample_size times
+    statement= 'prepared_statement_modes_from_fixed_id_model_id_rot'
+    if the_db.has_prepared_statement(statement):
+      the_db.execute_one('deallocate {0}'.format(statement), None)
+
+    tup_query= query.modes_from_fixed_id_model_id_rot_prepared_statement(statement,
+                     id_type=self.modes_id_types, freq_range=self.modes_freq_range)
+    prepared_statement = tup_query[0]
+    exec_statement     = tup_query[1]
+    the_db.execute_one(prepared_statement, None)
+
+    # Now, query the database iteratively for all sampling ids
+    for k, row in enumerate(list_rows):
+      id_model = list_ids_models[k] # self.ids_models[k]
+      id_rot   = list_ids_rot[k]    # self.ids_rot[k]
+
+      # pack all query constraints into a tuple
+      tup_exec = (id_model, id_rot) + tuple(self.modes_id_types) + tuple(self.modes_freq_range)
+      
+      the_db.execute_one(exec_statement, tup_exec)
+      this     = the_db.fetch_all()
+
+      rec_this = utils.list_to_recarray(this, modes_dtype)
+
+      # convert GYRE frequencies from "Hz" to "cd" for several benefits!
+      rec_this['freq'] *= star.Hz_to_cd 
+
+      # Trim off the GYRE list to match the observations
+      rec_trim = _trim_modes(self, rec_this, dic_mode_types)
+
+      # Decide whether or not to keep this (k-th) row based on the result of trimming
+      if isinstance(rec_trim, bool) and rec_trim == False:
+        continue            # skip this row
+      else:
+        rows_keep.append(row)
+        model_keep.append(id_model)
+        rot_keep.append(id_rot)
+        rec_keep.append(rec_trim)
+
+    logger.info('_extract_gyre_modes_from_id_model_id_rot: "{0}" models extracted\n'.format(len(rows_keep)))
+
+    return rows_keep, model_keep, rows_keep, rec_keep
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes(self, rec_gyre, dic_mode_types):
   """
-  Plan a strategy to trim the GYRE frequency list, and adapt it to the observed list based on the 
-  requests of the user, i.e. based on the following attributes of the sampling object: 
-  - search_freely_for_frequencies (Default = False)
-  - search_strictly_for_dP (Default = False)
-  - search_strictly_for_df (Default = False)
-  - match_lowest_frequency (Default = True)
-  - match_lowest_frequency (Default = 3.0)
-
-  Note: The first three booleans specify the search method, and they are all False by defult. We check
-  internally that only one of the flags is set to True, and the rest being False!
-
-  Note: The return value from this routine is identical to the return from the following three functions:
-  - _trim_modes_freely()
-  - _trim_modes_by_dP()
-  - _trim_modes_by_df()
-
-  @param self: an instance of the "sampler.sampling" class
-  @type self: object
-  @param rec_gyre: the GYRE output list of frequencies as fetched from the database. The following
-           columns are available here:
-           - id_model: int32
-           - id_rot: int16
-           - n: int16
-           - id_type: int16
-           - freq: float32
-  @type rec_gyre: np.recarray
-  @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
-        attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
-        However, we pass it as an argument instead of fetching it internally to speed up this function.
-  @type dic_mode_types: dict
-  @return: False, if for any reason no match is found between the observed and the modeled frequency lists.
-           If successful, a matching slice of the input GYRE frequency list is returned.
-  @rtype: np.recarray or bool
+  For the full documentation, please refer to the method trim_modes().
   """
   bool_arr = np.array([self.search_freely_for_frequencies, self.search_strictly_for_dP, 
                        self.search_strictly_for_df])
@@ -649,17 +791,20 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
     sys.exit(1)
 
   if self.search_freely_for_frequencies:
+    self.set('search_function', self.trim_modes_freely)
     return _trim_modes_freely()
   elif self.search_strictly_for_dP:
-    return _trim_modes_by_dP(self.star.modes, rec_gyre, dic_mode_types, self.trim_delta_freq_factor)
+    self.set('search_function', self.trim_modes_by_dP)
+    return _trim_modes_by_dP(self.get('modes'), rec_gyre, dic_mode_types, self.trim_delta_freq_factor)
   elif self.search_strictly_for_df:
+    self.set('search_function', self.trim_modes_by_df)
     return _trim_modes_by_df()
   else:
     logger.error('_trim_modes: unexpected frequency search plan')
     sys.exit(1)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _trim_modes_freely():
+def _trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   """
   Choose matching frequencies with all liberty, without any restrictions/constraint.
   Not developed yet
@@ -670,25 +815,7 @@ def _trim_modes_freely():
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   """
-  
-  @param modes: The observed modes, where each mode in the list is an instance of the "star.mode" class
-  @type modes: list of star.mode
-  @param rec_gyre: The numpy record array from GYRE frequency list coming from one GYRE output file
-  @type rec_gyre: np.recarray
-  @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
-        attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
-        However, we pass it as an argument instead of fetching it internally to speed up this function.
-  @type dic_mode_types: dict
-  @param trim_delta_freq_factor: This is the fraction of the frequency difference (delta_f) between the 
-        first and last observed frequencies. Default:0.25. This delta is used to select models which have
-        frequencies (f) in the range [f-df*factor , f+df*factor], where df is the frequency difference between
-        two consecutive modes for the lowest and highest observed modes. If this factor is set to greater than
-        0.5, the theoretical modes for two neighboring modes will overlap, and that will mess up the analysis.
-        In that case, we raise an exception and terminate the program.
-  @return: False if, for one among many reasons, it is not possible to trim the GYRE list based on the 
-        observed modes. If it succeeds, the input GYRE list will be trimmed to match the size of the input
-        modes, and then it will be returned.
-  @rtype: np.recarray or bool
+  For detailed documentation, please refer to the trim_modes_by_dP() method
   """
   n_modes = len(modes)
   n_rec   = len(rec_gyre)
@@ -749,7 +876,7 @@ def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   return trimmed
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _trim_modes_by_df():
+def _trim_modes_by_df(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   """
   Choose matching frequencies based on regularities/spacings in frequency domain
   Not developed yet

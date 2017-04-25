@@ -10,7 +10,10 @@ extention here, which can be provided gradually as new needs emerge.
 import sys, os, glob
 import logging
 import numpy as np 
-from grid import star, db_def, sampler, artificial_neural_network
+from grid import star, db_def 
+from grid import sampler as smpl
+from grid import artificial_neural_network as ann
+from grid import interpolator as interp
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +21,38 @@ logger = logging.getLogger(__name__)
 # U S E R  -  C O N T R O L L E D   P A R A M E T E R S :
 # B A C K E N D    O B J E C T S   T H A T   D O   T H E   R E A L   W O R K
 ####################################################################################
-bk_star   = star.star()
 
-bk_sample = sampler.sampling()
-bk_sample.set('star', bk_star)
+class ModellingSession(interp.interpolation, ann.neural_net, smpl.sampling, star.star):
+  """
+  The ModellingSession is a derived class from the underlying modules in the package. 
+  Concretely, the parent classes which are used here are below, in the following "Method
+  Resolution Order (MRO)":
 
-bk_ann    = artificial_neural_network.neural_net()
-bk_ann.set('sampling', bk_sample)
+    - interpolator.interpolation
+    - artificial_neural_network.neural_net
+    - sampler.sampling
+    - star.star
+  
+  With the bundling of the above classes, we create a derived class which takes care of 
+  the observatinal data, the theoretical models in the database, the interface between 
+  the underlying routine and the PostgreSQL database, and the high-level machine learning
+  analysis machinery.
+  """
+
+  def __init__(self):
+    """ Constructor """
+    super(ModellingSession, self).__init__()
+
+  def set(self, attr, val):
+    """ Setter """
+    super(ModellingSession, self).set(attr, val)
+
+  def get(self, attr):
+    """ Getter """
+    return super(ModellingSession, self).get(attr)
+
+####################################################################################
+
 
 ####################################################################################
 # B A C K E N D   F U N C T I O N S
@@ -48,7 +76,8 @@ def do_connect(dbname):
     sys.exit(1)
 
   if db_def.exists(dbname):
-    bk_sample.set('dbname', dbname)
+    # bk_sample.set('dbname', dbname)
+    BackEndSession.set('dbname', dbname)
     return True
   else:
     return False
@@ -64,8 +93,10 @@ def set_input_freq_file(filename):
     logger.error('set_input_freq_file: The file "{0}" not found'.format(filename))
     sys.exit()
 
-  modes = star.load_modes_from_file(filename, delimiter=',')
-  bk_star.set('modes', modes)
+  # modes = star.load_modes_from_file(filename, delimiter=',')
+  # bk_star.set('modes', modes)
+  # BackEndSession.set('modes', modes)
+  BackEndSession.load_modes_from_file(filename, delimiter=',')
 
 ####################################################################################
 def get_example_input_freq():
@@ -112,18 +143,24 @@ def set_obs_log_Teff(val, err):
   """
   Set using the observed effective temperature 
   """
-  bk_star.set('log_Teff', val)
-  bk_star.set('log_Teff_err_lower', err)
-  bk_star.set('log_Teff_err_upper', err)
+  # bk_star.set('log_Teff', val)
+  # bk_star.set('log_Teff_err_lower', err)
+  # bk_star.set('log_Teff_err_upper', err)
+  BackEndSession.set('log_Teff', val)
+  BackEndSession.set('log_Teff_err_lower', err)
+  BackEndSession.set('log_Teff_err_upper', err)
 
 ####################################################################################
 def set_obs_log_g(val, err):
   """
   Set using the observed surface gravity
   """
-  bk_star.set('log_g', val)
-  bk_star.set('log_g_err_lower', err)
-  bk_star.set('log_g_err_upper', err)
+  # bk_star.set('log_g', val)
+  # bk_star.set('log_g_err_lower', err)
+  # bk_star.set('log_g_err_upper', err)
+  BackEndSession.set('log_g', val)
+  BackEndSession.set('log_g_err_lower', err)
+  BackEndSession.set('log_g_err_upper', err)
 
 ####################################################################################
 def set_sampling_function(choice):
@@ -133,9 +170,11 @@ def set_sampling_function(choice):
   selecting "sampler.randomly_pick_models_and_rotation_ids"
   """
   if choice is True:
-    bk_sample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+    # bk_sample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
   else:
-    bk_sample.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
+    # bk_sample.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
 
 ####################################################################################
 def set_shuffling(choice):
@@ -143,7 +182,8 @@ def set_shuffling(choice):
   Set the sampling shuffling mode. choice=True means apply the shuffling of the learning
   set, and False means otherwise.
   """
-  bk_sample.set('sampling_shuffle', choice)
+  # bk_sample.set('sampling_shuffle', choice)
+  BackEndSession.set('sampling_shuffle', choice)
 
 ####################################################################################
 ####################################################################################
@@ -152,6 +192,14 @@ def set_shuffling(choice):
 ####################################################################################
 ####################################################################################
 ####################################################################################
+
+
+####################################################################################
+# B A C K E N D   W O R K I N G   S E S S I O N
+####################################################################################
+BackEndSession = ModellingSession()
+####################################################################################
+
 
 
 

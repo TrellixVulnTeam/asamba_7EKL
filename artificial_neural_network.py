@@ -28,16 +28,17 @@ logger = logging.getLogger(__name__)
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class neural_net(object):
+class neural_net(sampler.sampling):
   """
 
   """
   def __init__(self):
+    super(neural_net, self).__init__()
 
-    #.............................
-    # Inheriting from sampler.sampling()
-    #.............................
-    self.sampling = None # sampler.sampling()
+    # #.............................
+    # # Inheriting from sampler.sampling()
+    # #.............................
+    # self.sampling = None # sampler.sampling()
 
     #.............................
     # Normal Equation
@@ -115,6 +116,7 @@ class neural_net(object):
   # Setter
   ##########################
   def set(self, attr, val):
+    super(neural_net, self).set(attr, val)
     if not hasattr(self, attr):
       logger.error('neural_net: set: Attribute "{0}" is unavailable.')
       sys.exit(1)
@@ -125,6 +127,7 @@ class neural_net(object):
   # Getter
   ##########################
   def get(self, attr):
+    super(neural_net, self).get(attr)
     if not hasattr(self, attr):
       logger.error('neural_net: get: Attribute "{0}" is unavailable.')
       sys.exit(1)

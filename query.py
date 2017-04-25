@@ -26,6 +26,62 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def without_constraint(dbname, table, returned_columns=[]):
+  """
+  Prepare a query to retrieve specific columns (from "returned_columns" argument). This is a generic
+  routine that can be used on any table to retrive all rows from the table. A subset of columns can 
+  be selected for retrieval through the "returned_columns" argument. 
+
+  In fact, all this routine does is similar to the following generic SQL query:
+
+    "SELECT * FROM table"
+
+  where the "*" can be optionally replaced with a user-specified list of strings giving the desired
+  column names of the table to retrieve.
+
+  @param dbname: the name of the database to connect to
+  @type dbname: str
+  @param table: The name of the table where the query is going to be prepaired, and will be imosed on.
+  @type table: str
+  @param returned_columns: the list of column names that we require the values for in the output.
+         E.g. one can set returned_columns = ['id', 'id_track', 'model_number'] to get the model id,
+         the id of the evolutionary track that the model comes from, and the model_number of the model
+         when this snapshot was stored by MESA. We check the requested column names exist as the 
+         keys of the "models" table
+  @type returned_columns: list of strings
+  @return: The query string which is ready to be used
+  @rtype: str
+  """
+  n_cols     = len(returned_columns)
+
+  if n_cols == 0:
+    str_cols = ' * '
+  else:
+    str_cols = ','.join(returned_columns)
+
+  with db_def.grid_db(dbname=dbname) as the_db:
+    # check if the table exists in the database
+    if not the_db.has_table(table):
+      logger.error('without_constraint: Database "{0}" does not have the \
+                    table "{1}"'.format(dbname, table))
+      sys.exit(1)
+
+    # check that requested column names exist among the table attributes
+    attrs   = the_db.get_table_columns(table) 
+    if n_cols > 0:
+      for attr in returned_columns:
+        if attr.lower() not in attrs:
+          logger.error('without_constraint: Attribute "{0}" is not a \
+                        valid "models" key'.format(attr))
+          sys.exit(1)
+
+  str_cols  = ','.join(returned_columns)
+
+  the_query = 'select {0} from {1}'.format(str_cols, table)
+
+  return the_query
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], constraints_ranges=[]):
   """
   Prepare a query to retrieve specific columns (from "returned_columns" argument) subject to the 
@@ -71,15 +127,15 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
   """
   if not returned_columns:
     logger.error('with_constraints: Provide non-empty list of return columns \
-                  from the "models" attributes')
+                  from the "{0}" attributes'.format(table))
     sys.exit(1)
   if not constraints_keys:
     logger.error('with_constraints: Provide non-empty list of constraint keys \
-                  from the "models" attributes')
+                  from the "{0}" attributes'.format(table))
     sys.exit(1)
   if not constraints_ranges:
     logger.error('with_constraints: Provide non-empty list of constraint ranges \
-                  for each "models" attributes in the constraints_keys list')
+                  for each "{0}" attributes in the constraints_keys list'.format(table))
     sys.exit(1)
 
   n_cols    = len(returned_columns)
@@ -105,7 +161,6 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
     attrs   = the_db.get_table_columns(table) 
     for attr in returned_columns + constraints_keys:
       if attr.lower() not in attrs:
-        print attr
         logger.error('with_constraints: Attribute "{0}" is not a \
                       valid "models" key'.format(attr))
         sys.exit(1)
@@ -130,6 +185,29 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
   the_query = 'select {0} from {1} where {2}'.format(str_cols, table, str_where)
 
   return the_query
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Q U E R Y I N G   T H E  T R A C K S   T A B L E 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_tracks_distinct_M_ini_logD():
+  """
+  In the grid, the range of \\f$log D\f$ values were selected as a function on initial mass, so that 
+  \f$\log D\f$ ranges between 0.0 and some \f$max(\log D)\f$ value in 5 discrete values; here, 
+  \f$ max(\log D)\f$ is a linear function of initial mass, as:
+
+  \f[ max(\log D_{\rm mix}) = \rm{offset} + \rm{slope}\, \times\, \log_{10}(M_{\rm ini}). 
+  \f]
+  where slope=\f$(6.5 - 2.5)/(\log_{10}(35) - \log_{10}(1.4))\f$, and the 
+  offset=\f$6.5-{\rm slope}\times\log_{10}(35)\f$, with 1.4 and 35 \f$M_{\odot}\f$ bening the lowest
+  and highest masses in the grid, and \f$\log(D)=2.5\f$ and \f$\log(D)=6.5\f$ being the maximum logarithm
+  of diffusive mixing for the lowest and highest masses in the grid, respectively.
+
+  This routine, prepares a simple query to retrieve all combinations of (M_ini, logD) for all tracks.
+  """
+  return 'select distinct on (M_ini, logD) M_ini, logD from tracks group by M_ini, logD'
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -168,15 +246,15 @@ def get_models_id_from_M_ini_fov_Z_logD_Xc(M_ini_range, fov_range, Z_range, logD
     logger.error('get_models_id_from_M_ini_fov_Z_logD_Xc: Input range arguments must have length=2')
     sys.exit(1)
 
-  where_M_ini = '(M_ini between {0} and {1})'.format(M_ini_range)
-  where_fov   = '(fov between {0} and {1})'.format(fov_range)
-  where_Z     = '(Z between {0} and {1})'.format(Z_range)
-  where_logD  = '(logD between {0} and {1})'.format(logD_range)
-  where_Xc    = '(Xc between {0} and {1})'.format(Xc_range)
+  where_M_ini = '(M_ini between {0} and {1})'.format(M_ini_range[0], M_ini_range[1])
+  where_fov   = '(fov between {0} and {1})'.format(fov_range[0], fov_range[1])
+  where_Z     = '(Z between {0} and {1})'.format(Z_range[0], Z_range[1])
+  where_logD  = '(logD between {0} and {1})'.format(logD_range[0], logD_range[1])
+  where_Xc    = '(Xc between {0} and {1})'.format(Xc_range[0], Xc_range[1])
   where_      = ' and '.join([where_M_ini, where_fov, where_Z, where_logD, where_Xc])
 
   the_query   = 'select models.id, M_ini, fov, Z, logD, Xc from models, tracks \
-                 where (models.id=tracks.id) where {0}'
+                 where (models.id_track=tracks.id) and {0}'.format(where_)
   return the_query
                  
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

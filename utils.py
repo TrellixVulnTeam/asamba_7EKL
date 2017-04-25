@@ -21,7 +21,6 @@ def list_to_recarray(list_input, dtype):
 
   @param list_input: The inputs to be converted to numpy record array. They are 
   """
-
   return np.core.records.fromarrays(np.array(list_input).T, dtype=dtype)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
