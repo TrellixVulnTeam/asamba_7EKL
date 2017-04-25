@@ -567,15 +567,10 @@ def _build_learning_sets(self):
       sys.exit(1)
 
     tups_ids = constrained_pick_models_and_rotation_ids(self) 
-                    # (dbname=self.dbname,
-                    # n=self.max_sample_size, range_log_Teff=self.range_log_Teff,
-                    # range_log_g=self.range_log_g, range_eta=self.range_eta)
-
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
   elif self.sampling_func is randomly_pick_models_and_rotation_ids:
-    tups_ids = randomly_pick_models_and_rotation_ids(self) #(dbname=self.dbname, n=self.max_sample_size)
-
+    tups_ids = randomly_pick_models_and_rotation_ids(self)
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
 
   else:
@@ -753,11 +748,15 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
 
       # pack all query constraints into a tuple
       tup_exec = (id_model, id_rot) + tuple(self.modes_id_types) + tuple(self.modes_freq_range)
-      
+
       the_db.execute_one(exec_statement, tup_exec)
       this     = the_db.fetch_all()
 
-      rec_this = utils.list_to_recarray(this, modes_dtype)
+      try:
+        rec_this = utils.list_to_recarray(this, modes_dtype)
+      except:
+        print tup_exec
+        sys.exit()
 
       # convert GYRE frequencies from "Hz" to "cd" for several benefits!
       rec_this['freq'] *= star.Hz_to_cd 

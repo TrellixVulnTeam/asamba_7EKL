@@ -172,11 +172,13 @@ class interpolation(sampler.sampling): # inheriting ...
   # Setter
   ##########################
   def set(self, attr, val):
-    if not hasattr(self, attr):
-      logger.error('interpolation: set: Attribute "{0}" is unavailable.')
-      sys.exit(1)
-
-    setattr(self, attr, val)
+    try:
+      super(interpolation, self).set(attr, val)
+    except:
+      if not hasattr(self, attr):
+        logger.error('interpolation: set: Attribute "{0}" is unavailable.'.format(attr))
+        sys.exit(1)
+      setattr(self, attr, val)
 
   ##########################
   # Getter
@@ -391,25 +393,32 @@ def _collect_inputs_around_anchor(self):
   ############################
   # Using the methods from sampling class
   ############################
-  search_func  = self.get('search_function')
-  if search_func is self.trim_modes_freely:
-    self.set('search_freely_for_frequencies', True)
-  elif search_func is self.trim_modes_by_dP:
-    self.get('search_strictly_for_dP', True)
-  elif search_func is self.trim_modes_by_df:
-    self.get('trim_modes_by_df', True)
-  else:
-    print search_func
-    logger.error('_collect_inputs_around_anchor: Could not locate the proper search_function')
-    sys.exit(1)
-
-  print self.search_freely_for_frequencies, self.search_strictly_for_dP, self.search_strictly_for_df
-  sys.exit()
   # First, retrieve the models attributes (M_ini, fov, Z, logD, Xc) by providing models.id
   features_    = self.get_M_ini_fov_Z_logD_Xc_from_models_id(models_ids)
+  n_features   = len(features_)
+  try:
+    assert n_features == n_models
+  except AssertionError:
+    logger.error('_collect_inputs_around_anchor: Inconsistent number of feature rows retrieved!')
+    sys.exit(1)
 
-  tup_extract  = self.extract_gyre_modes_from_id_model_id_rot(models_ids, neighb_id_eta, 
-                                                          features_)
+  # Figure out whether or not to include the eta column
+  if self.exclude_eta_column:
+    models_ids_= models_ids
+    rot_ids_   = [min(ids_etas)] * n_features
+    stiched    = features_[:]
+  else:
+    models_ids_= models_ids * n_etas                     # size: n_models * n_etas
+    rot_ids_   = ids_etas[eta_from : eta_to] * n_models  # size: n_models * n_etas
+    eta_vals_  = eta_vals[eta_from : eta_to] * n_models  # size: n_models * n_etas
+    stiched    = [features_[k] + eta_vals_[k] for k in range(n_models * n_etas)]
+
+  # Then, extract the GYRE mode lists from their id
+  tup_extract  = self.extract_gyre_modes_from_id_model_id_rot(models_ids_, rot_ids_, stiched)
+  rows_keep    = tup_extract[0]
+  model_keep   = tup_extract[1]
+  rot_keep     = tup_extract[2]
+  rec_keep     = tup_extract[3]
   
 
 
