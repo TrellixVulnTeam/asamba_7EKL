@@ -289,15 +289,15 @@ def _solve_normal_equation(self):
   Refer to the documentation of solve_normal_equation() for further details.
   """
   # Get THE instance of the sampling class already stored in neural_net object 
-  sample = self.get('sampling') 
+  # sample = self.get('sampling') 
   # Check if the sampling is already done or not
-  if not sample.learning_done:
+  if not self.learning_done:
     logger.error('_solve_normal_equation: The sampling is not done yet. Call sampler.sampling.build_sampling_sets() first')
     sys.exit(1)
 
-  x = sample.learning_x                # (m, n)
+  x = self.learning_x                # (m, n)
   x = utils.prepend_with_column_1(x)        # (m, n+1)
-  y = sample.learning_y                # (m, K)
+  y = self.learning_y                # (m, K)
 
   a = np.dot(x.T, x)                   # (n+1, n+1)
   b = np.linalg.inv(a)                 # (n+1, n+1)
@@ -308,7 +308,7 @@ def _solve_normal_equation(self):
   self.set('normal_equation_theta', theta)
 
   # observed frequency from list of modes
-  modes = sample.star.modes
+  modes = self.modes
 
   # Now, solve for the "best-value" features using theta from above
   freqs = np.array([ mode.freq for mode in modes ]).T # (K, 1)
@@ -341,11 +341,11 @@ def _max_a_posteriori(self):
   
   ln_posterior     = self.get('MAP_ln_posterior')
   ind_min_posterior= np.argmin(ln_posterior)
-  sample           = self.get('sampling')
-  learning_x       = sample.get('learning_x')
-  learning_y       = sample.get('learning_y')
-  learning_n_pg    = sample.get('learning_radial_orders')
-  learning_types   = sample.get('learning_mode_types')
+  # sample           = self.get('sampling')
+  learning_x       = self.get('learning_x')
+  learning_y       = self.get('learning_y')
+  learning_n_pg    = self.get('learning_radial_orders')
+  learning_types   = self.get('learning_mode_types')
   MAP_feature      = learning_x[ind_min_posterior]
   MAP_frequencies  = learning_y[ind_min_posterior]
   MAP_n_pg         = learning_n_pg[ind_min_posterior]
@@ -396,32 +396,32 @@ def _set_priors(self):
     logger.error('_set_priors: set only one of "MAP_uniform_prior" or "MAP_use_log_Teff_log_g_prior" to True:')
     sys.exit(1)
 
-  sample     = self.get('sampling')
-  learning_y = sample.get('learning_y')
+  # sample     = self.get('sampling')
+  learning_y = self.get('learning_y')
   m, K       = learning_y.shape
 
   if self.MAP_uniform_prior:
     prior    = np.ones(m) / float(m)
   elif self.MAP_use_log_Teff_log_g_prior:
     # get observed log_Teff and log_g together with their errors from the star
-    star         = sample.get('star')
-    if star.log_Teff_err_lower == 0 or star.log_Teff_err_upper == 0:
-      logger.error('_set_priors: set star.log_Teff_err_lower and star.log_Teff_err_upper first')
+    # star         = sample.get('star')
+    if self.log_Teff_err_lower == 0 or self.log_Teff_err_upper == 0:
+      logger.error('_set_priors: set log_Teff_err_lower and log_Teff_err_upper first')
       sys.exit(1)
 
-    obs_log_Teff = star.log_Teff
-    obs_log_Teff_err = np.max([ star.log_Teff_err_lower, star.log_Teff_err_upper ])
-    obs_log_g    = star.log_g
-    obs_log_g_err= np.max([ star.log_g_err_lower, star.log_g_err_upper ])
+    obs_log_Teff = self.log_Teff
+    obs_log_Teff_err = np.max([ self.log_Teff_err_lower, self.log_Teff_err_upper ])
+    obs_log_g    = self.log_g
+    obs_log_g_err= np.max([ self.log_g_err_lower, self.log_g_err_upper ])
     if not all([ obs_log_Teff != 0, obs_log_Teff_err != 0, 
                  obs_log_g != 0, obs_log_g_err != 0 ]):
       logger.error('_set_priors: Specify the log_Teff, log_g and their errors properly')
       sys.exit(1)
 
-    sample   = self.sampling
+    # sample   = self.sampling
 
-    lrn_log_Teff = sample.learning_log_Teff[:]
-    lrn_log_g    = sample.learning_log_g[:]
+    lrn_log_Teff = self.learning_log_Teff[:]
+    lrn_log_g    = self.learning_log_g[:]
 
     prior_log_Teff = utils.gaussian(x=lrn_log_Teff, mu=obs_log_Teff, sigma=obs_log_Teff_err)
     prior_log_g    = utils.gaussian(x=lrn_log_g, mu=obs_log_g, sigma=obs_log_g_err)
@@ -438,14 +438,14 @@ def _chi_square(self):
   """
   Refer to the documentation below the chi_square() method for further details  
   """
-  sample = self.get('sampling')
-  modes  = sample.star.modes
+  # sample = self.get('sampling')
+  modes  = self.modes
   freqs  = np.array([ mode.freq for mode in modes ])
   sigma  = np.array([ mode.freq_err for mode in modes ])
   sigma  *= self.frequency_sigma_factor
   n_freq = len(freqs)                    # (1, K)
 
-  learning_y = sample.get('learning_y')  # (m, K)
+  learning_y = self.get('learning_y')  # (m, K)
   m, K   = learning_y.shape
   try:
     assert n_freq == K
@@ -470,8 +470,8 @@ def _set_likelihood(self):
   """
   For the full documentation refer to the max_a_posteriori() method
   """
-  star  = self.get('sampling').get('star')
-  modes = star.get('modes')
+  # star  = self.get('sampling').get('star')
+  modes = self.get('modes')
   errs  = np.array([ mode.freq_err for mode in modes ])
   chi_2 = self.get('MAP_chi_square')
   ln_L  = -np.log(2*np.pi)/2 - np.sum(np.log(errs)) - chi_2
@@ -492,13 +492,13 @@ def _marginalize_wrt(self, wrt):
   """
   For the full documentation refer to the marginalize_wrt() method.
   """
-  sample  = self.get('sampling')
-  x_names = sample.get('feature_names')
+  # sample  = self.get('sampling')
+  x_names = self.get('feature_names')
   if wrt not in x_names:
     logger.error('_marginalize_wrt: The column "{0}" is not among the available features'.format(wrt))
     sys.exit(1)
   
-  learning_x = sample.get('learning_x')
+  learning_x = self.get('learning_x')
   dtypes  = [(name, 'f4') for name in x_names]
   rec     = utils.ndarray_to_recarray(learning_x, dtypes)
 
@@ -521,8 +521,8 @@ def _marginalize(self):
   """
   For the full documentation refer to the marginalize() method.
   """
-  sample = self.get('sampling')
-  names  = sample.get('feature_names')
+  # sample = self.get('sampling')
+  names  = self.get('feature_names')
   n_names= len(names)
   result = []
   vals   = np.zeros(n_names)
