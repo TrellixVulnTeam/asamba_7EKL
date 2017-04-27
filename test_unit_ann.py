@@ -77,7 +77,6 @@ def main():
   print TheANN.get('MAP_radial_orders'), '\n'
 
   if True:
-    print ' - Assert all radial orders in the training set are contiguous'
     all_n_pg= TheANN.get('learning_radial_orders')
     Catch   = False
     for k, row in enumerate(all_n_pg):
@@ -86,9 +85,9 @@ def main():
         Catch = True
         print k, row
     if Catch:
-      logging.warning('At least one instance found where n_pg are not contiguous')
+      logging.warning('At least one instance found where n_pg are not contiguous \n')
     else:
-      logging.info('All radial orders in the learning set are contiguous')
+      logging.info('All radial orders in the learning set are contiguous \n')
   
   print '\n - Marginalized features' 
   TheANN.marginalize()
@@ -96,6 +95,7 @@ def main():
   marg_vals = TheANN.get('marginal_features')
   for i, name in enumerate(features):
     print '   {0} = {1:.4f}'.format(name, marg_vals[i])
+  print
 
   return TheANN
 

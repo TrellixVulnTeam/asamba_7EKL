@@ -19,9 +19,27 @@ def list_to_recarray(list_input, dtype):
   Convert a list of tuples to a numpy recordarray. Each tuple is one retrieved row of data from calling
   the SQL queries, and fetching them through e.g. db.fetch_all() method.
 
-  @param list_input: The inputs to be converted to numpy record array. They are 
+  @param list_input: The inputs to be converted to numpy record array. 
+  @type list_input: list
+  @return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+        number of columns equal to the number of items in each tuple. The dtype for each column is 
+        passed as an input argument by the user.
+  @rtype: np.recarray
   """
   return np.core.records.fromarrays(np.array(list_input).T, dtype=dtype)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def list_to_ndarray(list_input):
+  """
+  Convert a list of tuples to a numpy ndarray. 
+
+  @param list_input: The inputs to be converted to numpy recorda array
+  @type list_input: list
+  @return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+        number of columns equal to the number of items in each tuple.
+  @rtype: np.recarray
+  """
+  return np.stack(list_input, axis=0)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def ndarray_to_recarray(arr, dtype):

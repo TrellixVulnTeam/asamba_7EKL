@@ -11,6 +11,7 @@ the redundancy, and make the best runtime use of the parameters that are set the
 """
 
 import sys, os, glob
+import time
 import logging
 import numpy as np
 from scipy.interpolate import griddata
@@ -45,20 +46,6 @@ class interpolation(sampler.sampling): # inheriting ...
   def __init__(self):
 
     super(interpolation, self).__init__()
-
-    # self.dbname = ''
-
-    #.............................
-    # The Sampled data         
-    #.............................
-    # # Matrix of features, similar to sampling.learning_x
-    # self.original_x = []
-    # # Matrix of frequencies, similar to sampling.learning_y
-    # self.original_y = []
-    # # Matrix of radial orders, similar to sampling.learning_radial_orders
-    # self.original_n_pg = []
-    # # Matrix of mode types, similar to sampling.learning_mode_types
-    # self.original_mode_types = []
 
     #.............................
     # Anchor (or the best) model. One GYRE ouput model
@@ -95,7 +82,20 @@ class interpolation(sampler.sampling): # inheriting ...
     self.inputs_around_anchor_eta_n   = 0
 
     # Query in a range of models
-    self.inputs_by_range = False
+    self.inputs_by_range    = False
+
+    # Ranges to search/query the grid for the inputs
+    self.interp_inputs_OK   = False
+    self.interp_range_M_ini = []
+    self.interp_range_fov   = []
+    self.interp_range_Z     = []
+    self.interp_range_logD  = []
+    self.interp_range_Xc    = []
+    self.interp_range_eta   = []
+    self.interp_eta_ids     = []
+
+    # Check flag for the input
+    self.interp_check_inputs_OK = False
 
     #.............................
     # Input features and frequencies
@@ -106,42 +106,60 @@ class interpolation(sampler.sampling): # inheriting ...
     #.............................
     # The ndarray of input features; shape: (m, n)
     self.input_features     = []
+    # The same matrix as a record array
+    self.input_features_rec = []
     # The ndarray of input frequencies; shape: (m, K)
     self.input_frequencies  = []
+    # The same matrix as a record array
+    self.input_frequencies_rec = []
 
     #.............................
     # Specifications for interpolation
     #.............................
-    # Parameter ranges, and stepsizes
+    # Parameter ranges, stepsizes, and ndarrays
+    # *_array are ndarray of unique valeus, and 
+    # interp_grid_* are n-dimensional matrixes
     self.interp_M_ini       = False
     self.interp_M_ini_from  = 0
     self.interp_M_ini_to    = 0
     self.interp_M_ini_steps = 0
+    self.interp_M_ini_array = []
+    self.interp_grid_M_ini  = []
 
     self.interp_fov         = False
     self.interp_fov_from    = 0
     self.interp_fov_to      = 0
     self.interp_fov_steps   = 0
+    self.interp_fov_array   = []
+    self.interp_grid_fov    = []
 
     self.interp_Z           = False
     self.interp_Z_from      = 0
     self.interp_Z_to        = 0
     self.interp_Z_steps     = 0
+    self.interp_Z_array     = []
+    self.interp_grid_Z      = []
 
     self.interp_logD        = False
     self.interp_logD_from   = 0
     self.interp_logD_to     = 0
     self.interp_logD_steps  = 0
+    self.interp_logD_array  = []
+    self.interp_grid_logD   = []
 
     self.interp_Xc          = False
     self.interp_Xc_from     = 0
     self.interp_Xc_to       = 0
     self.interp_Xc_steps    = 0
+    self.interp_Xc_array    = []
+    self.interp_grid_Xc     = []
 
     self.interp_eta         = False
     self.interp_eta_from    = 0
     self.interp_eta_to      = 0
     self.interp_eta_steps   = 0
+    self.interp_eta_array   = []
+    self.interp_grid_eta    = []
 
     #.............................
     # Bookkeeping of the process
@@ -161,11 +179,11 @@ class interpolation(sampler.sampling): # inheriting ...
     self.interp_n_points    = 0
     # The status of calling numpy.mgrid, and building the meshgrid
     self.interp_meshgrid_OK = False
+    # The flag on checking the meshgrid dimensionalities
+    self.interp_check_meshgrid_OK = False
     # The resulting (interp_n_dim) tuple of meshgrids, all with
     # identical shape
-    self.interp_meshgrid    = []
-    # The shape of the resulting meshgrid
-    self.interp_meshgrid_shape = tuple()
+    self.interp_meshgrid    = tuple()
 
 
   ##########################
@@ -185,7 +203,7 @@ class interpolation(sampler.sampling): # inheriting ...
   ##########################
   def get(self, attr):
     if not hasattr(self, attr):
-      logger.error('interpolation: get: Attribute "{0}" is unavailable.')
+      logger.error('interpolation: get: Attribute "{0}" is unavailable.'.format(attr))
       sys.exit(1)
 
     return getattr(self, attr)
@@ -200,8 +218,29 @@ class interpolation(sampler.sampling): # inheriting ...
     """
     _do_interpolate(self)
 
+  #.........................
+  def collect_inputs(self):
+    _collect_inputs(self)
 
+  #.........................
+  def check_inputs(self):
+    _check_inputs(self)
 
+  #.........................
+  def prepare(self):
+    _prepare(self)
+
+  #.........................
+  def build_meshgrid(self):
+    _build_meshgrid(self)
+
+  #.........................
+  def check_meshgrid(self):
+    _check_meshgrid(self)
+
+  #.........................
+  def call_griddata(self):
+    _call_griddata(self)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -227,10 +266,12 @@ def _do_interpolate(self):
   _check_inputs(self)
 
   _prepare(self)
-  if not self.interp_prepare_OK:
-    return False
 
   _build_meshgrid(self)
+
+  # _check_meshgrid(self)
+
+  _call_griddata(self)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _collect_inputs_around_anchor(self):
@@ -306,7 +347,7 @@ def _collect_inputs_around_anchor(self):
   def _get_ind(arr, target, n):
     ind     = np.argmin(np.abs(arr - target))
     i_from  = ind - n if ind - n >= 0 else 0
-    i_to    = ind + n + 1 if ind + n + 1 <= len(arr) else len(arr)
+    i_to    = ind + n + 1 if ind + n + 1 < len(arr) else len(arr)
     return (i_from, i_to)
 
   M_ini_from, M_ini_to = _get_ind(uniq_M_ini, anc_M_ini, M_ini_n)
@@ -364,20 +405,7 @@ def _collect_inputs_around_anchor(self):
   neighb_Xc    = arr_Xc[Xc_from : Xc_to]
   Xc_range     = [neighb_Xc.min(), neighb_Xc.max()]
 
-  # Get the query string for retrieving models.id based on the ranges found above
-  q_models_id  = query.get_models_id_from_M_ini_fov_Z_logD_Xc(M_ini_range=M_ini_range, 
-                              fov_range=fov_range, Z_range=Z_range, 
-                              logD_range=logD_range, Xc_range=Xc_range)
-
-  # Now, get the models.id
-  with db_def.grid_db(dbname=dbname) as the_db:
-    the_db.execute_one(q_models_id, None)
-    tup_ids    = the_db.fetch_all()
-    models_ids = np.array([ tup[0] for tup in tup_ids ], dtype=int)
-    n_models   = len(models_ids)
-    logger.info('_collect_inputs_around_anchor: Found "{0}" models\n'.format(n_models))
-
-  # Get the proper rotation rates
+  # Then, find the appropriate rotation rates
   dic_rot      = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
   ids_etas     = dic_rot.values()
   eta_vals     = dic_rot.keys()
@@ -386,10 +414,67 @@ def _collect_inputs_around_anchor(self):
   ids_etas     = [ids_etas[k] for k in ind_sort] 
   eta_vals     = [eta_vals[k] for k in ind_sort]
   eta_from, eta_to = _get_ind(eta_vals, anc_eta, eta_n)
-  neighb_eta   = eta_vals[eta_from : eta_to]
+  neighb_eta   = eta_range = eta_vals[eta_from : eta_to]
   neighb_id_eta= ids_etas[eta_from : eta_to]
   n_etas       = len(neighb_id_eta)
   
+  # Set the ranges as the self attributes
+  self.set('interp_range_M_ini', M_ini_range)
+  self.set('interp_range_fov', fov_range)
+  self.set('interp_range_Z', Z_range)
+  self.set('interp_range_logD', logD_range)
+  self.set('interp_range_Xc', Xc_range)
+  if not self.exclude_eta_column:
+    self.set('interp_range_eta', eta_range)
+    self.set('interp_eta_ids', neighb_id_eta)
+  
+  # Now, the ranges are set internally, and ready to collect the inputs by range, as follows:
+  _collect_inputs_by_range(self)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _collect_inputs_by_range(self):
+  """
+  This function queries the grid in order to provide as much interpolation nodes as possible. For that,
+  it looks at the observed frequencies, and cherry picks those models (M_ini, fov, ...) from the grid 
+  where the observed frequencies are reproduced (based on e.g. period spacing, frequency spacing, etc.).
+  As a return, the "input_features", and "input_frequencies" attributes of the class will be updated.
+  """
+  # Get the query string for retrieving models.id based on the ranges
+  # There ranges are either set by the user, or are found after a call to collect_inputs_around_anchor()
+  M_ini_range  = self.get('interp_range_M_ini')
+  fov_range    = self.get('interp_range_fov')
+  Z_range      = self.get('interp_range_Z')
+  logD_range   = self.get('interp_range_logD')
+  Xc_range     = self.get('interp_range_Xc')
+  eta_range    = self.get('interp_range_eta')
+  eta_ids      = self.get('interp_eta_ids')
+
+  # Check if the _range lists are OK
+  try:
+    assert len(M_ini_range) == 2
+    assert len(fov_range) == 2
+    assert len(Z_range) == 2
+    assert len(logD_range) == 2
+    assert len(Xc_range) == 2
+    if not self.exclude_eta_column:
+      assert len(eta_range) == 2
+      assert len(eta_ids) > 0
+  except AssertionError:
+    logger.error('_collect_inputs_by_range: The input ranges do not have the proper length. Check them!')
+    sys.exit(1)
+    
+  q_models_id  = query.get_models_id_from_M_ini_fov_Z_logD_Xc(M_ini_range=M_ini_range, 
+                              fov_range=fov_range, Z_range=Z_range, 
+                              logD_range=logD_range, Xc_range=Xc_range)
+
+  # Now, get the models.id
+  with db_def.grid_db(dbname=self.dbname) as the_db:
+    the_db.execute_one(q_models_id, None)
+    tup_ids    = the_db.fetch_all()
+    models_ids = np.array([ tup[0] for tup in tup_ids ], dtype=int)
+    n_models   = len(models_ids)
+    logger.info('_collect_inputs_by_range: Found "{0}" models\n'.format(n_models))
+
   ############################
   # Using the methods from sampling class
   ############################
@@ -399,18 +484,22 @@ def _collect_inputs_around_anchor(self):
   try:
     assert n_features == n_models
   except AssertionError:
-    logger.error('_collect_inputs_around_anchor: Inconsistent number of feature rows retrieved!')
+    logger.error('_collect_inputs_by_range: Inconsistent number of feature rows retrieved!')
     sys.exit(1)
 
   # Figure out whether or not to include the eta column
   if self.exclude_eta_column:
     models_ids_= models_ids
+    dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
+    ids_etas   = dic_rot.values()
     rot_ids_   = [min(ids_etas)] * n_features
+    rows_names = ['M_ini', 'fov', 'Z', 'logD', 'Xc']
     stiched    = features_[:]
   else:
     models_ids_= models_ids * n_etas                     # size: n_models * n_etas
     rot_ids_   = ids_etas[eta_from : eta_to] * n_models  # size: n_models * n_etas
     eta_vals_  = eta_vals[eta_from : eta_to] * n_models  # size: n_models * n_etas
+    rows_names = ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta']
     stiched    = [features_[k] + eta_vals_[k] for k in range(n_models * n_etas)]
 
   # Then, extract the GYRE mode lists from their id
@@ -420,12 +509,45 @@ def _collect_inputs_around_anchor(self):
   rot_keep     = tup_extract[2]
   rec_keep     = tup_extract[3]
   
+  # convert surviving rows to recarray to fetch some information
+  rows_type    = [(name, 'f4') for name in rows_names]
+  rec_rows     = utils.list_to_recarray(rows_keep, rows_type)
 
+  # Reset the feature ranges, now that the outliying models are filtered out
+  self.set('interp_range_M_ini', [rec_rows['M_ini'].min(), rec_rows['M_ini'].max()])
+  self.set('interp_range_fov', [rec_rows['fov'].min(), rec_rows['fov'].max()])
+  self.set('interp_range_Z', [rec_rows['Z'].min(), rec_rows['Z'].max()])
+  self.set('interp_range_logD', [rec_rows['logD'].min(), rec_rows['logD'].max()])
+  self.set('interp_range_Xc', [rec_rows['Xc'].min(), rec_rows['Xc'].max()])
+  if not self.exclude_eta_column:
+    self.set('interp_range_eta', [rec_rows['eta'].min(), rec_rows['eta'].max()])
+    self.set('interp_eta_ids', neighb_id_eta)
 
+  logger.info('\n _collect_inputs_by_range: min to max for features around the anchor model:')
+  logger.info('M_ini: {0:.3f} to {1:.3f}'.format(min(rec_rows['M_ini']), max(rec_rows['M_ini'])))
+  logger.info('fov  : {0:.3f} to {1:.3f}'.format(min(rec_rows['fov']), max(rec_rows['fov'])))
+  logger.info('Z    : {0:.3f} to {1:.3f}'.format(min(rec_rows['Z']), max(rec_rows['Z'])))
+  logger.info('logD : {0:.3f} to {1:.3f}'.format(min(rec_rows['logD']), max(rec_rows['logD'])))
+  logger.info('Xc   : {0:.3f} to {1:.3f}'.format(min(rec_rows['Xc']), max(rec_rows['Xc'])))
+  if not self.exclude_eta_column:
+    logger.info(' - eta  : {0:.3f} to {1:.3f}'.format(min(rec_rows['eta']), max(rec_rows['eta'])))
+  print 
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _collect_inputs_by_range(self):
-  pass
+  # assign the returned feature rows and frequencies to the self
+  rows_keep    = utils.list_to_ndarray(rows_keep)
+  self.set('input_features', rows_keep)
+  rec_         = utils.list_to_recarray(rows_keep, dtype=[(name, 'f4') for name in rows_names])
+  self.set('input_features_rec', rec_)
+
+  freq_keep    = utils.list_to_ndarray([rec_['freq'] for rec_ in rec_keep])
+  self.set('input_frequencies', freq_keep)
+  n_freq       = self.input_frequencies.shape[1]
+  f_names      = ['f{0}'.format(k) for k in range(n_freq)]
+  dtype_       = [(f_name, 'f4') for f_name in f_names]
+  rec_         = utils.list_to_recarray([rec_['freq'] for rec_ in rec_keep], dtype=dtype_)
+  self.set('input_frequencies_rec', rec_)
+
+  logger.info('_collect_inputs_by_range: inputs successfully collected \n')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _collect_inputs(self):
@@ -433,8 +555,11 @@ def _collect_inputs(self):
   This routine collects the inputs from the database by quering it. There are two possibilities:
   - querying around the anchor model (check out self.anchor_param_values)
   - querying for a range of input parameters, e.g. M_ini: [2 - 5], etc
-
+  The choice on the plan on how to do the input collection is made by the user through setting one 
+  of the following attributes to "True": self.inputs_around_anchor, self.inputs_by_range
   """
+  if self.interp_inputs_OK: return 
+
   if self.dbname == '':
     logger.error('_collect_inputs: You must specify the dbname.')
     sys.exit(1)
@@ -461,10 +586,14 @@ def _collect_inputs(self):
 
   # Choose one of the two possilbe methods to collect the input from the grid
   if self.inputs_around_anchor:
-    _collect_inputs_around_anchor(self)
+    _collect_inputs_around_anchor(self) # and _collect_inputs_by_range() will be called immediately
+  elif self.inputs_by_range:
+    _collect_inputs_by_range(self)      # just call _collect_inputs_by_range()
+  else:
+    logger.error('_collect_inputs: Ambiguous collection plan!')
+    sys.exit(1)
 
-  if self.inputs_by_range:
-    _collect_inputs_by_range(self)
+  self.set('interp_inputs_OK', True)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _check_inputs(self):
@@ -472,7 +601,12 @@ def _check_inputs(self):
   For interpolation, you deinitely need an input, which must be compatible with the number of interpolation
   parameters, i.e. self.interp_n_dim. This routine provides two ndarrays, one for the x and one for y.
   The input x is a multi-dimensional ndarray of shape say (n, D), and the y is an ndarray of shape (n, ).
+  
+  In case of an inconsistency between the ranges for interpolation, and what is found from querying the grid, 
+  a warning is raised, and the interpolation attribute is forcefully set.
   """
+  if self.interp_check_inputs_OK: return 
+
   if isinstance(self.input_features, list):
     self.input_features = np.array(self.input_features)
   if isinstance(self.input_frequencies, list):
@@ -485,6 +619,179 @@ def _check_inputs(self):
     logger.error('_check_inputs: The input features and frequencies have different number of row')
     sys.exit(1)
 
+  # Ensure the interpolation range asked by the user complies with the ranges of input features.
+  # In case of an inconsistency, a warning is raised, and the interpolation attribute is forcefully set.
+  if self.interp_M_ini:
+    if self.interp_M_ini_from < self.interp_range_M_ini[0]:
+      self.set('interp_M_ini_from', self.interp_range_M_ini[0])
+      logger.warning('_check_inputs: Forcing interp_M_ini_from to {0:.3f}'.format(self.interp_M_ini_from))
+    if self.interp_M_ini_to > self.interp_range_M_ini[1]:
+      self.set('interp_M_ini_to', self.interp_range_M_ini[1])
+      logger.warning('_check_inputs: Forcing interp_M_ini_to to {0:.3f}'.format(self.interp_M_ini_to))
+    if self.interp_M_ini_steps < 1:
+      logger.error('_check_inputs: interp_M_ini_steps must be > 0')
+      sys.exit(1)
+
+  if self.interp_fov:
+    if self.interp_fov_from < self.interp_range_fov[0]:
+      self.set('interp_fov_from', self.interp_range_fov[0])
+      logger.warning('_check_inputs: Forcing interp_fov_from to {0:.3f}'.format(self.interp_fov_from))
+    if self.interp_fov_to > self.interp_range_fov[1]:
+      self.set('interp_fov_to', self.interp_range_fov[1])
+      logger.warning('_check_inputs: Forcing interp_fov_to to {0:.3f}'.format(self.interp_fov_to))
+    if self.interp_fov_steps < 1:
+      logger.error('_check_inputs: interp_fov_steps must be > 0')
+      sys.exit(1)
+
+  if self.interp_Z:
+    if self.interp_Z_from < self.interp_range_Z[0]:
+      self.set('interp_Z_from', self.interp_range_Z[0])
+      logger.warning('_check_inputs: Forcing interp_Z_from to {0:.3f}'.format(self.interp_Z_from))
+    if self.interp_Z_to > self.interp_range_Z[1]:
+      self.set('interp_Z_to', self.interp_range_Z[1])
+      logger.warning('_check_inputs: Forcing interp_Z_to to {0:.3f}'.format(self.interp_Z_to))
+    if self.interp_Z_steps < 1:
+      logger.error('_check_inputs: interp_Z_steps must be > 0')
+      sys.exit(1)
+
+  if self.interp_logD:
+    if self.interp_logD_from < self.interp_range_logD[0]:
+      self.set('interp_logD_from', self.interp_range_logD[0])
+      logger.warning('_check_inputs: Forcing interp_logD_from to {0:.3f}'.format(self.interp_logD_from))
+    if self.interp_logD_to > self.interp_range_logD[1]:
+      self.set('interp_logD_to', self.interp_range_logD[1])
+      logger.warning('_check_inputs: Forcing interp_logD_to to {0:.3f}'.format(self.interp_logD_to))
+    if self.interp_logD_steps < 1:
+      logger.error('_check_inputs: interp_logD_steps must be > 0')
+      sys.exit(1)
+
+  if self.interp_Xc:
+    if self.interp_Xc_from < self.interp_range_Xc[0]:
+      self.set('interp_Xc_from', self.interp_range_Xc[0])
+      logger.warning('_check_inputs: Forcing interp_Xc_from to {0:.3f}'.format(self.interp_Xc_from))
+    if self.interp_Xc_to > self.interp_range_Xc[1]:
+      self.set('interp_Xc_to', self.interp_range_Xc[1])
+      logger.warning('_check_inputs: Forcing interp_Xc_to to {0:.3f}'.format(self.interp_Xc_to))
+    if self.interp_Xc_steps < 1:
+      logger.error('_check_inputs: interp_Xc_steps must be > 0')
+      sys.exit(1)
+  
+  if self.exclude_eta_column and self.interp_eta:
+    logger.error('_check_inputs: Inconsistecy found: set exclude_eta_column opposite to interp_eta')
+    sys.exit(1)
+
+  if self.interp_eta:
+    if self.interp_eta_from < self.interp_range_eta[0]:
+      self.set('interp_eta_from', self.interp_range_eta[0])
+      logger.warning('_check_inputs: Forcing interp_eta_from to {0:.3f}'.format(self.interp_eta_from))
+    if self.interp_eta_to > self.interp_range_eta[1]:
+      self.set(['interp_eta_to'], self.interp_range_eta[1])
+      logger.warning('_check_inputs: Forcing interp_eta_to to {0:.3f}'.format(self.interp_eta_to))
+    if self.interp_eta_steps < 1:
+      logger.error('_check_inputs: interp_eta_steps must be > 0')
+      sys.exit(1)
+
+  self.set('interp_check_inputs_OK', True)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _prepare(self):
+  """
+  Prepare the variables needed for the multi-D interpolation  
+  """
+  if self.interp_prepare_OK: return 
+
+  if not self.interp_inputs_OK:
+    logger.error('_prepare: You must first collect the inputs')
+    sys.exit(1)
+
+  # Get interpolation feature matrix 
+  X      = self.get('input_features')
+
+  # Derived lists relevant for the interpolation
+  names  = []
+  slices = []
+  points = []
+  n_pts  = 1
+
+  # M_ini
+  if self.interp_M_ini:
+    slices.append(slice(self.interp_M_ini_from, self.interp_M_ini_to, complex(0, self.interp_M_ini_steps)))
+    _a   = np.linspace(self.interp_M_ini_from, self.interp_M_ini_to, self.interp_M_ini_steps, endpoint=True)
+  else:
+    _a   = np.unique(X['M_ini'])
+  names.append('M_ini')
+  self.set('interp_M_ini_array', _a)
+  points.append(_a)
+  n_pts  *= len(_a)
+
+  # fov
+  if self.interp_fov:
+    slices.append(slice(self.interp_fov_from, self.interp_fov_to, complex(0, self.interp_fov_steps)))
+    _b   = np.linspace(self.interp_fov_from, self.interp_fov_to, self.interp_fov_steps, endpoint=True)
+  else:
+    _b   = np.unique(X['fov'])   
+  names.append('fov')
+  self.set('interp_fov_array', _b)
+  points.append(_b)
+  n_pts  *= len(_b)
+
+  # Z
+  if self.interp_Z:
+    slices.append(slice(self.interp_Z_from, self.interp_Z_to, complex(0, self.interp_Z_steps)))
+    _c   = np.linspace(self.interp_Z_from, self. interp_Z_to, self.interp_Z_steps, endpoint=True)
+  else:
+    _c   = np.unique(X['Z'])
+  names.append('Z')
+  self.set('interp_Z_array', _c)
+  points.append(_c)
+  n_pts *= len(_c)
+
+  # logD
+  if self.interp_logD:
+    slices.append(slice(self.interp_logD_from, self.interp_logD_to, complex(0, self.interp_logD_steps)))
+    _d   = np.linspace(self.interp_logD_from, self.interp_logD_to, self.interp_logD_steps, endpoint=True)
+  else:
+    _d   = np.unique(X['logD'])
+  names.append('logD')
+  self.set('interp_logD_array', _d)
+  points.append(_d)
+  n_pts *= len(points[-1])
+
+  # Xc
+  if self.interp_Xc:
+    slices.append(slice(self.interp_Xc_from, self.interp_Xc_to, complex(0, self.interp_Xc_steps)))
+    _e   = np.linspace(self.interp_Xc_from, self.interp_Xc_to, self.interp_Xc_steps, endpoint=True)
+  else:
+    _e   = np.unique(X['Xc'])
+  names.append('Xc')
+  self.set('interp_Xc_array', _e)
+  points.append(_e)
+  n_pts *= len(_e)
+
+  # eta
+  if not self.exclude_eta_column and self.interp_eta:
+    slices.append(slice(self.interp_eta_from, self.interp_eta_to, complex(0, self.interp_eta_steps)))
+    _f   = np.linspace(self.interp_eta_from, self.interp_eta_to, self.interp_eta_steps, endpoint=True)
+    names.append('eta')
+    self.set('interp_eta_array', _f)
+    points.append(_f)
+    n_pts *= len(_f)
+  else:
+    pass
+
+  ndim = len(names)
+  if ndim == 0:
+    self.set('interp_prepare_OK', False)
+    logger.warning('_prepare: You must specify at least one parameter for interpolation')
+  else:
+    self.set('interp_prepare_OK', True)
+
+  self.set('interp_param_names', names)
+  self.set('interp_n_dim', ndim)
+  self.set('interp_slices', slices)
+  self.set('interp_1d_points', points)
+  self.set('interp_n_points', n_pts)
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _build_meshgrid(self):
   """
@@ -493,80 +800,115 @@ def _build_meshgrid(self):
   points along each of the parameter dimensions. Thus, care must be practiced here to ensure all 
   needed intermediate matirxes fit properly into the memory of the computing hardware/node.
   """
+  if self.interp_meshgrid_OK: return 
+
   if not self.interp_prepare_OK:
     return False
 
-  slices = self.get('interp_slices')
+  # slices    = self.get('interp_slices')
+  arr_M_ini = self.get('interp_M_ini_array')
+  arr_fov   = self.get('interp_fov_array')
+  arr_Z     = self.get('interp_Z_array')
+  arr_logD  = self.get('interp_logD_array')
+  arr_Xc    = self.get('interp_Xc_array')
+  arr_eta   = self.get('interp_eta_array')
+
+  print arr_M_ini
+  print arr_fov
+  print arr_Z
+  print arr_logD
+  print arr_Xc
+  print arr_eta
+  print self.interp_n_dim
+  print self.interp_n_points
 
   try:
-    msh  = np.mgrid[[the_slice for the_slice in slices]] 
+    if self.exclude_eta_column:
+      grid_M_ini, grid_fov, grid_Z, grid_logD, grid_Xc = np.meshgrid(
+          arr_M_ini, arr_fov, arr_Z, arr_logD, arr_Xc, indexing='ij')
+      msh   = (grid_M_ini, grid_fov, grid_Z, grid_logD, grid_Xc)
+    else:
+      grid_M_ini, grid_fov, grid_Z, grid_logD, grid_Xc, grid_eta = np.meshgrid(
+          arr_M_ini, arr_fov, arr_Z, arr_logD, arr_Xc, arr_eta, indexing='ij')
+      msh   = (grid_M_ini, grid_fov, grid_Z, grid_logD, grid_Xc, grid_eta)
+      self.set('interp_grid_eta', grid_eta)
+
+    # msh  = np.mgrid[[the_slice for the_slice in slices]] 
     self.set('interp_meshgrid_OK', True)
+
     self.set('interp_meshgrid', msh)
-    self.set('interp_meshgrid_shape', msh.shape)
+
+    self.set('interp_grid_M_ini', grid_M_ini)
+    self.set('interp_grid_fov', grid_fov)
+    self.set('interp_grid_Z', grid_Z)
+    self.set('interp_grid_logD', grid_logD)
+    self.set('interp_grid_Xc', grid_Xc)
+
+    logger.info('_build_meshgrid: succeeded\n')
   except:
     self.set('interp_meshgrid_OK', False)
-    self.set('interp_meshgrid', [])
-    self.set('interp_meshgrid_shape', (0, ))
+    logger.warning('_build_meshgrid: failed\n')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _prepare(self):
+def _check_meshgrid(self):
   """
-  Prepare the variables needed for the multi-D interpolation  
+  This routine checks the dimensionalities of all inputs to the scipy.interpolate.griddata() routine,
+  before calling the routine, to ensure we comply with the expected array/matrix shapes. The variable
+  naming conventions inside this routine follows closely the documentation of the griddata function.
+  For further details see: 
+  <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html#scipy.interpolate.griddata">griddata</a>
   """
-  if self.interp_Xc:    names.append('Xc')
-  if self.interp_eta:   names.append('eta')
+  if self.interp_check_meshgrid_OK: return 
 
-  names  = []
-  slices = []
-  points = []
-  n_pts  = 1
-  if self.interp_M_ini:
-    names.append('M_ini')
-    slices.append(slice(self.interp_M_ini_from, self.interp_M_ini_to, complex(0, self.interp_M_ini_steps)))
-    points.append(np.linspace(self.interp_M_ini_from, self.interp_M_ini_to, self.interp_M_ini_steps, endpoint=True))
-    n_pts *= len(points[-1])
+  points   = self.get('input_features')
+  freqs    = self.get('input_frequencies')
+  meshgrid = self.get('interp_meshgrid')
 
-  if self.interp_fov:
-    names.append('fov')
-    slices.append(slice(self.interp_fov_from, self.interp_fov_to, complex(0, self.interp_fov_steps)))
-    points.append(np.linspace(self.interp_fov_from, self.interp_fov_to, self.interp_fov_steps))
-    n_pts *= len(points[-1])
+  n, D     = points.shape
+  n_       = freqs[:,0].shape
+  M, D_    = meshgrid.shape
 
-  if self.interp_Z:
-    names.append('Z')
-    slices.append(slice(self.interp_Z_from, self.interp_Z_to, complex(0, self.interp_Z_steps)))
-    points.append(np.linspace(self.interp_Z_from, self. interp_Z_to, self.interp_Z_steps, endpoint=True))
-    n_pts *= len(points[-1])
+  try:
+    assert n == n_
+  except AssertionError:
+    logger.error('_check_meshgrid: Incompatible number of input rows')
+    sys.exit(1)
 
-  if self.interp_logD:
-    names.append('logD')
-    slices.append(slice(self.interp_logD_from, self.interp_logD_to, complex(0, self.interp_logD_steps)))
-    points.append(np.linspace(self.interp_logD_from, self.interp_logD_to, self.interp_logD_steps, endpoint=True))
-    n_pts *= len(points[-1])
+  try: 
+    assert D == D_ 
+  except AssertionError:
+    logger.error('_check_meshgrid: Incompatible number of dimensions')
+    sys.exit(1)
 
-  if self.interp_Xc:
-    names.append('Xc')
-    slices.append(slice(self.interp_Xc_from, self.interp_Xc_to, complex(0, self.interp_Xc_steps)))
-    points.append(np.linspace(self.interp_Xc_from, self.interp_Xc_to, self.interp_Xc_steps, endpoint=True))
-    n_pts *= len(points[-1])
+  print n, D
+  print M, D_
 
-  if self.interp_eta:
-    names.append('eta')
-    slices.append(slice(self.interp_eta_from, self.interp_eta_to, complex(0, self.interp_eta_steps)))
-    points.append(np.linspace(self.interp_eta_from, self.interp_eta_to, self.interp_eta_steps, endpoint=True))
-    n_pts *= len(points[-1])
+  self.set('interp_check_meshgrid_OK', True)
 
-  n = len(names)
-  if n == 0:
-    logger.error('_prepare: You must specify at least one parameter for interpolation')
-    self.set('interp_prepare_OK', False)
-  else:
-    self.set('interp_prepare_OK', True)
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _call_griddata(self):
+  """
+  This function is a wrapper around the scipy.interpolate.griddata(), to have maximum control over the
+  inputs/outputs of that function, and provide as much flexibility as we desire in using that routine
+  for interpolations along any desired dimention of our problem.
+  """
+  if not self.interp_meshgrid_OK:
+    self.error('_call_griddata: You must create the meshgrid first')
+    sys.exit(1)
+  meshgrid = self.get('interp_meshgrid')
 
-  self.set('interp_param_names', names)
-  self.set('interp_n_dim', n)
-  self.set('interp_slices', slices)
-  self.set('interp_1d_points', points)
-  self.set('interp_n_points', n_pts)
+  points = self.get('input_features')
+  freqs  = self.get('input_frequencies')
+  m, K   = freqs.shape
+
+  for k in range(K):
+    t0 = time.time()
+    print 'loop: ', k
+    freq_k = freqs[:, k]
+    a = griddata(points, freq_k, meshgrid, method='linear')
+
+    print a.shape
+    print 'took {0:.4f} sec'.format(time.time() - t0)
+    break
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

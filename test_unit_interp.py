@@ -7,8 +7,9 @@ import numpy as np
 # from test_unit_sampling import main as tus_main
 import sampler
 from test_unit_ann import main as tun_main 
-import interpolator
+import interpolator, plot_interpolator
 
+logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 def main():
@@ -39,7 +40,7 @@ def main():
   # for key, val in dic_intrp.items(): TheInterp.set(key, val)
   
   TheInterp.set('inputs_around_anchor', True)
-  TheInterp.set('inputs_around_anchor_M_ini_n', 5)
+  TheInterp.set('inputs_around_anchor_M_ini_n', 6)
   TheInterp.set('inputs_around_anchor_fov_n', 7)
   TheInterp.set('inputs_around_anchor_Z_n', 3)
   TheInterp.set('inputs_around_anchor_logD_n', 10)
@@ -52,8 +53,51 @@ def main():
   TheInterp.set('anchor_frequencies', TheANN.get('MAP_frequencies'))
   TheInterp.set('anchor_radial_orders', TheANN.get('MAP_radial_orders'))
 
-  TheInterp.do_interpolate()
+  # Set the interpolation specifications, and ranges
+  TheInterp.set('interp_M_ini', True)
+  TheInterp.set('interp_M_ini_from', 2.5)
+  TheInterp.set('interp_M_ini_to', 4)
+  TheInterp.set('interp_M_ini_steps', 21)
 
+  TheInterp.set('interp_fov', True)
+  TheInterp.set('interp_fov_from', 0.01)
+  TheInterp.set('interp_fov_to', 0.03)
+  TheInterp.set('interp_fov_steps', 7)
+
+  TheInterp.set('interp_Z', True)
+  TheInterp.set('interp_Z_from', 0.01)
+  TheInterp.set('interp_Z_to', 0.02)
+  TheInterp.set('interp_Z_steps', 5)
+
+  TheInterp.set('interp_logD', True)
+  TheInterp.set('interp_logD_from', 0.0)
+  TheInterp.set('interp_logD_to', 3.0)
+  TheInterp.set('interp_logD_steps', 7)
+
+  TheInterp.set('interp_Xc', True)
+  TheInterp.set('interp_Xc_from', 0.5)
+  TheInterp.set('interp_Xc_to', 0.6)
+  TheInterp.set('interp_Xc_steps', 11)
+
+  if True:
+    # Only prepare the inputs, and plot the frequencies as a test
+    TheInterp.collect_inputs()
+    TheInterp.check_inputs()
+    TheInterp.prepare()
+    figure_name = 'plots/KIC-10526294-interp-wrt-Xc.png'
+    plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Xc', figure_name=figure_name)
+
+  if False:
+    # Do interpolate!
+    TheInterp.do_interpolate()
+
+    # Check the outcome
+    if TheInterp.get('interp_meshgrid_OK'):
+      logger.info('interp_meshgrid_OK: Succeeded')
+    else:
+      logger.warning('interp_meshgrid_OK: Failed')
+
+  # return "self"
   return TheInterp
 
 if __name__ == '__main__':

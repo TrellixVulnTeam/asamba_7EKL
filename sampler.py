@@ -622,7 +622,7 @@ def _build_learning_sets(self):
   rec_keep   = tup_extract[3]
 
   # list of ndarrays to 2-D ndarrays
-  mtrx_rows  = np.stack(rows_keep, axis=0)
+  mtrx_rows  = utils.list_to_ndarray(rows_keep) 
   stiched    = []           # destroy the list, and free up memory
 
   names      = ['M_ini', 'fov', 'Z', 'logD', 'Xc'] if self.exclude_eta_column else ['M_ini', 'fov', 'Z', 'logD', 'Xc', 'eta']
@@ -634,9 +634,9 @@ def _build_learning_sets(self):
   self.set('learning_ids_rot', np.array( rot_keep ))
 
   # and packing the frequencies (cycles per day) and friends
-  rec_freq   = np.stack([rec_['freq'] for rec_ in rec_keep], axis=0) # np.stack(freq_keep, axis=0)
-  mtrx_n_pg  = np.stack([rec_['n'] for rec_ in rec_keep], axis=0) # np.stack(n_pg_keep, axis=0)
-  mtrx_types = np.stack([rec_['id_type'] for rec_ in rec_keep], axis=0) # np.stack(types_keep, axis=0)
+  rec_freq   = utils.list_to_ndarray([rec_['freq'] for rec_ in rec_keep]) 
+  mtrx_n_pg  = utils.list_to_ndarray([rec_['n'] for rec_ in rec_keep]) 
+  mtrx_types = utils.list_to_ndarray([rec_['id_type'] for rec_ in rec_keep]) 
 
   self.set('learning_y', rec_freq)
   self.set('learning_radial_orders', mtrx_n_pg)
@@ -755,6 +755,7 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
       try:
         rec_this = utils.list_to_recarray(this, modes_dtype)
       except:
+        print len(this)
         print tup_exec
         sys.exit()
 

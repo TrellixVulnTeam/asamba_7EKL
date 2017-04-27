@@ -521,7 +521,6 @@ def _marginalize(self):
   """
   For the full documentation refer to the marginalize() method.
   """
-  # sample = self.get('sampling')
   names  = self.get('feature_names')
   n_names= len(names)
   result = []
