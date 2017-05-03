@@ -10,7 +10,6 @@ several of the methods defined there in this module. This is to ensure we minimi
 the redundancy, and make the best runtime use of the parameters that are set therein.
 """
 from __future__ import print_function
-from __future__ import unicode_literals
 
 from builtins import range
 import sys, os, glob

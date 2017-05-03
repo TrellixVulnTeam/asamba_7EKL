@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import unicode_literals
 __all__ = [
            'db_def',            # definition of database class for interactions
            'insert_def',        # definition of a class for data insertion

@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import unicode_literals
 
 from builtins import map
 from builtins import zip
@@ -295,7 +294,8 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
         this_freq = freq[ind_l_m]
         n_this    = len(this_freq)
 
-        row       =  list([(id_model, id_rot, id_type, int(tup[0]), tup[1]) for tup in zip(this_n_pg, this_freq)] )
+        row       =  list(map(lambda tup: (id_model, id_rot, id_type, int(tup[0]), tup[1]), 
+                                                zip(this_n_pg, this_freq)) )
         rows.extend(row)
 
       # insert once upon a time

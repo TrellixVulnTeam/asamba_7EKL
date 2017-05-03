@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import unicode_literals
 
 from builtins import range
 import sys, os, glob
@@ -119,8 +118,7 @@ def input_frequencies_wrt(self, wrt, figure_name):
   yvals    = anc_freqs
   ax.scatter(xvals, yvals, marker='o', s=10, edgecolor='k', facecolor='none', zorder=2)
 
-  xlabel   = wrt if '_' not in wrt else wrt.replace('_', '')
-  ax.set_xlabel(xlabel)
+  # ax.set_xlabel(wrt)
   ax.set_ylabel(r'Frequency [d$^{-1}$]')
 
   plt.savefig(figure_name)

@@ -9,7 +9,6 @@ underscore "_" in the name; e.g.
 - grid_db.fetch_many() wraps around psycopg2.fetchmany()
 """
 from __future__ import print_function
-from __future__ import unicode_literals
 
 from builtins import object
 import sys, os, glob

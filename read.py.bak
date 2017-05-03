@@ -5,7 +5,6 @@ and HDF5 etc. formats. The highlight of the module is the "read_mesa_ascii()" fu
 which can read MESA history or profile files.
 """
 from __future__ import print_function
-from __future__ import unicode_literals
 
 from builtins import zip
 from builtins import range

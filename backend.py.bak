@@ -6,7 +6,6 @@ then, those inputs are immediately communicated to the backend. The backend impo
 the user's choices to the underlying functions, and calls them properly. There is a huge potential of 
 extention here, which can be provided gradually as new needs emerge.
 """
-from __future__ import unicode_literals
 
 import sys, os, glob
 import logging

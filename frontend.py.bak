@@ -8,7 +8,6 @@ basic attempt to start with the GUI. Indeed, this GUI is pretty extensible, and 
 accommodate additional tools for analysis.
 """
 from __future__ import division
-from __future__ import unicode_literals
 
 from future import standard_library
 standard_library.install_aliases()
