@@ -17,7 +17,8 @@ from . import utils, star, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-logger = logging.getLogger(__name__)
+logger  = logging.getLogger(__name__)
+is_py3x = sys.version_info[0] >= 3 # to handle unicode encoding for Python v2.7
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

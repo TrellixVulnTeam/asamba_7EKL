@@ -39,6 +39,8 @@ class grid_db(object):
     @param dbname: the name of the running database server. By default, it is called "grid" too.
     @type dbname: string
     """
+    if not is_py3x: dbname = dbname.encode('ascii') # to avoid unicode conflicts
+
     if exists(dbname) is False:
       logger.error('grid_db.__init__: Database "{0}" does not exist'.format(dbname))
       sys.exit(1)
@@ -61,6 +63,7 @@ class grid_db(object):
   # Setters
   # ...................................
   def set_dbname(self, dbname):
+    if not is_py3x: dbname = dbname.encode('ascii')
     self.dbname = dbname
 
   # Getters
@@ -208,19 +211,16 @@ def exists(dbname):
   Returns True if the database exists, and False otherwise.
   """
   cmnd   = 'psql -lqt | cut -d \| -f 1 | grep -w {0}'.format(dbname)
-  exe    = subprocess.Popen(cmnd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  exe    = subprocess.Popen(cmnd, shell=True, universal_newlines=True, 
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   err    = exe.returncode
 
   if err is not None:
     logger.info('grid_db.exists(): Command failed: "{0}"'.format(cmnd))
     return False
   else:
-    if is_py3x:
-      stdout = exe.stdout.read().decode("utf-8").strip() 
-      stderr = exe.stderr.read().decode("utf-8").strip() 
-    else:
-      stdout = exe.stdout.read().rstrip('\r\n').strip()
-      stderr = exe.stderr.read().rstrip('\r\n').strip()
+    stdout = exe.stdout.read().rstrip('\r\n').strip()
+    stderr = exe.stderr.read().rstrip('\r\n').strip()
     try:
       assert stdout == dbname
       return True

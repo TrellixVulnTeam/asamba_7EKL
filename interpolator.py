@@ -21,7 +21,10 @@ from scipy.interpolate import griddata
 
 from grid import utils, db_def, db_lib, query, sampler
 
-logger = logging.getLogger(__name__)
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+logger  = logging.getLogger(__name__)
+is_py3x = sys.version_info[0] >= 3 # to handle unicode encoding for Python v2.7
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

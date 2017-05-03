@@ -14,7 +14,8 @@ import numpy as np
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-logger = logging.getLogger(__name__)
+logger  = logging.getLogger(__name__)
+is_py3x = sys.version_info[0] >= 3
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,7 +31,18 @@ def list_to_recarray(list_input, dtype):
         passed as an input argument by the user.
   @rtype: np.recarray
   """
-  return np.core.records.fromarrays(np.array(list_input).T, dtype=dtype)
+  if not is_py3x:
+    names = [tup[0] for tup in dtype]
+    types = [tup[1] for tup in dtype]
+    dtype = [(name.encode('ascii'), dtp) for name, dtp in zip(names, types)]
+
+  try:
+    a = np.core.records.fromarrays(np.array(list_input).T, dtype=dtype)
+    # a = np.core.records.fromarrays(list_to_ndarray(list_input), dtype=dtype)
+  except Exception as xpt:
+    print('error occured:', xpt)
+  else:
+    return a
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def list_to_ndarray(list_input):
@@ -54,8 +66,11 @@ def ndarray_to_recarray(arr, dtype):
   @param dtype: the list of np.dtype for all columns/attributes
   @return: a corresponding record array
   """
-  
-  # return np.core.records.fromrecords(arr, dtype=dtype)
+  if not is_py3x:
+    names = [tup[0] for tup in dtype]
+    types = [tup[1] for tup in dtype]
+    dtype = [(name.encode('ascii'), dtp) for name, dtp in zip(names, types)]
+
   return np.core.records.fromarrays(arr.T, dtype=dtype)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -24,7 +24,8 @@ from grid import utils, db_def, db_lib, query, star
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-logger = logging.getLogger(__name__)
+logger  = logging.getLogger(__name__)
+is_py3x = sys.version_info[0] >= 3 # to handle unicode encoding for Python v2.7
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -199,6 +200,8 @@ class sampling(star.star):
       sys.exit(1)
 
     # Some attributes require extra care/check
+    if attr == 'dbname' and not is_py3x:
+      val = val.encode('ascii')          # to handle unicode encoding for Python v2.7
     if attr == 'range_log_g' and val:
       if not isinstance(val, list) or len(val) != 2:
         logger.error('sampling: set: range_log_g: Range list must have only two elements')
@@ -726,8 +729,8 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
   model_keep = []
   rot_keep   = []
 
-  modes_dtype= [('id_model', 'int32'), ('id_rot', 'int16'), ('n', 'int16'), 
-                ('id_type', 'int16'), ('freq', 'float32')]
+  modes_dtype= [('id_model', np.int32), ('id_rot', np.int16), ('n', np.int16), 
+                ('id_type', np.int16), ('freq', np.float32)]
 
   with db_def.grid_db(dbname=self.dbname) as the_db:
     
@@ -758,9 +761,9 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
 
       try:
         rec_this = utils.list_to_recarray(this, modes_dtype)
-      except:
-        print(len(this))
-        print(tup_exec)
+      except terr:
+        # print(sys.exc_info()[0])
+        # print(type(this))
         sys.exit()
 
       # convert GYRE frequencies from "Hz" to "cd" for several benefits!
