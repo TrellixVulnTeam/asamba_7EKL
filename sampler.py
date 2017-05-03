@@ -123,7 +123,7 @@ class sampling(star.star):
     # Search function/callable used for sampling
     self.search_function        = None
     # Liberal search without any restriction
-    self.search_freely_for_frequencies = False
+    self.search_for_closest_frequencies = False
     # Strict search for period spacings
     self.search_strictly_for_dP = False
     # Strict search for frequency spacings
@@ -381,9 +381,9 @@ class sampling(star.star):
   # Note: The signatures of the following three functions must be identical, because they are
   #       tossed into self.search_function, and can be called from external (inherited) modules
   ##########################
-  def trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
+  def trim_closest_modes(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
     """ Not developed yet """
-    _trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor)
+    _trim_closest_modes(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor)
 
   ##########################
   def trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
@@ -422,7 +422,7 @@ class sampling(star.star):
     """
     Plan a strategy to trim the GYRE frequency list, and adapt it to the observed list based on the 
     requests of the user, i.e. based on the following attributes of the sampling object: 
-    - search_freely_for_frequencies (Default = False)
+    - search_for_closest_frequencies (Default = False)
     - search_strictly_for_dP (Default = False)
     - search_strictly_for_df (Default = False)
     - match_lowest_frequency (Default = True)
@@ -432,7 +432,7 @@ class sampling(star.star):
     internally that only one of the flags is set to True, and the rest being False!
 
     Note: The return value from this routine is identical to the return from the following three functions:
-    - _trim_modes_freely()
+    - _trim_closest_modes()
     - _trim_modes_by_dP()
     - _trim_modes_by_df()
 
@@ -783,16 +783,16 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
   """
   For the full documentation, please refer to the method trim_modes().
   """
-  bool_arr = np.array([self.search_freely_for_frequencies, self.search_strictly_for_dP, 
+  bool_arr = np.array([self.search_for_closest_frequencies, self.search_strictly_for_dP, 
                        self.search_strictly_for_df])
   n_True   = np.sum( bool_arr * 1 )
   if n_True != 1:
     logger.error('_trim_modes: Only one of the frequency search flags must be True, and the rest False.')
     sys.exit(1)
 
-  if self.search_freely_for_frequencies:
-    self.set('search_function', self.trim_modes_freely)
-    return _trim_modes_freely()
+  if self.search_for_closest_frequencies:
+    self.set('search_function', self.trim_closest_modes)
+    return _trim_closest_modes()
   elif self.search_strictly_for_dP:
     self.set('search_function', self.trim_modes_by_dP)
     return _trim_modes_by_dP(self.get('modes'), rec_gyre, dic_mode_types, self.trim_delta_freq_factor)
@@ -804,13 +804,47 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
     sys.exit(1)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _trim_modes_freely(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
+def _trim_closest_modes(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
   """
   Choose matching frequencies with all liberty, without any restrictions/constraint.
   Not developed yet
   """
-  logger.error('_trim_modes_freely: Not developed yet')
-  sys.exit(1)
+  n_modes = len(modes)
+  n_rec   = len(rec_gyre)
+  if n_rec < n_modes:
+    # logger.warning('_trim_closest_modes: The number of observed modes is greater than the GYRE frequency list')
+    return False
+
+  freq_unit= modes[0].freq_unit
+  if freq_unit != 'cd':
+    logger.error('_trim_closest_modes: The observed frequencies must be in "per day (cd)" unit')
+    sys.exit(1)
+
+  # From observations, we have ...
+  obs_freq = np.array([mode.freq for mode in modes]) # unit: per day
+  n_freq   = len(obs_freq)
+  d_freq   = obs_freq[1:] - obs_freq[:-1]
+  d_freq_lo= d_freq[0]  
+  d_freq_hi= d_freq[-1] 
+  obs_l    = np.array([mode.l for mode in modes])
+  obs_m    = np.array([mode.m for mode in modes])
+  obs_n    = np.array([mode.n for mode in modes])
+
+  obs_l_m  = [(obs_l[k], obs_m[k]) for k in range(n_freq)]
+
+  # the_l    = list(set(obs_l))[0]
+  # the_m    = list(set(obs_m))[0]
+  # the_key  = (the_l, the_m)
+  # the_id   = dic_mode_types[the_key]
+
+  # From the GYRE output, we also have ...
+  rec_types= rec_gyre['id_type']
+
+  ind_l_m  = np.where(rec_types == the_id)[0]
+  n_ind    = len(ind_l_m)
+  if n_ind == 0:
+    logger.error('_trim_closest_modes: No match between (l,m) of observed and model modes list')
+    return False
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):

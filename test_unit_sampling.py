@@ -40,7 +40,7 @@ def main():
 
   TheSample.set('dbname', 'grid')
   TheSample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
-  TheSample.set('max_sample_size', 5000)
+  # TheSample.set('max_sample_size', 5000)
   TheSample.set('range_log_Teff', [3.95, 4.11])
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])

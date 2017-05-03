@@ -97,6 +97,10 @@ class neural_net(sampler.sampling):
     self.MAP_feature = 0
     # The frequencies corresponding to MAP_feature (from GYRE output)
     self.MAP_frequencies = 0
+    # The models.id_track for the MAP model
+    self.MAP_id_track = 0
+    # The models.id for the MAP model
+    self.MAP_id_model = 0
     # The radial orders corresponing to the MAP_feature
     self.MAP_radial_orders = 0
     # The mode identification types (from grid.sql) corresponding the MAP_feature
@@ -171,6 +175,9 @@ class neural_net(sampler.sampling):
       feature vector \f$ X_0 \f$ is stored as the attribute self.normal_equation_features.
     - The model frequencies \f$ y \f$ and the observed frequencies \f$ y_0 \f$ are converted to the per day 
       (\f$ d^{-1} \f$) unit for a fair comparison.
+    - "A major drawback of the Maximum Likelihood approach is that it is vulnerable to overfitting, because no care
+       is taken for cmplex models that try to learn the specificities of the particular training set (Theodoridis, S.
+       2015, Machine Learning book)."
 
     @param self: instance of the neural_net class
     @type self: object

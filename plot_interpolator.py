@@ -29,12 +29,13 @@ def input_frequencies_wrt(self, wrt, figure_name):
 
   names    = self.get('interp_param_names')
   if wrt not in names:
-    logger.error('input_frequencies_wrt: wrt="{0}" is not among the interpolation dimensions'.format(wrt))
+    logger.error('input_frequencies_wrt: wrt="{0}" is not among the interpolation attributes'.format(wrt))
     return False 
 
   features = self.get('input_features')
   freqs    = self.get('input_frequencies')
-
+  
+  # Deduce the parameter values for the anchor model
   anc_names= self.get('anchor_param_names')
   anc_vals = self.get('anchor_param_values')
   anc_freqs= self.get('anchor_frequencies')
@@ -57,20 +58,19 @@ def input_frequencies_wrt(self, wrt, figure_name):
     i_eta  = anc_names.index('eta')
     anc_eta= anc_vals[i_eta]
 
-  tol      = 1e-5
+  # Find indexes of all models that have attribute values (independently) almost equal to that of the anchor
+  tol      = 1e-4
   n_rows   = features.shape[0]
   _0       = np.zeros(n_rows)
   _1       = np.ones(n_rows)
-  ind_M_ini= np.where(features[:,i_M_ini] - anc_M_ini < tol, _1, _0)[0]
-  ind_fov  = np.where(features[:,i_fov] - anc_fov < tol, _1, _0)[0]
-  ind_Z    = np.where(features[:,i_Z] - anc_Z < tol, _1, _0)[0]
-  ind_logD = np.where(features[:,i_logD] - anc_logD < tol, _1, _0)[0]
-  ind_Xc   = np.where(features[:,i_Xc] - anc_Xc < tol, _1, _0)[0]
+  ind_M_ini= np.where(np.abs(features[:,i_M_ini] - anc_M_ini) < tol, _1, _0)
+  ind_fov  = np.where(np.abs(features[:,i_fov] - anc_fov) < tol, _1, _0)
+  ind_Z    = np.where(np.abs(features[:,i_Z] - anc_Z) < tol, _1, _0)
+  ind_logD = np.where(np.abs(features[:,i_logD] - anc_logD) < tol, _1, _0)
+  ind_Xc   = np.where(np.abs(features[:,i_Xc] - anc_Xc) < tol, _1, _0)
   
-  print np.sum(ind_M_ini), np.sum(ind_fov), np.sum(ind_Z)
-  print np.sum(i_logD), np.sum(ind_Xc)
-
-
+  # Do an AND operation by multiplication to find indexes of models which have identical attributes to anchor
+  # The "wrt" is excluded here, so, we must get more than one parameter 
   ind_prod = np.ones(n_rows)
   for name in names:
     if name == wrt: continue
@@ -78,30 +78,15 @@ def input_frequencies_wrt(self, wrt, figure_name):
     if name == 'fov':   ind_prod *= ind_fov
     if name == 'Z':     ind_prod *= ind_Z
     if name == 'logD':  ind_prod *= ind_logD
-    if name == 'Xc':    ind_prod *= ind_Xc
+    # if name == 'Xc':    ind_prod *= ind_Xc
 
   # eta needs special treatment to handle the rotating vs. non-rotating cases
   if not self.exclude_eta_column:
-    ind_eta  = np.where(features[:,i_eta] - anc_eta < tol, _1, _0)[0]
+    ind_eta  = np.where(np.abs(features[:,i_eta] - anc_eta) < tol, _1, _0)
     ind_prod *= ind_eta
 
   # now, convert the 0/1 values in the ind_prod to an index array
   ind      = np.where(ind_prod == 1)[0]
-
-  # if self.exclude_eta_column:
-  #   ind    = np.where((features[:,i_M_ini]==anc_M_ini) & 
-  #                     (features[:,i_fov] == anc_fov)   & 
-  #                     (features[:,i_Z] == anc_Z)       & 
-  #                     (features[:,i_logD] == anc_logD) &
-  #                     # (features[:i_Xc] == anc_Xc) 
-  #                     )[0]
-  # else:
-  #   ind    = np.where((features[:,i_M_ini]==anc_M_ini) & 
-  #                     (features[:,i_fov] == anc_fov)   & 
-  #                     (features[:,i_Z] == anc_Z)       & 
-  #                     (features[:,i_logD] == anc_logD) &
-  #                     # (features[:i_Xc] == anc_Xc)      &
-  #                     (features[:,i_eta] == anc_eta) )[0]
 
   n_ind    = len(ind)
   if n_ind == 0:
@@ -109,19 +94,30 @@ def input_frequencies_wrt(self, wrt, figure_name):
     return False
   features = features[ind]
   freqs    = freqs[ind]
+  print 'shape freqs for wrt={0}: {1}'.format(wrt, freqs.shape)
 
   i_wrt    = names.index(wrt)
   arr_wrt  = features[:, i_wrt]
 
   fig, ax  = plt.subplots(1, figsize=(6,4))
-  plt.subplots_adjust(left=0.12, right=0.98, top=0.97, buttom=0.12)
+  plt.subplots_adjust(left=0.12, right=0.98, top=0.97, bottom=0.12)
 
   num_modes= freqs.shape[-1]
   for i in range(num_modes):
     xvals  = arr_wrt
     yvals  = freqs[:, i]
 
-    ax.scatter(xvals, yvals, marker='o', s=4)
+    ax.scatter(xvals, yvals, marker='o', s=4, edgecolor='none', facecolor='grey', zorder=1)
+
+  # stack the anchor frequencies on top of other points too for comparison
+  n_freq   = len(anc_freqs)
+  anc_wrt  = anc_vals[anc_names.index(wrt)]
+  xvals    = np.ones(n_freq) * anc_wrt
+  yvals    = anc_freqs
+  ax.scatter(xvals, yvals, marker='o', s=10, edgecolor='k', facecolor='none', zorder=2)
+
+  ax.set_xlabel(wrt)
+  ax.set_ylabel(r'Frequency [d$^{-1}$]')
 
   plt.savefig(figure_name)
   logger.info('input_frequencies_wrt: saved: {0}'.format(figure_name))

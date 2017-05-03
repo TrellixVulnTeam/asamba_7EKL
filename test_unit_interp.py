@@ -84,8 +84,21 @@ def main():
     TheInterp.collect_inputs()
     TheInterp.check_inputs()
     TheInterp.prepare()
-    figure_name = 'plots/KIC-10526294-interp-wrt-Xc.png'
-    plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Xc', figure_name=figure_name)
+
+    figure_name = 'plots/KIC-10526294-interp-wrt-M.png'
+    plot_interpolator.input_frequencies_wrt(TheInterp, wrt='M_ini', figure_name=figure_name)
+
+    # figure_name = 'plots/KIC-10526294-interp-wrt-fov.png'
+    # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='fov', figure_name=figure_name)
+
+    # figure_name = 'plots/KIC-10526294-interp-wrt-Z.png'
+    # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Z', figure_name=figure_name)
+
+    # figure_name = 'plots/KIC-10526294-interp-wrt-logD.png'
+    # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='logD', figure_name=figure_name)
+
+    # figure_name = 'plots/KIC-10526294-interp-wrt-Xc.png'
+    # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Xc', figure_name=figure_name)
 
   if False:
     # Do interpolate!
