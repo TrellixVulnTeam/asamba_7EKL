@@ -272,9 +272,9 @@ class GUI(object):
     # Sampling, and online plotting frame
     ##########################################
     Canv_plot_1 = tk.Canvas(self.frame_sample, confine=False)
-    # plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
-    # plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
-    # Canv_plot_1.pack()
+    plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
+    plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
+    Canv_plot_1.pack()
 
     ##########################################
     # MAP analysis frame

@@ -171,9 +171,11 @@ def set_sampling_function(choice):
   selecting "sampler.randomly_pick_models_and_rotation_ids"
   """
   if choice is True:
-    BackEndSession.set('sampling_func', smpl.constrained_pick_models_and_rotation_ids)
+    # bk_sample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
   else:
-    BackEndSession.set('sampling_func', smpl.randomly_pick_models_and_rotation_ids)
+    # bk_sample.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
 
 ####################################################################################
 def set_shuffling(choice):
