@@ -1,0 +1,4 @@
+h5py
+psycopg2
+numpy
+scipy

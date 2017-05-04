@@ -7,11 +7,11 @@ compatible with both Python 2.7 and Python 3.6.
 
 from __future__ import unicode_literals
 
-from distutils.core import setup
+from setuptools import setup
 import glob
 
 setup(name='asamba',
-      version='1.03',
+      version='1.04',
       author='Ehsan Moravveji',
       description='Asteroseismic Modelling Database Python Tools',
       keywords='Asteroseismology, Pulsating Massive Stars, Modelling',
@@ -41,13 +41,13 @@ setup(name='asamba',
                    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
                    'Natural Language :: English',
                    'Operating System :: MacOS :: MacOS X',
-                   'Operating System :: Microsoft :: Windows :: Windows 10',
                    'Operating System :: POSIX :: Linux',
+                   'Operating System :: Microsoft :: Windows :: Windows 10',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3.6',
                    'Topic :: Scientific/Engineering :: Astronomy',
                    'Topic :: Scientific/Engineering :: Artificial Intelligence',
-                   'Topic :: Software Development :: Version Control :: Git'
+                   'Topic :: Software Development :: Version Control :: Git',
                    ],
       install_requires=['h5py', 'psycopg2', 'numpy', 'scipy'],
      )

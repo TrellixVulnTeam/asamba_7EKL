@@ -1,0 +1,32 @@
+Metadata-Version: 1.1
+Name: asamba
+Version: 1.4
+Summary: Asteroseismic Modelling Database Python Tools
+Home-page: https://fys.kuleuven.be/ster/Projects/ASAMBA
+Author: Ehsan Moravveji
+Author-email: Ehsan.Moravveji@kuleuven.be
+License: GPL
+Description: UNKNOWN
+Keywords: Asteroseismology,Pulsating Massive Stars,Modelling
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: MacOS X
+Classifier: Environment :: Win32 (MS Windows)
+Classifier: Environment :: Other Environment
+Classifier: Framework :: IPython
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: Free For Educational Use
+Classifier: License :: Free For Home Use
+Classifier: License :: Free for non-commercial use
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Natural Language :: English
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: Microsoft :: Windows :: Windows 10
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Version Control :: Git

@@ -8,7 +8,7 @@ The `asamba` is a Python interface to interact with the forward asteroseismic gr
 The computation of the grid, the development of the database, and the development of this repository are currently under intense development. So, things will grow/improve steeply soon.
 
 ## Installation
-There are variety of possibilities to download and install this repository on your local machine. Below, I mention two of the most straightforward approaches:
+... of `asamba` is pretty easy! There are variety of possibilities to download and install this repository on your local machine. But below, I mention two of the most straightforward approaches:
 
 * The `asamba` package is officially released through the Python Package Index website. You may access the package via this link <https://pypi.python.org/pypi/asamba/1.02>. Therefore, you can use the `pip` command to install the package on any user-defined target directory, say <target-dir> (absolute path).
 
@@ -51,11 +51,13 @@ Basically, you must be able now to use the repository. To test that you can succ
 python -c 'import asamba'
 ```
 
+If your installation/import fails, please contact me.
+
 ## Documentation
 All modules and functions in the repository are documented. Thus, it is easy to read the intent of each module/function/class objects, by referring to the source code. An alternative way to read the basic documentation of the class objects is to instantiate them, and then accessing the `__doc__` attribute. As an example, to read the documentation for the `model` object, one can do the following:
 
 ```python
-from grid import var_def
+from asamba import var_def
 a_model = var_def.model()
 print a_model.__doc__
 ```
