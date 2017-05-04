@@ -49,6 +49,6 @@ setup(name='asamba',
                    'Topic :: Scientific/Engineering :: Artificial Intelligence',
                    'Topic :: Software Development :: Version Control :: Git'
                    ],
-      install_requires=['h5py', 'psycopg2'],
+      install_requires=['h5py', 'psycopg2', 'numpy', 'scipy'],
      )
 
