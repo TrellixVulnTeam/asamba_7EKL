@@ -6,9 +6,9 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import sampler
-from grid import star
-from grid import plot_sampler
+from asamba import sampler
+from asamba import star
+from asamba import plot_sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

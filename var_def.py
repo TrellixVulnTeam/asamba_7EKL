@@ -4,8 +4,8 @@ This module provides the track and tracks class objects and some basic functiona
 is build based on the "track" object.
 """
 from __future__ import unicode_literals
-
 from builtins import object
+
 import sys, os, glob
 import logging
 import numpy as np 

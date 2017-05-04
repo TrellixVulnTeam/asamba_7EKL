@@ -6,8 +6,8 @@ and input/outputs conveniently.
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
-
 from past.utils import old_div
+
 import sys, os, glob
 import logging
 import numpy as np 

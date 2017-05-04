@@ -10,13 +10,13 @@ from __future__ import unicode_literals
 from distutils.core import setup
 import glob
 
-setup(name='grid',
+setup(name='asamba',
       version='1.01',
       author='Ehsan Moravveji',
       description='Asteroseismic Modelling Database Python Tools',
       keywords='asteroseismology massive stars modelling',
       author_email='Ehsan.Moravveji@kuleuven.be',
-      url='https://ehsan_moravveji@bitbucket.org/ehsan_moravveji/grid.git',
+      url='git@github.com:moravveji/asamba.git',
       license='GPL',
       # package_dir={'':''}, 
       # packages=['distutils'],

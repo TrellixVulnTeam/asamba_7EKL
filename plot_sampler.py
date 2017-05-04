@@ -9,7 +9,7 @@ import logging
 import numpy as np 
 import pylab as plt 
 
-from grid import star, sampler
+from asamba import star, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

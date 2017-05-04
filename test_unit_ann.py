@@ -9,8 +9,8 @@ import logging
 import numpy as np 
 
 # from .test_unit_sampling import main as main_sampling
-from grid.test_unit_sampling import main as main_sampling
-from grid import artificial_neural_network as ann
+from asamba.test_unit_sampling import main as main_sampling
+from asamba import artificial_neural_network as ann
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 

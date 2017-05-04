@@ -9,7 +9,7 @@ import logging
 
 import numpy as np 
 
-from grid import var_def, var_lib, db_def, db_lib, read
+from asamba import var_def, var_lib, db_def, db_lib, read
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -333,7 +333,7 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
   write.write_model_parameters_to_ascii), and insert each line as a row into the "models" table of 
   the database. For example, one can use this function like the following:
 
-  >>>from grid import insert_lib
+  >>>from asamba import insert_lib
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
   >>>insert_lib.insert_models_from_models_parameter_file(dbname='grid', ascii_in=param_file)
 
@@ -408,7 +408,7 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   are taken from 
   This routine is protected agains *Injection Attacks*. Example of use is:
 
-  >>>from grid import insert_lib
+  >>>from asamba import insert_lib
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
   >>>insert_lib.insert_tracks_from_models_parameter_file(dbname='grid', ascii_in=param_file)
 

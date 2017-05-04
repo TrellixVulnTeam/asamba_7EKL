@@ -15,7 +15,7 @@ import time
 import itertools
 import numpy as np 
 
-from . import db_def
+from asamba import db_def
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -196,7 +196,7 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_tracks_distinct_M_ini_logD():
   """
-  In the grid, the range of \\f$log D\f$ values were selected as a function on initial mass, so that 
+  In the database, the range of \\f$log D\f$ values were selected as a function on initial mass, so that 
   \f$\log D\f$ ranges between 0.0 and some \f$max(\log D)\f$ value in 5 discrete values; here, 
   \f$ max(\log D)\f$ is a linear function of initial mass, as:
 
@@ -204,8 +204,8 @@ def get_tracks_distinct_M_ini_logD():
   \f]
   where slope=\f$(6.5 - 2.5)/(\log_{10}(35) - \log_{10}(1.4))\f$, and the 
   offset=\f$6.5-{\rm slope}\times\log_{10}(35)\f$, with 1.4 and 35 \f$M_{\odot}\f$ bening the lowest
-  and highest masses in the grid, and \f$\log(D)=2.5\f$ and \f$\log(D)=6.5\f$ being the maximum logarithm
-  of diffusive mixing for the lowest and highest masses in the grid, respectively.
+  and highest masses in the database, and \f$\log(D)=2.5\f$ and \f$\log(D)=6.5\f$ being the maximum logarithm
+  of diffusive mixing for the lowest and highest masses in the database, respectively.
 
   This routine, prepares a simple query to retrieve all combinations of (M_ini, logD) for all tracks.
   """

@@ -11,10 +11,10 @@ from __future__ import unicode_literals
 import sys, os, glob
 import logging
 import numpy as np 
-from grid import star, db_def 
-from grid import sampler as smpl
-from grid import artificial_neural_network as ann
-from grid import interpolator as interp
+from asamba import star, db_def 
+from asamba import sampler as smpl
+from asamba import artificial_neural_network as ann
+from asamba import interpolator as interp
 
 logger = logging.getLogger(__name__)
 

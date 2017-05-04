@@ -10,7 +10,7 @@ import time
 import numpy as np 
 import psycopg2
 
-from grid import db_def, db_lib, insert_lib, read
+from asamba import db_def, db_lib, insert_lib, read
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Error Handling and Logging

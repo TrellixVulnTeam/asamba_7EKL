@@ -6,8 +6,8 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import star, sampler
-from grid import backend
+from asamba import star, sampler
+from asamba import backend
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)

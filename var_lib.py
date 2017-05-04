@@ -1,6 +1,6 @@
 
 """
-This module provides auxilary functinalities to work with the grid data, in reading, writng and 
+This module provides auxilary functinalities to work with the database, in reading, writng and 
 manipulating the grid data (tracks, models, modes, etc) into a proper format. 
 """
 from __future__ import print_function
@@ -11,8 +11,8 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from . import read
-from . import var_def 
+from asamba import read
+from asamba import var_def 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)

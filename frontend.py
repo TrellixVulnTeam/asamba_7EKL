@@ -30,7 +30,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from grid import backend as bk
+from asamba import backend as bk
 
 ####################################################################################
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from grid import var_lib, read
+from asamba import var_lib, read
 
 import time
 
@@ -105,7 +105,7 @@ def write_model_parameters_to_ascii(self_models, ascii_out):
     handle.write(line)
 
   logger.info('write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
-  print(' - grid.write.write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
+  print(' - asamba.write.write_model_parameters_to_ascii: saved "{0}"'.format(ascii_out))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_model_parameters_to_ascii_obsolete(self_models, ascii_out):
@@ -167,7 +167,7 @@ def write_model_parameters_to_ascii_obsolete(self_models, ascii_out):
     lines.append(line)
 
   logger.info('write_model_parameters_to_ascii_obsolete: saved "{0}"'.format(ascii_out))
-  print(' - grid.write.write_model_parameters_to_ascii_obsolete: saved "{0}"'.format(ascii_out))
+  print(' - asamba.write.write_model_parameters_to_ascii_obsolete: saved "{0}"'.format(ascii_out))
 
   return lines
 

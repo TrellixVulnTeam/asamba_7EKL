@@ -7,9 +7,9 @@ import logging
 import numpy as np
 
 # from test_unit_sampling import main as tus_main
-from grid import sampler
-from grid.test_unit_ann import main as tun_main 
-from grid import interpolator, plot_interpolator
+from asamba import sampler
+from asamba.test_unit_ann import main as tun_main 
+from asamba import interpolator, plot_interpolator
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
