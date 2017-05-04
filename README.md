@@ -10,13 +10,23 @@ The computation of the grid, the development of the database, and the developmen
 ## Installation
 ... of `asamba` is pretty easy! There are variety of possibilities to download and install this repository on your local machine. But below, I mention two of the most straightforward approaches:
 
-* The `asamba` package is officially released through the Python Package Index website. You may access the package via this link <https://pypi.python.org/pypi/asamba/1.02>. Therefore, you can use the `pip` command to install the package on any user-defined target directory, say <target-dir> (absolute path).
+* (Recommended) The `asamba` is rolled as a package, and is officially released through the Python Package Index (PyPI). You may access the package via this link <https://pypi.python.org/pypi/asamba/1.02>. Therefore, you can use the `pip` command. 
+
+```bash
+pip install asamba 
+```
+
+If you require `sudo` permission to install the package, and you only have the user rights on your local machine, you have two options to install the repository: (1) installing as a user, or (2) directing the installation to a user-specified directory.
+
+(1) To install the package on any user-defined target directory, say `<target-dir>` (absolute path), you do the following:
 
 ```bash
 pip install --user asamba 
 ```
 
-The reason for adding the `--user` argument is to ensure the user can fetch the repository even if they do not have the admin permission. If you like to direct the download/extraction of the package into a specific target directory on your local machine, say `<target-dir>`, you may do the following instead.
+The reason for adding the `--user` argument is to ensure the user can fetch the repository even if they do not have the admin permission. 
+
+(2) If you like to direct the download/extraction of the package into a specific target directory on your local machine, say `<target-dir>`, you may do the following instead.
 
 ```bash
 pip install --user -b <target-dir> asamba 
@@ -45,7 +55,7 @@ Then, you save changes in your `~/.bash_profile`, and `source` the file
 source ~/.bash_profile
 ```
 
-Basically, you must be able now to use the repository. To test that you can successfully import the package, please run the following line in your command line, and it shall exit wihout any error message, in which case you have successfully installed the `asamba` package.
+Basically, you must be able now to use the repository. To test that you can successfully import the package, please run the following line in your command line, and it shall exit silently, wihout any error/output message, in which case you have successfully installed the `asamba` package.
 
 ```bash
 python -c 'import asamba'
