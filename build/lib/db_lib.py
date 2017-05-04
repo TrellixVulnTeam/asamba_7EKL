@@ -7,7 +7,7 @@ import logging
 import numpy as np 
 import psycopg2
 
-from grid import db_def, query
+from asamba import db_def, query
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ def get_dic_look_up_mode_types_id(dbname_or_dbobj):
   through dictionary look up.
   E.g. to retrieve the type id for the radial modes (l, m) = (0, 0), we do the following:
   
-  >>>from grid import db_lib
+  >>>from asamba import db_lib
   >>>dic_mode_type = db_lib.get_dic_look_up_mode_types_id('grid')
   >>>print dic_mode_type[(0,0)]
   >>>0
@@ -84,7 +84,7 @@ def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
   through dictionary look up.
   E.g. to retrieve the id for the rotation rate eta=30.00 percent, we do the following:
   
-  >>>from grid import db_lib
+  >>>from asamba import db_lib
   >>>dic_rot_rates = db_lib.get_dic_look_up_rotation_rates_id('grid')
   >>>eta = 25
   >>>tup_rot = (eta, )

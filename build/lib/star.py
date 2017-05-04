@@ -17,7 +17,7 @@ import time
 import itertools
 import numpy as np 
 
-from . import utils, db_def, db_lib, query
+from asamba import utils, db_def, db_lib, query
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -11,10 +11,10 @@ from __future__ import unicode_literals
 import sys, os, glob
 import logging
 import numpy as np 
-from grid import star, db_def 
-from grid import sampler as smpl
-from grid import artificial_neural_network as ann
-from grid import interpolator as interp
+from asamba import star, db_def 
+from asamba import sampler as smpl
+from asamba import artificial_neural_network as ann
+from asamba import interpolator as interp
 
 logger = logging.getLogger(__name__)
 
@@ -171,11 +171,9 @@ def set_sampling_function(choice):
   selecting "sampler.randomly_pick_models_and_rotation_ids"
   """
   if choice is True:
-    # bk_sample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
-    BackEndSession.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', smpl.constrained_pick_models_and_rotation_ids)
   else:
-    # bk_sample.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
-    BackEndSession.set('sampling_func', sampler.randomly_pick_models_and_rotation_ids)
+    BackEndSession.set('sampling_func', smpl.randomly_pick_models_and_rotation_ids)
 
 ####################################################################################
 def set_shuffling(choice):

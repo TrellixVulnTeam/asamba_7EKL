@@ -13,7 +13,7 @@ import sys, os, glob
 import logging
 import numpy as np 
 
-from . import utils, star, sampler
+from asamba import utils, star, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

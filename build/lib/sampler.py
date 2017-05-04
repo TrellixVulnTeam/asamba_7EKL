@@ -2,7 +2,7 @@
 """
 This module prepares training/validatin/test datasets to train/validate/test an 
 artificial neural network. This is achieved through the "sampling" class, which 
-handles the task of collecting the models properly from the grid.
+handles the task of collecting the models properly from the database.
 
 This module inherits from the "star" module, in order to sample the model frequencies
 based on the observed frequencies. On the flip side, it serves as superclass for the 
@@ -20,7 +20,7 @@ import time
 import itertools
 import numpy as np 
 
-from grid import utils, db_def, db_lib, query, star
+from asamba import utils, db_def, db_lib, query, star
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -954,9 +954,9 @@ def constrained_pick_models_and_rotation_ids(self):
   @type dbname: str
   @param n: the *maximum* number of models to retrieve
   @type n: int
-  @param range_log_Teff: the lower and upper range of log_Teff to scan the grid. Default: [3.5, 5]
+  @param range_log_Teff: the lower and upper range of log_Teff to scan the database. Default: [3.5, 5]
   @type range_log_Teff: list/tuple
-  @param range_log_g: the lower and upper range of log_g to scan the grid. Default: [0, 5]
+  @param range_log_g: the lower and upper range of log_g to scan the database. Default: [0, 5]
   @type range_log_g: list/tuple
   @param range_eta: The range of rotation rates (in percentage w.r.t to critical, e.g. 15). 
          Default: [0, 50]
@@ -1019,7 +1019,7 @@ def constrained_pick_models_and_rotation_ids(self):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def randomly_pick_models_and_rotation_ids(self): 
   """
-  Return a randomly-selected models together with their rotation rates from the grid.
+  Return a randomly-selected models together with their rotation rates from the database.
   This function fetches all model "id" number from the "models" table, in addition to all the "id"
   numbers from the "rotation_rates" table. Then, it iterates over them all, and creates all possible
   tupls with two elements: first element being the model id, and the second element being the rotaiton

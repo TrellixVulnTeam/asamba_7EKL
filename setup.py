@@ -11,12 +11,13 @@ from distutils.core import setup
 import glob
 
 setup(name='asamba',
-      version='1.01',
+      version='1.03',
       author='Ehsan Moravveji',
       description='Asteroseismic Modelling Database Python Tools',
-      keywords='asteroseismology massive stars modelling',
+      keywords='Asteroseismology, Pulsating Massive Stars, Modelling',
       author_email='Ehsan.Moravveji@kuleuven.be',
-      url='git@github.com:moravveji/asamba.git',
+      # url='git@github.com:moravveji/asamba.git',
+      url='https://fys.kuleuven.be/ster/Projects/ASAMBA',
       license='GPL',
       # package_dir={'':''}, 
       # packages=['distutils'],
@@ -47,6 +48,7 @@ setup(name='asamba',
                    'Topic :: Scientific/Engineering :: Astronomy',
                    'Topic :: Scientific/Engineering :: Artificial Intelligence',
                    'Topic :: Software Development :: Version Control :: Git'
-                   ]
+                   ],
+      install_requires=['h5py', 'psycopg2'],
      )
 

@@ -14,7 +14,7 @@ import logging
 import numpy as np 
 import h5py
 
-from grid import var_def
+from asamba import var_def
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def gyre_h5(filename):
   relevant attributes filled up. Thus, this routine reads the summary file or the eigenfunction file
   conveniently. Example of use:
 
-  >>>from grid import read
+  >>>from asamba import read
   >>>gyre_file = '/home/user/projects/gyre/beta_Cep.h5'
   >>>mode_list = gyre_h5(gyre_file)
   >>>freq      = np.real( mode_list.freq )

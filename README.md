@@ -1,18 +1,34 @@
-# Asteroseismic Modelling Database Python Tools
+# ASAMBA: Asteroseismic Modelling Database Python Tools
 
 [TOC]
 
 ## About
-The `grid` is a Python interface to interact with the forward asteroseismic grid of massive stars, computed by the MESA stellar structure and evolution code, coupled with the GYRE adiabatic nonradial pulsation code. The whole data in the grid is organized as a PostgreSQL database, and the `grid` module allows the users to exploit this database.
+The `asamba` is a Python interface to interact with the forward asteroseismic grid of massive stars, computed by the MESA stellar structure and evolution code, coupled with the GYRE adiabatic nonradial pulsation code. The whole data in the grid is organized as a PostgreSQL database, and the `asamba` module allows the users to exploit this database.
 
 The computation of the grid, the development of the database, and the development of this repository are currently under intense development. So, things will grow/improve steeply soon.
 
-## Cloning the Repository
-To clone the latest public release of the repository, you may simply do the following:
+## Installation
+There are variety of possibilities to download and install this repository on your local machine. Below, I mention two of the most straightforward approaches:
+
+* The `asamba` package is officially released through the Python Package Index website. You may access the package via this link <https://pypi.python.org/pypi/asamba/1.02>. Therefore, you can use the `pip` command to install the package on any user-defined target directory, say <target-dir> (absolute path).
 
 ```bash
-cd <path-to-save-repository>
-git clone https://ehsan_moravveji@bitbucket.org/ehsan_moravveji/grid.git
+pip install --user -b <target-dir> asamba 
+```
+
+Then, you will find a new folder in the following path `<target-dir>/asamba`. The reason for adding the `--user` argument is to ensure the user can fetch the repository even if they do not have the admin permission. The `-b` directs the downloading and the building of the repository to the absulute path `<target-dir>`.
+
+* Alternatively, you can clone the repository directly through the github host page as
+
+```bash
+cd <target-dir>
+git clone git@github.com:moravveji/asamba.git
+```
+The next step is to install the package in the local path, i.e. in `<target-dir>/asamba`. For that, you may do the following
+
+```bash
+cd <target-dir>/asamba
+python setup.py install 
 ```
 
 ## Documentation

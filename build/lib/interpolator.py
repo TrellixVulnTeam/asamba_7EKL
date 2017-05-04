@@ -19,7 +19,7 @@ import logging
 import numpy as np
 from scipy.interpolate import griddata
 
-from grid import utils, db_def, db_lib, query, sampler
+from asamba import utils, db_def, db_lib, query, sampler
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -90,7 +90,7 @@ class interpolation(sampler.sampling): # inheriting ...
     # Query in a range of models
     self.inputs_by_range    = False
 
-    # Ranges to search/query the grid for the inputs
+    # Ranges to search/query the database for the inputs
     self.interp_inputs_OK   = False
     self.interp_range_M_ini = []
     self.interp_range_fov   = []
@@ -105,7 +105,7 @@ class interpolation(sampler.sampling): # inheriting ...
 
     #.............................
     # Input features and frequencies
-    # from the grid (actual GYRE outputs)
+    # from the database (actual GYRE outputs)
     # m: number of rows
     # n: number of features
     # K: number of frequencies per row
@@ -590,7 +590,7 @@ def _collect_inputs(self):
       logger.error('_collect_inputs: The type of anchor_param_values not supported yet.')
       sys.exit(1)
 
-  # Choose one of the two possilbe methods to collect the input from the grid
+  # Choose one of the two possilbe methods to collect the input from the database
   if self.inputs_around_anchor:
     _collect_inputs_around_anchor(self) # and _collect_inputs_by_range() will be called immediately
   elif self.inputs_by_range:
@@ -608,7 +608,7 @@ def _check_inputs(self):
   parameters, i.e. self.interp_n_dim. This routine provides two ndarrays, one for the x and one for y.
   The input x is a multi-dimensional ndarray of shape say (n, D), and the y is an ndarray of shape (n, ).
   
-  In case of an inconsistency between the ranges for interpolation, and what is found from querying the grid, 
+  In case of an inconsistency between the ranges for interpolation, and what is found from querying the database, 
   a warning is raised, and the interpolation attribute is forcefully set.
   """
   if self.interp_check_inputs_OK: return 

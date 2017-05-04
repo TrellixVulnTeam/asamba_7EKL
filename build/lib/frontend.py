@@ -30,7 +30,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from grid import backend as bk
+from asamba import backend as bk
 
 ####################################################################################
 logger = logging.getLogger(__name__)
@@ -272,9 +272,9 @@ class GUI(object):
     # Sampling, and online plotting frame
     ##########################################
     Canv_plot_1 = tk.Canvas(self.frame_sample, confine=False)
-    plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
-    plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
-    Canv_plot_1.pack()
+    # plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
+    # plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
+    # Canv_plot_1.pack()
 
     ##########################################
     # MAP analysis frame

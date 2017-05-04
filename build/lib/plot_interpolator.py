@@ -7,7 +7,7 @@ import logging
 import numpy as np 
 import pylab as plt 
 
-from grid import star, interpolator
+from asamba import star, interpolator
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
