@@ -49,7 +49,7 @@ vim ~/.bash_profile
 export PYTHONPATH=$PYTHONPATH:<target-dir>/asamba
 ```
 
-Then, you save changes in your `~/.bash_profile`, and `source` the file
+Then, you save changes in your `~/.bash_profile`, and `source` the `~/.bash_profile` file
 
 ```bash
 source ~/.bash_profile

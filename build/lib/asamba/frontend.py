@@ -23,6 +23,7 @@ import logging
 import numpy as np 
 
 import tkinter as tk 
+from tkinter import ttk
 import tkinter.filedialog 
 import tkinter.messagebox
 

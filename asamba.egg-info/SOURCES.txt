@@ -5,6 +5,7 @@ asamba/backend.py
 asamba/db_def.py
 asamba/db_lib.py
 asamba/frontend.py
+asamba/frontend_orig.py
 asamba/insert_def.py
 asamba/insert_lib.py
 asamba/interpolator.py
@@ -23,3 +24,9 @@ asamba.egg-info/SOURCES.txt
 asamba.egg-info/dependency_links.txt
 asamba.egg-info/requires.txt
 asamba.egg-info/top_level.txt
+test_suite/__init__.py
+test_suite/test_unit.py
+test_suite/test_unit_ann.py
+test_suite/test_unit_backend.py
+test_suite/test_unit_interp.py
+test_suite/test_unit_sampling.py

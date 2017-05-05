@@ -1,4 +1,3 @@
-#! /usr/bin/python
 
 """
 This module is the user's frontend to open a graphical user interface, GUI, and interact with the 
@@ -24,7 +23,6 @@ import logging
 import numpy as np 
 
 import tkinter as tk 
-from tkinter import ttk
 import tkinter.filedialog 
 import tkinter.messagebox
 
@@ -47,6 +45,7 @@ class GUI(object):
     self.dir_bitmaps  = self.dir_data + 'bitmaps/'
 
     # All useful frames and insets
+    self.frame_conn     = 0
     self.frame_conn     = 0
     self.frame_inputs   = 0
     self.frame_sample   = 0
@@ -500,7 +499,7 @@ class GUI(object):
 if __name__ == '__main__':
   master    = tk.Tk()      # invoke the master frame
   session   = GUI(master)  # instantiate the GUI
-  master.mainloop()        # keep it alive, until terminated/closed
+  master.mainloop()        # keep it alive, until terminated
 
 ####################################################################################
 

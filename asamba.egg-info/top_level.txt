@@ -13,6 +13,7 @@ query
 read
 sampler
 star
+test_suite
 utils
 var_def
 var_lib
