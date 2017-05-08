@@ -11,7 +11,7 @@ from setuptools import setup
 import glob
 
 setup(name='asamba',
-      version='1.0.5',
+      version='1.0.6',
       author='Ehsan Moravveji',
       description='Asteroseismic Modelling Database Python Tools',
       keywords='Asteroseismology, Pulsating Massive Stars, Modelling',
@@ -42,7 +42,7 @@ setup(name='asamba',
                    'Operating System :: MacOS :: MacOS X',
                    'Operating System :: POSIX :: Linux',
                    'Operating System :: Microsoft :: Windows :: Windows 7',
-                   # 'Operating System :: Microsoft :: Windows :: Windows 10',
+                   'Operating System :: Microsoft :: Windows :: Windows 10',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3.6',
                    'Topic :: Scientific/Engineering :: Astronomy',

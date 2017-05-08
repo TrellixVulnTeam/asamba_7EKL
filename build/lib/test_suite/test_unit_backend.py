@@ -9,10 +9,12 @@ import numpy as np
 from asamba import star, sampler
 from asamba import backend
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 def main():
   """ Test unit for the BackEnd """
@@ -65,8 +67,8 @@ def main():
 
   # Plot the histogram of the learning Y sample
   if False:
-    this.hist_learning_x(this, 'plots/KIC-10526294-hist-X.png')
-    this.hist_learning_y(this, 'plots/KIC-10526294-hist-Y.png')
+    this.hist_learning_x(this, 'test_suite/plots/KIC-10526294-hist-X.png')
+    this.hist_learning_y(this, 'test_suite/plots/KIC-10526294-hist-Y.png')
 
   # Set percentages for training, cross-validation and test sets
   this.set('training_percentage', 0.80)

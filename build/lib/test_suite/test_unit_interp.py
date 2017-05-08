@@ -6,13 +6,15 @@ import sys, os, glob
 import logging
 import numpy as np
 
-# from test_unit_sampling import main as tus_main
-from asamba import sampler
-from asamba.test_unit_ann import main as tun_main 
-from asamba import interpolator, plot_interpolator
+from asamba import sampler, interpolator, plot_interpolator
+from test_unit_ann import main as tun_main 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 def main():
 
@@ -87,19 +89,19 @@ def main():
     TheInterp.check_inputs()
     TheInterp.prepare()
 
-    figure_name = 'plots/KIC-10526294-interp-wrt-M.png'
+    figure_name = 'test_suite/plots/KIC-10526294-interp-wrt-M.png'
     plot_interpolator.input_frequencies_wrt(TheInterp, wrt='M_ini', figure_name=figure_name)
 
-    # figure_name = 'plots/KIC-10526294-interp-wrt-fov.png'
+    # figure_name = 'test_suite/plots/KIC-10526294-interp-wrt-fov.png'
     # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='fov', figure_name=figure_name)
 
-    # figure_name = 'plots/KIC-10526294-interp-wrt-Z.png'
+    # figure_name = 'test_suite/plots/KIC-10526294-interp-wrt-Z.png'
     # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Z', figure_name=figure_name)
 
-    # figure_name = 'plots/KIC-10526294-interp-wrt-logD.png'
+    # figure_name = 'test_suite/plots/KIC-10526294-interp-wrt-logD.png'
     # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='logD', figure_name=figure_name)
 
-    # figure_name = 'plots/KIC-10526294-interp-wrt-Xc.png'
+    # figure_name = 'test_suite/plots/KIC-10526294-interp-wrt-Xc.png'
     # plot_interpolator.input_frequencies_wrt(TheInterp, wrt='Xc', figure_name=figure_name)
 
   if False:
