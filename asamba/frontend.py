@@ -39,6 +39,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from asamba import backend as bk
+from asamba.backend import BackEndSession
 
 ####################################################################################
 logger = logging.getLogger(__name__)
@@ -94,8 +95,8 @@ class GUI(object):
     # self.handle_NOK   = PhotoImage(self.bitmap_NOK)
 
     # # Input frequency list
-    # self.input_freq_file = StringVar()
-    # self.input_freq_done = BooleanVar()
+    self.input_freq_file = StringVar()
+    self.input_freq_done = BooleanVar()
 
     # # Input observational data
     # self.use_obs_log_Teff = BooleanVar()
@@ -126,12 +127,16 @@ class GUI(object):
     ##########################################
     root       = self.root
     root.title('ASAMBA User Interface')
+    root.resizable(False, False)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
-    self.notebook   = ttk.Notebook(root)
     style = ttk.Style()
     style.configure('TNotebook.Tab', padding=(20, 8, 20, 0))
+    style.theme_use('aqua')
+    # print(style.theme_use(''))
+
+    self.notebook   = ttk.Notebook(root)    
     self.notebook.pack(fill='both', expand='yes')
 
     ##########################################
@@ -191,17 +196,17 @@ class GUI(object):
     but_conn.grid(row=1, column=0, sticky=W)
 
     self.conn_lbl     = ttk.Label(self.frame_conn, textvariable=self.conn_lbl_str, 
-                                  relief='groove', anchor='center')
+                                  relief='groove', anchor='center', width=10)
     self.conn_lbl_str.set('Inactive!')
-    self.conn_lbl.grid(row=1, column=2, sticky=(W, E), rowspan=2)
+    self.conn_lbl.grid(row=1, column=2, sticky=(W, E))
 
     ##########################################
     # The Inputs Frame
     ##########################################
-    self.but_input_freq = ttk.Button(self.frame_input, text='Load Frequency List', command=None) # self.browse_file
+    self.but_input_freq = ttk.Button(self.frame_input, text='Load Frequency List', command=self.browse_file) 
     self.but_input_freq.grid(row=0, column=0, sticky=(W, E))
 
-    self.but_ex_freq    = ttk.Button(self.frame_input, text='Example')
+    self.but_ex_freq    = ttk.Button(self.frame_input, text='Example', command=self.example_input_freq)
     self.but_ex_freq.grid(row=0, column=1, sticky=(W, E))
 
     self.but_input_star = ttk.Button(self.frame_input, text='Load Global Parameters', command=None)
@@ -240,8 +245,8 @@ class GUI(object):
     self.but_interp_exec=ttk.Button(self.frame_interp, text='Execute', command=None)
     self.but_interp_exec.grid(row=0, column=2, sticky=(W, E))
 
-    self._=ttk.Label(self.frame_plot_modes, text='To Do ...')
-    self._.grid(row=0, column=0)
+    # self._=ttk.Label(self.frame_plot_modes, text='To Do ...')
+    # self._.grid(row=0, column=0)
 
     ##########################################
     # The Query Frame
@@ -266,27 +271,13 @@ class GUI(object):
     # arc               = canv_input_freqs.create_arc(coord, start=0, extent=150, fill="blue")
     # canv_input_freqs.pack(side='right')
 
-  #   ##########################################
-  #   # Sampling, and online plotting frame
-  #   ##########################################
-  #   Canv_plot_1 = tk.Canvas(self.frame_sample, confine=False)
-  #   # plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
-  #   # plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
-  #   # Canv_plot_1.pack()
-
-  #   ##########################################
-  #   # MAP analysis frame
-  #   ##########################################
-  #   but_MAP = tk.Button(self.frame_MAP, text='Max Likelihood')
-  #   but_MAP.pack()
-
-  #   # Checkboxes
-  #   chk_var_1   = tk.IntVar()
-  #   chk_1       = tk.Checkbutton(self.frame_MAP, text='Check this box if you like', command=None, 
-  #                                justify='left', offvalue=False, onvalue=True,
-  #                                selectcolor='green', state='active', variable=chk_var_1)
-  #   chk_1.pack()
-  #   chk_1.flash()
+    ##########################################
+    # Sampling, and online plotting frame
+    ##########################################
+    # Canv_plot_1 = tk.Canvas(self.frame_sample, confine=False)
+    # plot_1_file = tk.PhotoImage(file=='Ehsan.JPG')
+    # plot_1      = Canv_plot_1.create_image(500, 500, anchor='center', image=plot_1_file)
+    # Canv_plot_1.pack()
 
     ##########################################
     # Status Bar
@@ -343,63 +334,72 @@ class GUI(object):
       self.conn_lbl['relief'] = 'raised'
       # self.conn_lbl['image'] = self.handle_NOK
 
-  # ##########################################
-  # # File Inputs
-  # def browse_file(self):
-  #   """ Browse the local disk for an ASCII file """
-  #   fname = tkinter.filedialog.askopenfilename(title='Select Frequency List')
-  #   try:
-  #     bk.set_input_freq_file(fname)
-  #     self.input_freq_file.set(fname)
-  #     self.input_freq_done.set(True)
-  #     self.update_status_bar('Successfully read the file: {0}'.format(fname))
-  #   except:
-  #     self.input_freq_done.set(False)
-  #     self.update_status_bar('Failed to read the file: {0}'.format(fname))
+  ##########################################
+  # File Inputs
+  def browse_file(self):
+    """ Browse the local disk for an ASCII file """
+    fname = tkinter.filedialog.askopenfilename(title='Select Frequency List')
+    try:
+      bk.set_input_freq_file(fname)
+      self.input_freq_file.set(fname)
+      self.input_freq_done.set(True)
+      self.update_status_bar('Successfully read the file: {0}'.format(fname))
+    except:
+      self.input_freq_done.set(False)
+      self.update_status_bar('Failed to read the file: {0}'.format(fname))
     
-  #   if self.input_freq_done:
-  #     self.plot_observed_frequencies()
+    if self.input_freq_done:
+      self.plot_observed_frequencies()
+
+  ##########################################
+  def example_input_freq(self):
+    """ Show a static window with an example of how the input frequency file is structured """
+    self.update_status_bar('Show an example of the input frequency list')
+    ex_lines = bk.get_example_input_freq()
+    new_wind = Tk()
+    new_wind.wm_title('Example: Frequency List')
+    ex_lbl_  = ttk.Label(new_wind, text=ex_lines, justify='left', cursor='arrow', relief='sunken')
+                        # padx=10, pady=10, wraplength=0)
+    ex_lbl_.pack()
+    new_wind.mainloop()
 
   # ##########################################
-  # def example_input_freq(self):
-  #   """ Show a static window with an example of how the input frequency file is structured """
-  #   self.update_status_bar('Show an example of the input frequency list')
-  #   ex_lines = bk.get_example_input_freq()
-  #   new_wind = tk.Tk()
-  #   new_wind.wm_title('Example: Frequency List')
-  #   ex_lbl_  = tk.Label(new_wind, text=ex_lines, justify='left', cursor='arrow', relief='sunken',
-  #                       padx=10, pady=10, wraplength=0)
-  #   ex_lbl_.pack()
-  #   new_wind.mainloop()
+  def plot_observed_frequencies(self):
+    """ If reading in put frequencies is successfull, the modes will be plotted, as a reward! """
+    from asamba.star import d_to_sec
+    fig       = matplotlib.figure.Figure(figsize=(5, 5), dpi=100, tight_layout=True)
+    top       = fig.add_subplot(211)
+    bot       = fig.add_subplot(212)
 
-  # ##########################################
-  # def plot_observed_frequencies(self):
-  #   """ If reading in put frequencies is successfull, the modes will be plotted, as a reward! """
+    modes     = BackEndSession.get('modes')
+    freqs     = np.array([ mode.freq for mode in modes ])
+    freq_errs = np.array([ mode.freq_err for mode in modes ])
+    amp       = np.array([ mode.amplitude for mode in modes ])
+    per       = old_div(1.,freqs)
+    per_err   = old_div(freq_errs, freqs**2)
+    arr_l     = np.array([ mode.l for mode in modes ])
+    arr_m     = np.array([ mode.m for mode in modes ])
+    arr_p_mode= np.array([ mode.p_mode for mode in modes ])
+    arr_g_mode= np.array([ mode.g_mode for mode in modes ])
+    arr_in_df = np.array([ mode.in_df for mode in modes ])
+    arr_in_dP = np.array([ mode.in_dP for mode in modes ])
 
-  #   fig       = matplotlib.figure.Figure(figsize=(5, 5), dpi=100, tight_layout=True)
-  #   ax        = fig.add_subplot(111)
+    for k, frq in enumerate(freqs): 
+        top.axvline(x=frq, ymin=0, ymax=amp[k])
 
-  #   modes     = bk.bk_star.get('modes')
-  #   freqs     = np.array([ mode.freq for mode in modes ])
-  #   freq_errs = np.array([ mode.freq_err for mode in modes ])
-  #   per       = old_div(1.,freqs)
-  #   per_err   = old_div(freq_errs, freqs**2)
-  #   arr_l     = np.array([ mode.l for mode in modes ])
-  #   arr_m     = np.array([ mode.m for mode in modes ])
-  #   arr_p_mode= np.array([ mode.p_mode for mode in modes ])
-  #   arr_g_mode= np.array([ mode.g_mode for mode in modes ])
-  #   arr_in_df = np.array([ mode.in_df for mode in modes ])
-  #   arr_in_dP = np.array([ mode.in_dP for mode in modes ])
+    top.set_xlabel('Frequency (per day)')
+    top.set_ylabel('Observed Amplitude')
+    top.set_ylim(-0.02, max(amp)*1.05)
 
-  #   ax.plot(freqs, np.zeros(len(freqs)))
+    arr_dP    = (per[:-1] - per[1:]) * d_to_sec
+    bot.plot(per[:-1], arr_dP, 'ko-')
+    bot.set_xlabel('Period (day)')
+    bot.set_ylabel('Period Spacing (sec)')
 
-  #   ax.set_xlabel('Frequency [per day]')
-
-  #   canvas = FigureCanvasTkAgg(fig, master=self.inputs_right)
-  #   canvas.show()
-
-  #   canvas.get_tk_widget().pack(side='top', fill='both', expand=True)
-  #   canvas._tkcanvas.pack(side='top', fill='both', expand=True)
+    canvas = FigureCanvasTkAgg(fig, master=self.frame_plot_modes)
+    canvas.get_tk_widget().pack(side='top', fill='both', expand=True)
+    canvas._tkcanvas.pack(side='top', fill='both', expand=True)
+    canvas.show()
 
   # ##########################################
   # # Observatinal Inputs
