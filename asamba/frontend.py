@@ -42,7 +42,14 @@ from asamba import backend as bk
 from asamba.backend import BackEndSession
 
 ####################################################################################
+# Capturing all logs under the hood to toss them to the Log tab
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+stdout = logging.StreamHandler(sys.stdout)
+stdout.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+stdout.setFormatter(formatter)
+logger.addHandler(stdout)
 
 ####################################################################################
 class GUI(object):
@@ -62,20 +69,18 @@ class GUI(object):
     self.dir_bitmaps  = self.dir_data + 'bitmaps/'
 
     # All Tabs
-    self.tab_seism     = 0
+    self.tab_seism      = 0
     self.tab_query      = 0
-    self.tab_sampling   = 0
-    self.tab_ann        = 0
-    self.tab_interp     = 0
+    self.tab_log        = 0
 
     # # All useful frames and insets
-    # self.frame_conn     = 0
-    # self.frame_sample   = 0
-    # self.frame_MAP      = 0
-    # self.frame_stat_bar = 0
-
-    # self.inputs_left    = 0
-    # self.inputs_right   = 0
+    self.frame_conn     = 0
+    self.frame_sample   = 0
+    self.frame_MAP      = 0
+    self.frame_input    = 0
+    self.frame_interp   = 0
+    self.frame_query    = 0
+    self.frame_stat_bar = 0
 
     # # Connection constant values
     self.connection   = IntVar()
@@ -99,6 +104,8 @@ class GUI(object):
     self.input_freq_done = BooleanVar()
 
     # # Input observational data
+    self.star_inlist     = StringVar()
+    self.star_inlist_done= BooleanVar()
     # self.use_obs_log_Teff = BooleanVar()
     # self.obs_log_Teff     = DoubleVar()
     # self.obs_log_Teff_err = DoubleVar()
@@ -117,7 +124,8 @@ class GUI(object):
     self.status_bar_message = StringVar()
 
     # Trigger the FrontWindow now ...
-    self.FrontWindow()      
+    self.FrontWindow()
+    logger.info('GUI initiated')
 
   def FrontWindow(self):
     """ The front GUI window """
@@ -130,6 +138,7 @@ class GUI(object):
     root.resizable(False, False)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
+    root.lift() # put on top of all
 
     style = ttk.Style()
     style.configure('TNotebook.Tab', padding=(20, 8, 20, 0))
@@ -149,6 +158,10 @@ class GUI(object):
     self.tab_query   = ttk.Frame(self.notebook, padding=3, borderwidth=0)
     self.tab_query.grid(row=0, column=0, sticky=(W, E))
     self.notebook.add(self.tab_query, text='Query MESA')
+
+    self.tab_log     = ttk.Frame(self.notebook, padding=3, borderwidth=0)
+    self.tab_log.grid(row=0, column=0, sticky=(W, E))
+    self.notebook.add(self.tab_log, text='Runtime Logs')
 
     ##########################################
     # Mother & Child Frames
@@ -203,13 +216,13 @@ class GUI(object):
     ##########################################
     # The Inputs Frame
     ##########################################
-    self.but_input_freq = ttk.Button(self.frame_input, text='Load Frequency List', command=self.browse_file) 
+    self.but_input_freq = ttk.Button(self.frame_input, text='Load Frequency List', command=self.browse_frequency_file) 
     self.but_input_freq.grid(row=0, column=0, sticky=(W, E))
 
     self.but_ex_freq    = ttk.Button(self.frame_input, text='Example', command=self.example_input_freq)
     self.but_ex_freq.grid(row=0, column=1, sticky=(W, E))
 
-    self.but_input_star = ttk.Button(self.frame_input, text='Load Global Parameters', command=None)
+    self.but_input_star = ttk.Button(self.frame_input, text='Load Star Parameters', command=self.browse_star_file)
     self.but_input_star.grid(row=1, column=0, sticky=(W, E)) 
 
     self.but_input_star_ex = ttk.Button(self.frame_input, text='Example', command=None)
@@ -282,7 +295,6 @@ class GUI(object):
     ##########################################
     # Status Bar
     ##########################################
-    # self.status_bar = ttk.Label(self.frame_stat_bar, bd=1, relief='flat', anchor='w')
     self.status_bar = ttk.Label(self.frame_stat_bar, relief='flat', anchor='w')
     self.status_bar.pack(side='bottom', fill='x')
     self.update_status_bar('')
@@ -336,17 +348,17 @@ class GUI(object):
 
   ##########################################
   # File Inputs
-  def browse_file(self):
+  def browse_frequency_file(self):
     """ Browse the local disk for an ASCII file """
     fname = tkinter.filedialog.askopenfilename(title='Select Frequency List')
     try:
       bk.set_input_freq_file(fname)
       self.input_freq_file.set(fname)
       self.input_freq_done.set(True)
-      self.update_status_bar('Successfully read the file: {0}'.format(fname))
+      self.update_status_bar('Successfully read the frequency file: {0}'.format(fname))
     except:
       self.input_freq_done.set(False)
-      self.update_status_bar('Failed to read the file: {0}'.format(fname))
+      self.update_status_bar('Failed to read the frequency file: {0}'.format(fname))
     
     if self.input_freq_done:
       self.plot_observed_frequencies()
@@ -375,24 +387,46 @@ class GUI(object):
     freqs     = np.array([ mode.freq for mode in modes ])
     freq_errs = np.array([ mode.freq_err for mode in modes ])
     amp       = np.array([ mode.amplitude for mode in modes ])
+    log_amp   = np.log10(amp)
     per       = old_div(1.,freqs)
     per_err   = old_div(freq_errs, freqs**2)
     arr_l     = np.array([ mode.l for mode in modes ])
     arr_m     = np.array([ mode.m for mode in modes ])
+    arr_l_m   = list(zip(arr_l, arr_m))
+    set_l_m   = set(arr_l_m)
+    n_l_m     = len(set_l_m)
     arr_p_mode= np.array([ mode.p_mode for mode in modes ])
     arr_g_mode= np.array([ mode.g_mode for mode in modes ])
     arr_in_df = np.array([ mode.in_df for mode in modes ])
     arr_in_dP = np.array([ mode.in_dP for mode in modes ])
 
-    for k, frq in enumerate(freqs): 
-        top.axvline(x=frq, ymin=0, ymax=amp[k])
+    colors    = cycle(['k', 'b', 'r', 'g', 'y', 'c', 'p']) # one color for one (l, m)
+    use_log_amp = np.max(log_amp) - np.min(log_amp) > 1
+    _amp      = log_amp if use_log_amp else amp
+    
+    for j, tup_l_m in enumerate(set_l_m):
+      _l, _m  = tup_l_m[0], tup_l_m[1]
+      i_l_m   = np.where((arr_l==_l) & (arr_m==_m))[0]
+      freq_l_m= freqs[i_l_m]
+      amp_l_m = _amp[i_l_m]
+      clr     = next(colors)
+
+      top.plot([], [], color=clr, label=tup_l_m)
+      for k, frq in enumerate(freq_l_m): top.plot([frq, frq], [0, amp_l_m[k]], color=clr)
+      
+      i_l_m   = np.where((arr_l==_l) & (arr_m==_m) & (arr_in_dP==True))[0]
+      _per    = per[i_l_m] * d_to_sec
+      arr_dP  = _per[:-1] - _per[1:] 
+      bot.plot(per[:-1], arr_dP, marker='o', linestyle='solid', color=clr)
 
     top.set_xlabel('Frequency (per day)')
-    top.set_ylabel('Observed Amplitude')
-    top.set_ylim(-0.02, max(amp)*1.05)
+    if use_log_amp:
+      top.set_ylabel(r'$\log_{10}$(Observed Amplitude)')
+    else:
+      top.set_ylabel('Observed Amplitude')
+    top.set_ylim(-0.02, max(_amp)*1.05)
+    leg = top.legend(loc=1, fontsize=10, frameon=False)
 
-    arr_dP    = (per[:-1] - per[1:]) * d_to_sec
-    bot.plot(per[:-1], arr_dP, 'ko-')
     bot.set_xlabel('Period (day)')
     bot.set_ylabel('Period Spacing (sec)')
 
@@ -400,6 +434,21 @@ class GUI(object):
     canvas.get_tk_widget().pack(side='top', fill='both', expand=True)
     canvas._tkcanvas.pack(side='top', fill='both', expand=True)
     canvas.show()
+
+  # ##########################################
+  def browse_star_file(self):
+    """ Browse and locate the user-specified star inlist file """
+    fname = tkinter.filedialog.askopenfilename(title='Select Star Input Inlist File')
+    try:
+      bk.read_star_inlist(fname)
+      self.star_inlist.set(fname)
+      self.star_inlist_done.set(True)
+      self.update_status_bar('Successfully read star inlist: {0}'.format(fname))
+      logger.info('browse_star_file: succeeded')
+    except:
+      self.star_inlist_done.set(False)
+      self.update_status_bar('Failed to read star inlist: {0}'.format(fname))
+      logger.warning('browse_star_file: failed. Correct this file, and try again')
 
   # ##########################################
   # # Observatinal Inputs

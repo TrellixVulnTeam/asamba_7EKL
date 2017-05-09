@@ -94,9 +94,6 @@ def set_input_freq_file(filename):
     logger.error('set_input_freq_file: The file "{0}" not found'.format(filename))
     sys.exit()
 
-  # modes = star.load_modes_from_file(filename, delimiter=',')
-  # bk_star.set('modes', modes)
-  # BackEndSession.set('modes', modes)
   BackEndSession.load_modes_from_file(filename, delimiter=',')
 
 ####################################################################################
@@ -116,6 +113,7 @@ def get_example_input_freq():
   ex_lines += '... \n\n\n'
   ex_lines += 'Notes: \n' 
   ex_lines += ' - The input must be an ASCII machine-readable file. \n'
+  ex_lines += ' - See the template in <asamba>/data/input_templates/pulsation.freq'
   ex_lines += ' - All fields are comma-delimited. This is a mandatory format. \n'
   ex_lines += ' - The first line gives the column names. \n'
   ex_lines += ' - The second line gives the format of the corresponding column. \n'
@@ -140,49 +138,57 @@ def get_example_input_freq():
   return ex_lines
 
 ####################################################################################
-def set_obs_log_Teff(val, err):
+def read_star_inlist(filename):
   """
-  Set using the observed effective temperature 
+  Read the star inlist, and load the available information to the BackEndSession object
   """
-  # bk_star.set('log_Teff', val)
-  # bk_star.set('log_Teff_err_lower', err)
-  # bk_star.set('log_Teff_err_upper', err)
-  BackEndSession.set('log_Teff', val)
-  BackEndSession.set('log_Teff_err_lower', err)
-  BackEndSession.set('log_Teff_err_upper', err)
+  
+  BackEndSession.load_star_from_inlist(filename)
 
 ####################################################################################
-def set_obs_log_g(val, err):
-  """
-  Set using the observed surface gravity
-  """
-  # bk_star.set('log_g', val)
-  # bk_star.set('log_g_err_lower', err)
-  # bk_star.set('log_g_err_upper', err)
-  BackEndSession.set('log_g', val)
-  BackEndSession.set('log_g_err_lower', err)
-  BackEndSession.set('log_g_err_upper', err)
+# def set_obs_log_Teff(val, err):
+#   """
+#   Set using the observed effective temperature 
+#   """
+#   # bk_star.set('log_Teff', val)
+#   # bk_star.set('log_Teff_err_lower', err)
+#   # bk_star.set('log_Teff_err_upper', err)
+#   BackEndSession.set('log_Teff', val)
+#   BackEndSession.set('log_Teff_err_lower', err)
+#   BackEndSession.set('log_Teff_err_upper', err)
 
 ####################################################################################
-def set_sampling_function(choice):
-  """
-  Set the one of the two sampling functions from the sampler module. True means choosing
-  the "sampler.constrained_pick_models_and_rotation_ids" function and False means 
-  selecting "sampler.randomly_pick_models_and_rotation_ids"
-  """
-  if choice is True:
-    BackEndSession.set('sampling_func', smpl.constrained_pick_models_and_rotation_ids)
-  else:
-    BackEndSession.set('sampling_func', smpl.randomly_pick_models_and_rotation_ids)
+# def set_obs_log_g(val, err):
+#   """
+#   Set using the observed surface gravity
+#   """
+#   # bk_star.set('log_g', val)
+#   # bk_star.set('log_g_err_lower', err)
+#   # bk_star.set('log_g_err_upper', err)
+#   BackEndSession.set('log_g', val)
+#   BackEndSession.set('log_g_err_lower', err)
+#   BackEndSession.set('log_g_err_upper', err)
 
 ####################################################################################
-def set_shuffling(choice):
-  """
-  Set the sampling shuffling mode. choice=True means apply the shuffling of the learning
-  set, and False means otherwise.
-  """
-  # bk_sample.set('sampling_shuffle', choice)
-  BackEndSession.set('sampling_shuffle', choice)
+# def set_sampling_function(choice):
+#   """
+#   Set the one of the two sampling functions from the sampler module. True means choosing
+#   the "sampler.constrained_pick_models_and_rotation_ids" function and False means 
+#   selecting "sampler.randomly_pick_models_and_rotation_ids"
+#   """
+#   if choice is True:
+#     BackEndSession.set('sampling_func', smpl.constrained_pick_models_and_rotation_ids)
+#   else:
+#     BackEndSession.set('sampling_func', smpl.randomly_pick_models_and_rotation_ids)
+
+####################################################################################
+# def set_shuffling(choice):
+#   """
+#   Set the sampling shuffling mode. choice=True means apply the shuffling of the learning
+#   set, and False means otherwise.
+#   """
+#   # bk_sample.set('sampling_shuffle', choice)
+#   BackEndSession.set('sampling_shuffle', choice)
 
 ####################################################################################
 ####################################################################################

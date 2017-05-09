@@ -1,0 +1,2 @@
+amplitude, freq, freq_err, freq_unit, l, m, g_mode, in_dP
+float, float, float, str, int, int, bool, bool

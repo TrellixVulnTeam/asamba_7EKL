@@ -21,6 +21,85 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def read_inlist(filename):
+  """
+  This function reads an ASCII file which specifies any set of options as a list of tuples (attr, val) for 
+  valid entries in the file. It follows the same idea as the widely-used Fortran inlists.
+
+  The user comments, specified using "#" are trimmed off from anywhere in the lines, so that one may comment 
+  the inlist file in a line before the attr = val set or after it. E.g., the following two options are both 
+  valid:
+
+     # Here, I specify the name of my star
+     name = 'beta Cephei'
+  
+  or 
+  
+     name = 'beta Cephei'  # The name of my star
+
+  if the val is 'True', it is set to boolean True, if it is 'False', it is set to boolean False, if it contains
+  '.', 'e+' or 'e-', it is interpreted as a fload, and otherwise, it is converted to integer. So, a great caution
+  has to be practiced when assigning values to the attributes in the inlist files.
+
+  @param filename: full path to the inlist file
+  @type filename: str
+  @return: a list of (attr, val) tuples, where 
+  """
+  if not os.path.exists(filename):
+    logger.error('read_inlist: The input file "{0}" not found'.format(filename))
+    sys.exit(1)
+
+  with open(filename, 'r') as r: lines = r.readlines()
+
+  options  = []
+  numbers  = '+-0123456789'
+  for k, line in enumerate(lines):
+    line   = line.strip() # rstrip('\r\n')
+    if '#' in line:
+      ind  = line.find('#')
+      line = line[:ind]
+    if not line: continue # skip empty lines
+    if '=' not in line: continue
+    attr, val = line.split('=')
+    attr   = attr.strip() # remove spaces
+    val    = val.strip()  # remove spaces
+   
+    if '"' in val:      # look after string inputs
+      if val.count('"') == 2:
+        continue        # string input detected
+      else:
+        logger.error('read_inlist: Ambiguous string detected in line: {0} of file: {1}'.format(line, filename))
+        sys.exit(1)
+    elif "'" in val:
+      if val.count("'") == 2:
+        continue        # string input detected
+      else:
+        logger.error('read_inlist: Ambiguous string detected in line: {0} of file: {1}'.format(line, filename))
+        sys.exit(1)
+    elif val == 'True': # look after boolean inputs 
+      val = True 
+    elif val == 'False': 
+      val = False
+    elif '.' in val:    # look after float inputs
+      val = float(val)
+    elif 'e' in val:
+      i_e = val.index('e')
+      before = val[i_e-1] in numbers
+      after  = val[i_e+1] in numbers
+      if all([before, after]):
+        val  = float(val)
+      else:
+        logger.error('read_inlist: Failed to interpret line: {0} in file: {1}'.format(line, filename))
+        sys.exit(1)
+    else:               # default: set to integer
+      val = int(val)
+
+    options.append((attr, val))
+  
+  logger.info('read_inlist: Successfully read file: "{0}"'.format(filename))
+
+  return options
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def gyre_h5(filename):
   """

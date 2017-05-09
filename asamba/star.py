@@ -17,7 +17,7 @@ import time
 import itertools
 import numpy as np 
 
-from asamba import utils, db_def, db_lib, query
+from asamba import utils, read, db_def, db_lib, query
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -398,6 +398,7 @@ class star(modes):
   # Setter
   ##########################
   def set(self, attr, val):
+    """ Setter """
     if not hasattr(self, attr):
       logger.error('star: set: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
@@ -408,11 +409,39 @@ class star(modes):
   # Getter
   ##########################
   def get(self, attr):
+    """ Getter """
     if not hasattr(self, attr):
       logger.error('star: get: Attribute "{0}" is unavailable'.format(attr))
       sys.exit(1)
 
     return getattr(self, attr)
+
+  ##########################
+  # Methods
+  ##########################
+  def load_star_from_inlist(self, filename):
+    """
+    One can set the attributes of a specific star all from an inlist. This method is used by the 
+    backend module, but can be widely used in any script.
+
+    @param self: an instance of the star.star() class 
+    @type self: object
+    @param filename: full path to the star inlist
+    @type filename: str
+    @return: None
+    """
+    options = read.read_inlist(filename)
+    logger.info('here: load_star_from_inlist')
+    for tup in options:
+      attr = tup[0]
+      val  = tup[1]
+      try:
+        self.set(attr, val)
+      except:
+        logger.error('load_star_from_inlist: Failed to set (attr, val) = ({0}, {1})'.format(attr, val))
+        sys.exit(1)
+
+    logger.info('load_star_from_inlist: Succeeded.')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _do_extra(self, attr, val):
@@ -461,5 +490,4 @@ def _do_extra(self, attr, val):
                           np.power(10, self.log_Teff) 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
