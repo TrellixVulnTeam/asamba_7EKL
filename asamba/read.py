@@ -20,6 +20,39 @@ from asamba import var_def
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+def convert_val(str_val):
+  """
+  This function receives an integer, float or a boolean variable in a string representation, identifies
+  the correct type, and returns the variable in the expected/appropriate python native data type. 
+  E.g. '1' --> 1, and 'True' --> True
+
+  @param str_val: 
+  """
+  if not isinstance(str_val, str):
+    logger.error('convert_val: Input: "{0}" is not a string variable'.format(str_val))
+    sys.exit(1)
+
+  numbers  = '+-0123456789'
+  if str_val == 'True': # look after boolean inputs 
+    val = True 
+  elif str_val == 'False': 
+    val = False
+  elif '.' in str_val:    # look after float inputs
+    val = float(str_val)
+  elif 'e' in str_val:
+    i_e = str_val.index('e')
+    before = str_val[i_e-1] in numbers
+    after  = str_val[i_e+1] in numbers
+    if all([before, after]):
+      val  = float(str_val)
+    else:
+      logger.error('convert_val: Failed to interpret line: {0} in file: {1}'.format(line, filename))
+      sys.exit(1)
+  else:               # default: set to integer
+    val = int(str_val)
+
+  return val
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def read_inlist(filename):
   """
@@ -41,6 +74,10 @@ def read_inlist(filename):
   '.', 'e+' or 'e-', it is interpreted as a fload, and otherwise, it is converted to integer. So, a great caution
   has to be practiced when assigning values to the attributes in the inlist files.
 
+  As a nice feature, the user can even toss in a list/tuple of values, e.g. var = [1, 2.3, True]. Each element inside
+  the list/tuple will be split (comma as a delimiter), and converted to the correct datatype by calling the 
+  function convert_val().
+
   @param filename: full path to the inlist file
   @type filename: str
   @return: a list of (attr, val) tuples, where 
@@ -52,7 +89,6 @@ def read_inlist(filename):
   with open(filename, 'r') as r: lines = r.readlines()
 
   options  = []
-  numbers  = '+-0123456789'
   for k, line in enumerate(lines):
     line   = line.strip() # rstrip('\r\n')
     if '#' in line:
@@ -63,37 +99,34 @@ def read_inlist(filename):
     attr, val = line.split('=')
     attr   = attr.strip() # remove spaces
     val    = val.strip()  # remove spaces
-   
+
     if '"' in val:      # look after string inputs
       if val.count('"') == 2:
-        continue        # string input detected
+        pass        # string input detected
       else:
-        logger.error('read_inlist: Ambiguous string detected in line: {0} of file: {1}'.format(line, filename))
+        logger.error('read_inlist: Ambiguous string detected in line: {0} in file: {1}'.format(line, filename))
         sys.exit(1)
     elif "'" in val:
-      if val.count("'") == 2:
-        continue        # string input detected
-      else:
-        logger.error('read_inlist: Ambiguous string detected in line: {0} of file: {1}'.format(line, filename))
-        sys.exit(1)
-    elif val == 'True': # look after boolean inputs 
-      val = True 
-    elif val == 'False': 
-      val = False
-    elif '.' in val:    # look after float inputs
-      val = float(val)
-    elif 'e' in val:
-      i_e = val.index('e')
-      before = val[i_e-1] in numbers
-      after  = val[i_e+1] in numbers
-      if all([before, after]):
-        val  = float(val)
-      else:
-        logger.error('read_inlist: Failed to interpret line: {0} in file: {1}'.format(line, filename))
-        sys.exit(1)
-    else:               # default: set to integer
-      val = int(val)
 
+      if val.count("'") == 2:
+        pass        # string input detected
+      else:
+        logger.error('read_inlist: Ambiguous string detected in line: {0} in file: {1}'.format(line, filename))
+        sys.exit(1)
+    elif '[' in val and ']' in val:
+      i_l  = val.index('[')
+      i_r  = val.index(']')
+      vals = val[i_l+1 : i_r].split(',')
+      val  = [convert_val(v) for v in vals]
+    elif '(' in val and ')' in val:
+      i_l  = val.index('(')
+      i_r  = val.index(')')
+      vals = val[i_l+1 : i_r].split(',')
+      val  = [convert_val(v) for v in vals]
+    else:
+      val  = convert_val(val)
+
+    # print (k, attr, val)
     options.append((attr, val))
   
   logger.info('read_inlist: Successfully read file: "{0}"'.format(filename))

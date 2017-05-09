@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import sys, os, glob
 import logging
 import numpy as np 
+
 from asamba import star, db_def 
 from asamba import sampler as smpl
 from asamba import artificial_neural_network as ann
@@ -141,9 +142,47 @@ def get_example_input_freq():
 def read_star_inlist(filename):
   """
   Read the star inlist, and load the available information to the BackEndSession object
-  """
-  
+  """  
   BackEndSession.load_star_from_inlist(filename)
+
+####################################################################################
+def get_example_star_inlist():
+  """
+  Return a long string that gives an example of how the star parameter inlist file must be structured
+  @return: example text
+  @rtype: str
+  """
+
+  ex_lines =  '\n'
+  ex_lines += 'name = "beta Cephei" \n'
+  ex_lines += 'Teff = 27e+3 \n'
+  ex_lines += 'Teff_err_lower = 450. \n' 
+  ex_lines += 'Teff_err_upper = 450. \n'
+  ex_lines += 'log_g = 4.05 \n'
+  ex_lines += 'log_g_err_lower = 4.05 \n'
+  ex_lines += 'log_g_err_upper = 4.05 \n'
+  ex_lines += 'Z = 0.0132 \n'
+  ex_lines += 'Z_err = 0.0025 \n'
+  ex_lines += 'mass = 12.2 \n'
+  ex_lines += 'mass_err = 0.4 \n'
+  ex_lines += 'log_L = 4.18 \n'
+  ex_lines += 'references="Nieva & Przybilla (2014, A&A)"\n'
+  ex_lines += '... \n \n'
+  ex_lines += 'Notes: \n'
+  ex_lines += ' - See the valid variables in <asamba>/data/input_templates/parameters.star. \n'
+  ex_lines += ' - The valid variables are also attributes of the star.star() class \n'
+  ex_lines += '   (see documentations in star.py).\n'
+  ex_lines += ' - The units of the physical quantities are either in CGS, or w.r.t. to the Sun \n'
+  ex_lines += '\n'
+
+  return ex_lines
+
+####################################################################################
+def read_sampling_inlist(filename):
+  """
+  Read the sampling inlist, and load the instructions to the BackEndSession object
+  """ 
+  BackEndSession.load_sampling_from_inlist(filename)
 
 ####################################################################################
 # def set_obs_log_Teff(val, err):

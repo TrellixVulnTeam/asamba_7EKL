@@ -431,7 +431,6 @@ class star(modes):
     @return: None
     """
     options = read.read_inlist(filename)
-    logger.info('here: load_star_from_inlist')
     for tup in options:
       attr = tup[0]
       val  = tup[1]

@@ -20,7 +20,7 @@ import time
 import itertools
 import numpy as np 
 
-from asamba import utils, db_def, db_lib, query, star
+from asamba import utils, read, db_def, db_lib, query, star
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -48,8 +48,6 @@ class sampling(star.star):
   "star.star()" object to represent a star
   """
 
-  global_ = 0
-
   def __init__(self):
     super(sampling, self).__init__()
 
@@ -58,7 +56,11 @@ class sampling(star.star):
     #.............................
     # The database to retrieve samples from
     self.dbname = ''
-    # Sampling function name
+    # which sampling function? Two options are:
+    # 'randomly_pick_models_and_rotation_ids'   OR  
+    # 'constrained_pick_models_and_rotation_ids'
+    self.sampling_func_name = ''
+    # Sampling function 
     self.sampling_func = None
     # shuffle the sample
     self.sampling_shuffle = True
@@ -170,11 +172,6 @@ class sampling(star.star):
     self.test_log_g = []
     self.test_set_done = False
 
-    # #.............................
-    # # Inheriting from the star module
-    # #.............................
-    # self.star = star.star()
-
 
   ##########################
   # Setter
@@ -233,6 +230,24 @@ class sampling(star.star):
         sys.exit(1)
     
     setattr(self, attr, val)
+
+  ##########################
+  def load_sampling_from_inlist(self, filename):
+    """
+    Set some of the attributes of the sampling object through an inlist file. This allows to control
+    the behaviour of the sampling procedure in an easier way, e.g. through the frontend GUI. For every
+    valid input variable and its input value, the set method is called iteratively.
+
+    @param filename: Full path to the input inlist file. One example can be found in the following 
+           directory: <asamba>/data/input_templates/instructions.sampling
+    @type filename: str
+    @return: None
+    """
+    options = read.read_inlist(filename)
+    for tup in options:
+      attr  = tup[0]
+      val   = tup[1]
+      self.set(attr, val)
 
   ##########################
   # Getter
@@ -556,8 +571,8 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: specify "dbname" attribute of the class')
     sys.exit(1)
 
-  if self.sampling_func is None:
-    logger.error('_build_learning_sets: specify "sampling_func" attribute of the class')
+  if self.sampling_func_name is '':
+    logger.error('_build_learning_sets: specify "sampling_func_name" attribute of the class')
     sys.exit(1)
 
   # if self.star.num_modes == 0:
@@ -566,8 +581,7 @@ def _build_learning_sets(self):
     sys.exit(1)
 
   # Get the list of tuples for the (id_model, id_rot) to fetch model attributes
-  # tups_ids   = sampling_func(*sampler_args)  
-  if self.sampling_func is constrained_pick_models_and_rotation_ids:
+  if self.sampling_func_name is 'constrained_pick_models_and_rotation_ids':
 
     if not self.range_log_Teff or not self.range_log_g or not self.range_eta:
       logger.error('_build_learning_sets: specify "ranges" properly')
@@ -576,7 +590,7 @@ def _build_learning_sets(self):
     tups_ids = constrained_pick_models_and_rotation_ids(self) 
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
-  elif self.sampling_func is randomly_pick_models_and_rotation_ids:
+  elif self.sampling_func_name is 'randomly_pick_models_and_rotation_ids':
     tups_ids = randomly_pick_models_and_rotation_ids(self)
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
 

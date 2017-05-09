@@ -114,7 +114,9 @@ class GUI(object):
     # self.obs_log_g        = DoubleVar()
     # self.obs_log_g_err    = DoubleVar()
 
-    # # Sampling 
+    # Sampling 
+    self.sampling_inlist  = StringVar()
+    self.sampling_inlist_done = BooleanVar()
     # self.which_sampling_function = BooleanVar()
     # self.sampling_constrained    = True 
     # self.sampling_randomly       = False
@@ -138,7 +140,6 @@ class GUI(object):
     root.resizable(False, False)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    root.lift() # put on top of all
 
     style = ttk.Style()
     style.configure('TNotebook.Tab', padding=(20, 8, 20, 0))
@@ -225,13 +226,10 @@ class GUI(object):
     self.but_input_star = ttk.Button(self.frame_input, text='Load Star Parameters', command=self.browse_star_file)
     self.but_input_star.grid(row=1, column=0, sticky=(W, E)) 
 
-    self.but_input_star_ex = ttk.Button(self.frame_input, text='Example', command=None)
+    self.but_input_star_ex = ttk.Button(self.frame_input, text='Example', command=self.example_star_inlist)
     self.but_input_star_ex.grid(row=1, column=1, sticky=(W, E))
 
-    self.but_input_apply= ttk.Button(self.frame_input, text='Check & Input', command=None)
-    self.but_input_apply.grid(row=2, column=0, sticky=(W, E))
-
-    self.but_samp_input = ttk.Button(self.frame_sample, text='Load Sampling Settings', command=None)
+    self.but_samp_input = ttk.Button(self.frame_sample, text='Load Sampling Settings', command=self.browse_sampling_file)
     self.but_samp_input.grid(row=0, column=0, sticky=(W, E))
 
     self.but_samp_ex    = ttk.Button(self.frame_sample, text='Example', command=None)
@@ -371,7 +369,6 @@ class GUI(object):
     new_wind = Tk()
     new_wind.wm_title('Example: Frequency List')
     ex_lbl_  = ttk.Label(new_wind, text=ex_lines, justify='left', cursor='arrow', relief='sunken')
-                        # padx=10, pady=10, wraplength=0)
     ex_lbl_.pack()
     new_wind.mainloop()
 
@@ -449,6 +446,32 @@ class GUI(object):
       self.star_inlist_done.set(False)
       self.update_status_bar('Failed to read star inlist: {0}'.format(fname))
       logger.warning('browse_star_file: failed. Correct this file, and try again')
+
+  # ##########################################
+  def example_star_inlist(self):
+    """ Show a static window with an example of how the star inlist file is structured """
+    self.update_status_bar('Show an example of the star parameter inlist file')
+    ex_lines = bk.get_example_star_inlist()
+    new_wind = Tk()
+    new_wind.wm_title('Example: Star Parameters Inlist File')
+    ex_lbl_  = ttk.Label(new_wind, text=ex_lines, justify='left', cursor='arrow', relief='sunken')
+    ex_lbl_.pack()
+    new_wind.mainloop()
+
+  # ##########################################
+  def browse_sampling_file(self):
+    """ Browse and locate the user-specified sampling inlist file """
+    fname = tkinter.filedialog.askopenfilename(title='Select Sampling Inlist File')
+    try:
+      bk.read_sampling_inlist(fname)
+      self.sampling_inlist.set(fname)
+      self.sampling_inlist_done.set(True)
+      self.update_status_bar('Successfully read the sampling inlist: {0}'.format(fname))
+      logger.info('browse_sampling_file: succeeded')
+    except:
+      self.sampling_inlist_done.set(False)
+      self.update_status_bar('Failed to read the sampling inlist: {0}'.format(fname))
+      logger.warning('browse_sampling_file: failed. Correct this file, and try again')
 
   # ##########################################
   # # Observatinal Inputs
@@ -547,6 +570,9 @@ class GUI(object):
 if __name__ == '__main__':
   master    = Tk()         # invoke the master frame
   session   = GUI(master)  # instantiate the GUI
+  master.lift()            # keep the master window on top
+  master.call('wm', 'attributes', '.', '-topmost', True)
+  master.after_idle(master.call, 'wm', 'attributes', '.', '-topmost', False)
   master.mainloop()        # keep it alive, until terminated/closed
 
 ####################################################################################

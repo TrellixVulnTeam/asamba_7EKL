@@ -1,0 +1,68 @@
+#.............................
+# The basic search constraints
+#.............................
+# which sampling function? Two options are:
+# 'randomly_pick_models_and_rotation_ids'   OR  
+# 'constrained_pick_models_and_rotation_ids'
+sampling_func_name = ''
+
+# shuffle the sample
+sampling_shuffle = True
+
+# Maximum sample size to slice from all possible combinations
+max_sample_size = -1
+
+# The range in log_Teff to constrain 
+range_log_Teff = [-1, -1]
+
+# The range in log_g to constrain
+range_log_g = [-1, -1]
+
+# The range in rotation rate (percentage)
+range_eta = [-1, -1]
+
+#.............................
+# The resulting sample of attributes
+#.............................
+# Exclude eta = 0 (non-rotating) from features (avoid singular matrix)
+exclude_eta_column = False
+
+#.............................
+# Search constraints for modes
+#.............................
+# Modes id_types (as defined in asamba.sql) to fetch frequencies from, e.g. [0, 6]
+# for radial (0) and quadrupole zonal (6) modes
+modes_id_types = []
+
+# Modes lower and upper frequency scan range
+modes_freq_range = []
+
+#.............................
+# Frequency search plans
+#.............................
+# Liberal search without any restriction
+search_for_closest_frequencies = False
+
+# Strict search for period spacings
+search_strictly_for_dP = False
+
+# Strict search for frequency spacings
+search_strictly_for_df = False
+
+# Match from closest smallest frequency
+# and proceed to higher frequencies
+match_lowest_frequency = True
+
+# What fraction of frequency difference around
+# the lowest and highest modes to keep the modes?
+# This cannot exceed 0.5
+trim_delta_freq_factor = 0.25
+
+#.............................
+# Sizes of different learning sets
+# Default: -1, means not set yet
+#.............................
+# Training, cross-validation and test samples
+training_percentage = -1
+cross_valid_percentage = -1
+test_percentage = -1
