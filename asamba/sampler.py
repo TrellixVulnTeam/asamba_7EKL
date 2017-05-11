@@ -57,6 +57,8 @@ class sampling(star.star):
     # The database to retrieve samples from
     self.dbname = ''
     # which sampling function? Two options are:
+    self.use_constrained_sampling = False
+    self.use_random_sampling = False
     # 'randomly_pick_models_and_rotation_ids'   OR  
     # 'constrained_pick_models_and_rotation_ids'
     self.sampling_func_name = ''
@@ -571,31 +573,34 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: specify "dbname" attribute of the class')
     sys.exit(1)
 
-  if self.sampling_func_name is '':
-    logger.error('_build_learning_sets: specify "sampling_func_name" attribute of the class')
+  choices   = [self.use_constrained_sampling, self.use_random_sampling]
+  n_choices = np.sum(np.array(choices)*1)
+  if n_choices != 1:
+    logger.error('_build_learning_sets: Choose either use_constrained_sampling or use_random_sampling')
     sys.exit(1)
 
-  # if self.star.num_modes == 0:
   if self.get('num_modes') == 0:
     logger.error('_build_learning_sets: The "modes" attribute of the "star" object of "sampling" not set yet!')
     sys.exit(1)
 
   # Get the list of tuples for the (id_model, id_rot) to fetch model attributes
-  if self.sampling_func_name is 'constrained_pick_models_and_rotation_ids':
+  if self.use_constrained_sampling:
 
     if not self.range_log_Teff or not self.range_log_g or not self.range_eta:
       logger.error('_build_learning_sets: specify "ranges" properly')
       sys.exit(1)
 
+    self.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
     tups_ids = constrained_pick_models_and_rotation_ids(self) 
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
-  elif self.sampling_func_name is 'randomly_pick_models_and_rotation_ids':
+  elif use_random_sampling:
+    self.set('sampling_func_name', 'randomly_pick_models_and_rotation_ids')
     tups_ids = randomly_pick_models_and_rotation_ids(self)
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
 
   else:
-    logger.error('_build_learning_sets: Wrong sampling function specified in the class')
+    logger.error('_build_learning_sets: Wrong sampling function name specified')
     sys.exit(1)
 
   # Split the model ids from the eta ids

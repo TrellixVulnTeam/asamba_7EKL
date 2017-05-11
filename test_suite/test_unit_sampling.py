@@ -21,7 +21,7 @@ console.setLevel(logging.INFO)
 def main():
 
   print(' - Load the mode list from a file')
-  mode_file = 'asamba/stars/KIC_10526294.freq'
+  mode_file = '../asamba/stars/KIC_10526294.freq'
 
   print(' - Get an instance of the "sampling" class.')
   TheSample = sampler.sampling()
@@ -30,7 +30,7 @@ def main():
   # TheStar   = star.star()
   TheSample.set('name', 'KIC_10526294')
 
-  TheSample.set('Teff', 11500.)
+  TheSample.set('Teff', 11550.)
   TheSample.set('Teff_err_lower', 500.)
   TheSample.set('Teff_err_upper', 500.)
   TheSample.set('log_g', 4.1)
@@ -41,13 +41,12 @@ def main():
   TheSample.load_modes_from_file(filename=mode_file, delimiter=',')
 
   TheSample.set('dbname', 'grid')
-  TheSample.set('sampling_func', sampler.constrained_pick_models_and_rotation_ids)
+  # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
+  TheSample.set('use_constrained_sampling', True)
   TheSample.set('max_sample_size', 5000)
   TheSample.set('range_log_Teff', [3.95, 4.11])
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])
-
-  # TheSample.set('star', TheStar)
 
   # seismic constraints
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  

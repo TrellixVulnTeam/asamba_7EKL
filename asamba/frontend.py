@@ -37,6 +37,7 @@ import tkinter.messagebox
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pylab as plt
 
 from asamba import backend as bk
 from asamba.backend import BackEndSession
@@ -44,9 +45,9 @@ from asamba.backend import BackEndSession
 ####################################################################################
 # Capturing all logs under the hood to toss them to the Log tab
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 stdout = logging.StreamHandler(sys.stdout)
-stdout.setLevel(logging.DEBUG)
+stdout.setLevel(logging.INFO)
 formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
 stdout.setFormatter(formatter)
 logger.addHandler(stdout)
@@ -91,7 +92,8 @@ class GUI(object):
     self.conn_https   = 3   # 'https://'
     self.conn_https_str = 'https://'
     self.dbname       = ''  # The final user's choice
-    self.conn_status  = False
+    self.conn_status  = BooleanVar()
+    self.conn_status.set(False)
 
     self.conn_lbl_str = StringVar()
     self.bitmap_OK    = self.dir_bitmaps + 'OK.png'
@@ -99,31 +101,30 @@ class GUI(object):
     self.bitmap_NOK   = self.dir_bitmaps + 'NOK.png'
     # self.handle_NOK   = PhotoImage(self.bitmap_NOK)
 
-    # # Input frequency list
+    # Input frequency list
     self.input_freq_file = StringVar()
     self.input_freq_done = BooleanVar()
 
-    # # Input observational data
+    # Input observational data
     self.star_inlist     = StringVar()
     self.star_inlist_done= BooleanVar()
-    # self.use_obs_log_Teff = BooleanVar()
-    # self.obs_log_Teff     = DoubleVar()
-    # self.obs_log_Teff_err = DoubleVar()
 
-    # self.use_obs_log_g    = BooleanVar()
-    # self.obs_log_g        = DoubleVar()
-    # self.obs_log_g_err    = DoubleVar()
+    # Online plotting
+    self.figure_is_shown = BooleanVar()
+    self.figure_is_shown.set(False)
+    self.figure_object   = None
 
     # Sampling 
-    self.sampling_inlist  = StringVar()
+    self.sampling_inlist = StringVar()
     self.sampling_inlist_done = BooleanVar()
-    # self.which_sampling_function = BooleanVar()
-    # self.sampling_constrained    = True 
-    # self.sampling_randomly       = False
-    # self.sampling_shuffle        = BooleanVar()        
+    self.build_learning_set_done = BooleanVar()
 
-    # # Status bar messages
-    self.status_bar_message = StringVar()
+    # Normal Equation
+    self.norm_eq_done    = BooleanVar()
+    self.norm_eq_done.set(False)
+
+    # Status bar messages
+    self.status_bar_message   = StringVar()
 
     # Trigger the FrontWindow now ...
     self.FrontWindow()
@@ -144,7 +145,6 @@ class GUI(object):
     style = ttk.Style()
     style.configure('TNotebook.Tab', padding=(20, 8, 20, 0))
     style.theme_use('aqua')
-    # print(style.theme_use(''))
 
     self.notebook   = ttk.Notebook(root)    
     self.notebook.pack(fill='both', expand='yes')
@@ -182,7 +182,9 @@ class GUI(object):
     self.frame_interp = ttk.Labelframe(self.tab_seism, text='Interpolation')
     self.frame_interp.grid(row=4, column=0, sticky=(W, E))
 
-    self.frame_plot_modes = ttk.Labelframe(self.tab_seism, text='Observed Modes')
+    self.frame_plot_modes = ttk.Labelframe(self.tab_seism, text='Observed Modes',
+                            cursor='arrow', takefocus=False)
+    self.frame_plot_modes.unbind('Button')
     self.frame_plot_modes.grid(row=0, column=1, sticky=(W, E, N, S), rowspan=5)
 
     self.frame_query = ttk.Labelframe(self.tab_query, text='Query MESA Models')
@@ -229,24 +231,45 @@ class GUI(object):
     self.but_input_star_ex = ttk.Button(self.frame_input, text='Example', command=self.example_star_inlist)
     self.but_input_star_ex.grid(row=1, column=1, sticky=(W, E))
 
+    ##########################################
+    # The Sampling Frame
+    ##########################################
     self.but_samp_input = ttk.Button(self.frame_sample, text='Load Sampling Settings', command=self.browse_sampling_file)
     self.but_samp_input.grid(row=0, column=0, sticky=(W, E))
 
-    self.but_samp_ex    = ttk.Button(self.frame_sample, text='Example', command=None)
+    self.but_samp_ex    = ttk.Button(self.frame_sample, text='Example', command=self.example_sampling_inlist)
     self.but_samp_ex.grid(row=0, column=1, sticky=(W, E))
 
-    self.but_samp_exec  = ttk.Button(self.frame_sample, text='Execute', command=None)
-    self.but_samp_exec.grid(row=0, column=2, sticky=(W, E))
+    self.but_samp_exec  = ttk.Button(self.frame_sample, text='Build Learning Set', command=self.call_build_learning_set)
+    self.but_samp_exec.grid(row=1, column=0, sticky=(W, E))
+
+    self.but_samp_res   = ttk.Button(self.frame_sample, text='Result', command=self.show_samp_results)
+    self.but_samp_res.grid(row=1, column=1, sticky=(W, E))
+
+    self.but_samp_slit  = ttk.Button(self.frame_sample, text='Training, CV, Test Sets', command=self.split_samp)
+    self.but_samp_slit.grid(row=2, column=0, sticky=(W, E))
+
+    ##########################################
+    # The Maximum a Posteriori Frame
+    ##########################################
+    self.but_norm_eq    = ttk.Button(self.frame_MAP, text='Analytic Solution', command=self.norm_eq)
+    self.but_norm_eq.grid(row=0, column=0, sticky=(W, E))
+
+    self.but_norm_eq_res= ttk.Button(self.frame_MAP, text='Result', command=self.show_norm_eq_result)
+    self.but_norm_eq_res.grid(row=0, column=1, sticky=(W, E))
 
     self.but_MAP        = ttk.Button(self.frame_MAP, text='Load MAP Settings', command=None)
-    self.but_MAP.grid(row=0, column=0, sticky=(W, E))
+    self.but_MAP.grid(row=1, column=0, sticky=(W, E))
 
     self.but_MAP_ex     = ttk.Button(self.frame_MAP, text='Example', command=None)
-    self.but_MAP_ex.grid(row=0, column=1, sticky=(W, E))
+    self.but_MAP_ex.grid(row=1, column=1, sticky=(W, E))
 
     self.but_MAP_exec   = ttk.Button(self.frame_MAP, text='Execute', command=None)
-    self.but_MAP_exec.grid(row=0, column=2, sticky=(W, E))
+    self.but_MAP_exec.grid(row=1, column=2, sticky=(W, E))
 
+    ##########################################
+    # The Interpolation Frame
+    ##########################################
     self.but_interp     = ttk.Button(self.frame_interp, text='Load Interp. Settings', command=None)
     self.but_interp.grid(row=0, column=0, sticky=(W, E))
 
@@ -254,10 +277,7 @@ class GUI(object):
     self.but_interp_ex.grid(row=0, column=1, sticky=(W, E))
 
     self.but_interp_exec=ttk.Button(self.frame_interp, text='Execute', command=None)
-    self.but_interp_exec.grid(row=0, column=2, sticky=(W, E))
-
-    # self._=ttk.Label(self.frame_plot_modes, text='To Do ...')
-    # self._.grid(row=0, column=0)
+    self.but_interp_exec.grid(row=1, column=0, sticky=(W, E))
 
     ##########################################
     # The Query Frame
@@ -294,7 +314,7 @@ class GUI(object):
     # Status Bar
     ##########################################
     self.status_bar = ttk.Label(self.frame_stat_bar, relief='flat', anchor='w')
-    self.status_bar.pack(side='bottom', fill='x')
+    self.status_bar.grid(row=0, column=0, sticky=W)
     self.update_status_bar('')
 
     ##########################################
@@ -317,7 +337,7 @@ class GUI(object):
     choice = self.connection.get()
     if choice not in [self.conn_loc, self.conn_ivs, self.conn_https]:
       self.update_status_bar('The connection choice is not made yet. Please choose one option.')
-      self.conn_status = False
+      self.conn_status.set(False)
     else:    # attempt a connection test
       if choice == self.conn_loc: self.dbname   = self.conn_loc_str
       if choice == self.conn_ivs: self.dbname   = self.conn_ivs_str
@@ -327,11 +347,12 @@ class GUI(object):
 
   def do_connect(self):
     """ The backend will connect based on the user's connecton choice """
-    self.conn_status = bk.do_connect(self.dbname)
+    stat = bk.do_connect(self.dbname)
+    self.conn_status.set(stat) 
 
   def update_connection_state(self):
     """ Update the label in the connection frame based on the connection test """
-    if self.conn_status:
+    if self.conn_status.get():
       self.update_status_bar('Connection to {0} is active'.format(self.dbname))
       self.conn_lbl_str.set('Active')
       self.conn_lbl['background'] = 'green'
@@ -376,9 +397,9 @@ class GUI(object):
   def plot_observed_frequencies(self):
     """ If reading in put frequencies is successfull, the modes will be plotted, as a reward! """
     from asamba.star import d_to_sec
-    fig       = matplotlib.figure.Figure(figsize=(5, 5), dpi=100, tight_layout=True)
-    top       = fig.add_subplot(211)
-    bot       = fig.add_subplot(212)
+    if self.figure_is_shown.get(): self.figure_object.clf()
+
+    fig, (top, bot) = plt.subplots(2, 1, figsize=(5, 5), dpi=100, tight_layout=True)
 
     modes     = BackEndSession.get('modes')
     freqs     = np.array([ mode.freq for mode in modes ])
@@ -432,6 +453,9 @@ class GUI(object):
     canvas._tkcanvas.pack(side='top', fill='both', expand=True)
     canvas.show()
 
+    self.figure_object = fig
+    self.figure_is_shown.set(True)
+
   # ##########################################
   def browse_star_file(self):
     """ Browse and locate the user-specified star inlist file """
@@ -473,6 +497,110 @@ class GUI(object):
       self.update_status_bar('Failed to read the sampling inlist: {0}'.format(fname))
       logger.warning('browse_sampling_file: failed. Correct this file, and try again')
 
+  # ##########################################
+  def example_sampling_inlist(self):
+    """ Show a static window with an example of how the sampling inlist file is structured """
+    self.update_status_bar('Show an example of the sampling inlist file')
+    ex_lines = bk.get_example_sampling_inlist()
+    new_wind = Tk()
+    new_wind.wm_title('Example: Sampling Inlist File')
+    ex_lbl_  = ttk.Label(new_wind, text=ex_lines, justify='left', cursor='arrow', relief='sunken')
+    ex_lbl_.pack()
+    new_wind.mainloop()
+
+  # ##########################################
+  def call_build_learning_set(self):
+    """ A wrapper to call sampler.build_learning_set through the backend """
+    if not self.conn_status.get():
+      self.update_status_bar('You must first choose your connection! See above')
+      logger.warning('You must first choose your connection! See above')
+      self.build_learning_set_done.set(False)
+      return False 
+
+    if not self.input_freq_done.get():
+      self.update_status_bar('You must first load the frequency list')
+      logger.warning('You must first load the frequency list')
+      self.build_learning_set_done.set(False)
+      return False
+
+    if not self.sampling_inlist_done.get():
+      self.update_status_bar('You must first load the sampling inlist! Try again')
+      logger.warning('You must first load the sampling inlist! Try again')
+      self.build_learning_set_done.set(False)
+      return False 
+
+    self.update_status_bar('Building the learning sets ...')
+    logger.info('Building the learning sets ...')
+    try:
+      bk.do_call_build_learning_set()
+      self.update_status_bar('The learning sets successfully built')
+      logger.info('The learning sets successfully built')
+      self.build_learning_set_done.set(True)
+    except:
+      self.update_status_bar('Failed to build the learning sets')
+      logger.warning('Failed to build the learning sets')
+      self.build_learning_set_done.set(False)
+
+  # ##########################################
+  def show_samp_results(self):
+    """ Show the outcome of the sampling in a new pop up window """
+    lines = bk.get_samp_results()
+    self.update_status_bar('Showing the information about the learning sets')
+    new_wind = Tk()
+    new_wind.wm_title('Sampling Results')
+    ex_lbl_  = ttk.Label(new_wind, text=lines, justify='left', cursor='arrow', relief='sunken')
+    ex_lbl_.pack()
+    new_wind.mainloop()
+
+  # ##########################################
+  def split_samp(self):
+    """ This is a wrapper around the bk.do_split_sample """
+    try:
+      bk.do_split_sample()
+      self.update_status_bar('Splitted the learning set into training, cross-validation and test sets')
+    except:
+      self.update_status_bar('Failed to split the learning set!')
+
+  # ##########################################
+  def norm_eq(self):
+    """ a wrapper around bk.do_normal_eq """
+    if not self.build_learning_set_done.get():
+      logger.warning('norm_eq: You must first build the learning set! Try again')
+      self.update_status_bar('norm_eq: You must first build the learning set! Try again')
+      self.norm_eq_done.set(False)
+      return False
+
+    try:
+      bk.do_normal_eq()
+      self.update_status_bar('Analytical solution (Normal Equation) found')
+      self.norm_eq_done.set(True)
+    except:
+      self.update_status_bar('Failed to solve the Normal Equation')
+      self.norm_eq_done.set(False)
+
+  # ##########################################
+  def show_norm_eq_result(self):
+    """ Show the outcome of solving the normal equation """
+    if not self.norm_eq_done.get():
+      logger.warning('norm_eq: You must first solve the normal (analytic) equation')
+      self.update_status_bar('You must first solve the normal (analytic) equation')
+
+    try:
+      lines = bk.get_norm_eq_result()
+    except:
+      self.update_status_bar('Failed to fetch the results of analytic solution')
+      logger.warning('Failed to fetch the results of analytic solution')
+      return False
+
+    self.update_status_bar('Showing the analytic solution')
+    new_wind = Tk()
+    new_wind.wm_title('Analytic Solution')
+    ex_lbl_  = ttk.Label(new_wind, text=lines, justify='left', cursor='arrow', relief='sunken')
+    ex_lbl_.pack()
+    new_wind.mainloop()
+
+  # ##########################################
+  # ##########################################
   # ##########################################
   # # Observatinal Inputs
   # def release_obs_log_Teff(self):
@@ -569,6 +697,8 @@ class GUI(object):
 ####################################################################################
 if __name__ == '__main__':
   master    = Tk()         # invoke the master frame
+  master.geometry('920x621')
+  master.update()          # update the window size
   session   = GUI(master)  # instantiate the GUI
   master.lift()            # keep the master window on top
   master.call('wm', 'attributes', '.', '-topmost', True)

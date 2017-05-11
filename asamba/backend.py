@@ -185,6 +185,121 @@ def read_sampling_inlist(filename):
   BackEndSession.load_sampling_from_inlist(filename)
 
 ####################################################################################
+def get_example_sampling_inlist():
+  """
+  Return a long string that gives an example of how the sampling inlist file must be structured
+  @return: example text
+  @rtype: str
+  """
+  ex_lines =  '\n'
+  ex_lines += 'use_constrained_sampling = True \n'
+  ex_lines += 'sampling_shuffle = True \n'
+  ex_lines += 'max_sample_size = 5000 \n'
+  ex_lines += 'range_log_Teff = [3.95, 4.11] \n'
+  ex_lines += 'range_log_g = [3.9, 4.3] \n'
+  ex_lines += 'range_eta = [8, 32] \n'
+  ex_lines += 'exclude_eta_column = False \n'
+  ex_lines += 'modes_id_types = [2] \n'
+  ex_lines += 'search_strictly_for_dP = True \n'
+  ex_lines += 'trim_delta_freq_factor = 0.25 \n'
+  ex_lines += 'training_percentage = 0.80 \n'
+  ex_lines += 'cross_valid_percentage = 0.15 \n'
+  ex_lines += 'test_percentage = .05 \n'
+  ex_lines += '... \n \n'
+  ex_lines += 'Notes: \n'
+  ex_lines += ' - See the valid variables in <asamba>/data/input_templates/instructions.sampling. \n'
+  ex_lines += ' - Some of the valid variables are attributes of the sampler.sampling() class \n'
+  ex_lines += ' - This inlists accepts Boolean (True/False), integer, and float inputs, in addition \n'
+  ex_lines += '   to a list or tuple of values. \n'
+  ex_lines += ' - An example of input lists is "range_eta = [8, 32]."\n'
+  ex_lines += ' \n'
+
+  return ex_lines
+
+####################################################################################
+def do_call_build_learning_set():
+  """ This is a basic wrapper around the sampler method: build_learning_set() """
+  BackEndSession.build_learning_set()
+
+####################################################################################
+def get_samp_results():
+  """ Grab several useful information after the learning set is built """
+  lx    = BackEndSession.learning_x
+  ly    = BackEndSession.learning_y
+  tx    = BackEndSession.training_x
+  ty    = BackEndSession.training_y
+  cvx   = BackEndSession.cross_valid_x
+  cvy   = BackEndSession.cross_valid_y
+  tsx   = BackEndSession.test_x
+  tsy   = BackEndSession.test_y
+  tp    = BackEndSession.training_percentage
+  cvp   = BackEndSession.cross_valid_percentage
+  tsp   = BackEndSession.test_percentage
+  flag1 = BackEndSession.learning_done
+  flag2 = BackEndSession.training_set_done
+  flag3 = BackEndSession.cross_valid_set_done
+  flag4 = BackEndSession.test_set_done
+
+  lines =  'Max. num. rows (set by user): {0} \n'.format(BackEndSession.max_sample_size)
+  if flag1:
+    lines += 'Number of rows retrieved: {0} \n'.format(BackEndSession.sample_size)
+    lines += '\n'
+    lines += 'Number of features returned: {0} \n'.format(BackEndSession.num_features)
+    lines += 'Names of the feature columns: {0} \n'.format(BackEndSession.feature_names)
+    lines += 'Shape of the frequency matrix: {0} \n'.format(ly.shape)
+  lines += '\n'
+  if flag2:
+    lines += 'Percentage of rows kept for training: {0:.2f} % \n'.format(tp*100.)
+    lines += 'Training set matrix X: {0}, Y: {1} \n\n'.format(tx.shape, ty.shape)
+  if flag3:
+    lines += 'Percentage of rows kept for cross-validation: {0:.2f} % \n'.format(cvp*100.)
+    lines += 'Cross-validation set matrix X: {0}, Y: {1} \n\n'.format(cvx.shape, cvy.shape)
+  if flag4:
+    lines += 'Percentage of rows kept for testing: {0:.2f} % \n'.format(tsp*100.)
+    lines += 'Test set matrix X: {0}, Y: {1} \n\n'.format(tsx.shape, tsy.shape)
+  lines += '\n'
+
+  return lines
+
+####################################################################################
+def do_split_sample():
+  """ a wrapper around the sampler method split_learning_sets() """
+  BackEndSession.split_learning_sets()
+####################################################################################
+def do_normal_eq():
+  """ A wrapper around ann.solve_normal_equation() method """
+  if not BackEndSession.learning_done:
+    logger.warning('do_normal_eq: You must first build your learning set! Try again')
+    return False
+
+  BackEndSession.solve_normal_equation()
+
+####################################################################################
+def get_norm_eq_result():
+  """ 
+  Parse the results of solving the normal equation. By results, we mean the set of 
+  regression parameters \f$\theta\f$ which minimize the cost function (normally the 
+  chi square function). For further details, you can refer to the docmunetion below
+  the following method: artificial_neural_network.solve_normal_equation(). 
+  """
+  if not BackEndSession.normal_equation_done:
+    logger.warning('get_norm_eq_result: You must first solve analytically! Try again')
+    return False
+
+  X_Neq = BackEndSession.get('normal_equation_features')
+  names = BackEndSession.get('feature_names')
+  names = ['Intercept'] + names
+
+  lines =  'The set of attributes which minimize the cost function \n'
+  for key_val in zip(names, X_Neq):
+    print(key_val[0], key_val[1])
+    lines += '{0}: {1:0.4f} \n'.format(key_val[0], key_val[1])
+  lines += '\n' 
+  lines += 'Cost function: J(theta) = {0:0.2e} \n'.format(BackEndSession.normal_equation_cost)
+
+  return lines
+
+####################################################################################
 # def set_obs_log_Teff(val, err):
 #   """
 #   Set using the observed effective temperature 

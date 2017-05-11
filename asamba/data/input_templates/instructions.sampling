@@ -1,10 +1,9 @@
 #.............................
 # The basic search constraints
 #.............................
-# which sampling function? Two options are:
-# 'randomly_pick_models_and_rotation_ids'   OR  
-# 'constrained_pick_models_and_rotation_ids'
-sampling_func_name = ''
+# which sampling function? Choose one    
+use_constrained_sampling = False
+use_random_sampling = False
 
 # shuffle the sample
 sampling_shuffle = True

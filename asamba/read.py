@@ -33,9 +33,9 @@ def convert_val(str_val):
     sys.exit(1)
 
   numbers  = '+-0123456789'
-  if str_val == 'True': # look after boolean inputs 
+  if str_val.lower() == 'true': # look after boolean inputs 
     val = True 
-  elif str_val == 'False': 
+  elif str_val.lower() == 'false': 
     val = False
   elif '.' in str_val:    # look after float inputs
     val = float(str_val)

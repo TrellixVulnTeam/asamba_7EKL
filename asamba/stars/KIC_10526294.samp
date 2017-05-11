@@ -1,0 +1,50 @@
+#.............................
+# The basic search constraints
+#.............................
+# which sampling function? 
+use_constrained_sampling = True
+
+# shuffle the sample
+sampling_shuffle = True
+
+# Maximum sample size to slice from all possible combinations
+max_sample_size = 5000
+
+# The range in log_Teff to constrain 
+range_log_Teff = [3.95, 4.11]
+
+# The range in log_g to constrain
+range_log_g = [3.9, 4.3]
+
+# The range in rotation rate (percentage)
+range_eta = [0, 0]
+
+#.............................
+# The resulting sample of attributes
+#.............................
+# Exclude eta = 0 (non-rotating) 
+exclude_eta_column = True
+
+#.............................
+# Search constraints for modes
+#.............................
+# Modes id_types (as defined in asamba.sql) 
+modes_id_types = [2]
+
+#.............................
+# Frequency search plans
+#.............................
+# Strict search for period spacings
+search_strictly_for_dP = True
+
+# delta around lowest/highest freq
+trim_delta_freq_factor = 0.25
+
+#.............................
+# Sizes of different learning sets
+# Default: -1, means not set yet
+#.............................
+# Training, cross-validation and test samples
+training_percentage = 0.80
+cross_valid_percentage = 0.15
+test_percentage = .05
