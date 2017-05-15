@@ -1,0 +1,285 @@
+.TH "asamba.var_def.modes" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.var_def.modes
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fB__enter__\fP (self)"
+.br
+.ti -1c
+.RI "def \fB__exit__\fP (self, type, value, traceback)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.ti -1c
+.RI "def \fBset_by_dic\fP (self, dic)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBl\fP"
+.br
+.ti -1c
+.RI "\fBl_0\fP"
+.br
+.ti -1c
+.RI "\fBm\fP"
+.br
+.ti -1c
+.RI "\fBn_pg\fP"
+.br
+.ti -1c
+.RI "\fBn_p\fP"
+.br
+.ti -1c
+.RI "\fBn_g\fP"
+.br
+.ti -1c
+.RI "\fBomega\fP"
+.br
+.ti -1c
+.RI "\fBomega_int\fP"
+.br
+.ti -1c
+.RI "\fBfreq\fP"
+.br
+.ti -1c
+.RI "\fBfreq_units\fP"
+.br
+.ti -1c
+.RI "\fBf_T\fP"
+.br
+.ti -1c
+.RI "\fBf_g\fP"
+.br
+.ti -1c
+.RI "\fBpsi_T\fP"
+.br
+.ti -1c
+.RI "\fBpsi_g\fP"
+.br
+.ti -1c
+.RI "\fBbeta\fP"
+.br
+.ti -1c
+.RI "\fBE\fP"
+.br
+.ti -1c
+.RI "\fBE_norm\fP"
+.br
+.ti -1c
+.RI "\fBW\fP"
+.br
+.ti -1c
+.RI "\fBM_star\fP"
+.br
+.ti -1c
+.RI "\fBR_star\fP"
+.br
+.ti -1c
+.RI "\fBL_star\fP"
+.br
+.ti -1c
+.RI "\fBn_poly\fP"
+.br
+.ti -1c
+.RI "\fBW_eps\fP"
+.br
+.ti -1c
+.RI "\fBn\fP"
+.br
+.ti -1c
+.RI "\fBx\fP"
+.br
+.ti -1c
+.RI "\fBV\fP"
+.br
+.ti -1c
+.RI "\fBAs\fP"
+.br
+.ti -1c
+.RI "\fBU\fP"
+.br
+.ti -1c
+.RI "\fBc_1\fP"
+.br
+.ti -1c
+.RI "\fBGamma_1\fP"
+.br
+.ti -1c
+.RI "\fBnabla_ad\fP"
+.br
+.ti -1c
+.RI "\fBdelta\fP"
+.br
+.ti -1c
+.RI "\fBOmega_rot\fP"
+.br
+.ti -1c
+.RI "\fBxi_r\fP"
+.br
+.ti -1c
+.RI "\fBxi_h\fP"
+.br
+.ti -1c
+.RI "\fBYt_1\fP"
+.br
+.ti -1c
+.RI "\fBYt_2\fP"
+.br
+.ti -1c
+.RI "\fBeul_phi\fP"
+.br
+.ti -1c
+.RI "\fBdeul_phi\fP"
+.br
+.ti -1c
+.RI "\fBeul_p\fP"
+.br
+.ti -1c
+.RI "\fBeul_rho\fP"
+.br
+.ti -1c
+.RI "\fBeul_T\fP"
+.br
+.ti -1c
+.RI "\fBlag_S\fP"
+.br
+.ti -1c
+.RI "\fBlag_L\fP"
+.br
+.ti -1c
+.RI "\fBlag_p\fP"
+.br
+.ti -1c
+.RI "\fBlag_rho\fP"
+.br
+.ti -1c
+.RI "\fBlag_T\fP"
+.br
+.ti -1c
+.RI "\fBdE_dx\fP"
+.br
+.ti -1c
+.RI "\fBdW_eps_dx\fP"
+.br
+.ti -1c
+.RI "\fBdW_dx\fP"
+.br
+.ti -1c
+.RI "\fBprop_type\fP"
+.br
+.ti -1c
+.RI "\fBK\fP"
+.br
+.ti -1c
+.RI "\fBM_r\fP"
+.br
+.ti -1c
+.RI "\fBp\fP"
+.br
+.ti -1c
+.RI "\fBrho\fP"
+.br
+.ti -1c
+.RI "\fBT\fP"
+.br
+.ti -1c
+.RI "\fBF_j\fP"
+.br
+.ti -1c
+.RI "\fBdiv_F_j\fP"
+.br
+.ti -1c
+.RI "\fBfreq_rot\fP"
+.br
+.ti -1c
+.RI "\fBfreq_crit\fP"
+.br
+.ti -1c
+.RI "\fBeta_rot\fP"
+.br
+.ti -1c
+.RI "\fBomega_rot\fP"
+.br
+.ti -1c
+.RI "\fBlabel\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This is a light-weight container for the GYRE outputs. All attriutes corresponding to the summary
+files or the eigenfunction files are available. The fields are initiated to "None" to keep the default
+volume of the objects minimal.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 582 of file var_def\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.modes\&.__init__ ( self)"
+
+.PP
+.nf
+Constructor of the class. The attributes are based on the GYRE v.4.4, and the list of attributes 
+are availble here: <https://bitbucket.org/rhdtownsend/gyre/wiki/Output%20Files%20(4.4)>
+The data types after allocation is either integer, float, string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 589 of file var_def\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.modes\&.set ( self,  attr,  val)"
+
+.PP
+.nf
+Set the value of an attribute
+
+.fi
+.PP
+ 
+.PP
+Definition at line 677 of file var_def\&.py\&.
+.SS "def asamba\&.var_def\&.modes\&.set_by_dic ( self,  dic)"
+
+.PP
+.nf
+Set the attributes of the object through the available items (key, values) in the passed 
+dictionary. This is to minimize the number of necessary calls to the "set()" method.
+
+@param self: An instance of the modes class
+@type self: object
+@param dic: A dictionary containing the contents of the GYRE output files
+@type dic: dictionary
+
+.fi
+.PP
+ 
+.PP
+Definition at line 687 of file var_def\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

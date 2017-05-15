@@ -1,0 +1,87 @@
+\hypertarget{classasamba_1_1star_1_1mode}{}\section{asamba.\+star.\+mode Class Reference}
+\label{classasamba_1_1star_1_1mode}\index{asamba.\+star.\+mode@{asamba.\+star.\+mode}}
+
+
+Inheritance diagram for asamba.\+star.\+mode\+:
+% FIG 0
+
+
+Collaboration diagram for asamba.\+star.\+mode\+:
+% FIG 1
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_ac9526f60e2052a0f0fc55138a76217fc}\label{classasamba_1_1star_1_1mode_ac9526f60e2052a0f0fc55138a76217fc}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self)
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_acd7157d9ec303f09579e24ba7d2638cc}\label{classasamba_1_1star_1_1mode_acd7157d9ec303f09579e24ba7d2638cc}} 
+def \hyperlink{classasamba_1_1star_1_1mode_acd7157d9ec303f09579e24ba7d2638cc}{set} (self, attr, val)
+\begin{DoxyCompactList}\small\item\em Setter. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a88d1239ec655f2bc03e5db88e170aad0}\label{classasamba_1_1star_1_1mode_a88d1239ec655f2bc03e5db88e170aad0}} 
+def \hyperlink{classasamba_1_1star_1_1mode_a88d1239ec655f2bc03e5db88e170aad0}{get} (self, attr)
+\begin{DoxyCompactList}\small\item\em Getter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a6003aa35ca504e83c244195dd0be0aa9}\label{classasamba_1_1star_1_1mode_a6003aa35ca504e83c244195dd0be0aa9}} 
+{\bfseries freq}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a04b08ed1bdbe5c67922016371873d078}\label{classasamba_1_1star_1_1mode_a04b08ed1bdbe5c67922016371873d078}} 
+{\bfseries freq\+\_\+err}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_ac626ddf68f1b2574834e57caf9c46978}\label{classasamba_1_1star_1_1mode_ac626ddf68f1b2574834e57caf9c46978}} 
+{\bfseries freq\+\_\+unit}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a76a1b2601b1d958edca6b68435b9808a}\label{classasamba_1_1star_1_1mode_a76a1b2601b1d958edca6b68435b9808a}} 
+{\bfseries amplitude}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a0be493e05e856447886a4b93a63239ec}\label{classasamba_1_1star_1_1mode_a0be493e05e856447886a4b93a63239ec}} 
+{\bfseries amplitude\+\_\+err}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a439a154e6feeb8d745694ed4aa1e3b64}\label{classasamba_1_1star_1_1mode_a439a154e6feeb8d745694ed4aa1e3b64}} 
+{\bfseries amplitude\+\_\+unit}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a35d20dc954d4434a8904c23660b26fbb}\label{classasamba_1_1star_1_1mode_a35d20dc954d4434a8904c23660b26fbb}} 
+{\bfseries n}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a9527d01b6a59c7677d1026a2dc2a0f1a}\label{classasamba_1_1star_1_1mode_a9527d01b6a59c7677d1026a2dc2a0f1a}} 
+{\bfseries l}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a58fe1eb8496f48c0fd4195843eeaa717}\label{classasamba_1_1star_1_1mode_a58fe1eb8496f48c0fd4195843eeaa717}} 
+{\bfseries m}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a4f0ffe5b31745eeacac7016e1a80c06f}\label{classasamba_1_1star_1_1mode_a4f0ffe5b31745eeacac7016e1a80c06f}} 
+{\bfseries p\+\_\+mode}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a385b864ebec76029c6d7174725133c97}\label{classasamba_1_1star_1_1mode_a385b864ebec76029c6d7174725133c97}} 
+{\bfseries g\+\_\+mode}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_a9b008393aa48f471d5949a6b63253d0e}\label{classasamba_1_1star_1_1mode_a9b008393aa48f471d5949a6b63253d0e}} 
+{\bfseries in\+\_\+df}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1mode_aeca13ebe6ebbd499f0d543bf57c3d133}\label{classasamba_1_1star_1_1mode_aeca13ebe6ebbd499f0d543bf57c3d133}} 
+{\bfseries in\+\_\+dP}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Container for a single pulsation mode of a star. E.g. 
+
+>>>from star import mode
+>>>mode_1 = star.mode()
+>>>mode_1.set('freq_unit', 'cd')
+
+Note that the frequency unit is converted to "per day" if not already in this unit. This is convenient
+because the typical frequencies of massive stars are around a day, and further feature normalization
+is not really needed for frequencies. Whereas with Hertz, there is roughly a factor of 10^{-6} always
+hanging around without any added value.
+\end{DoxyVerb}
+ 
+
+Definition at line 49 of file star.\+py.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+star.\+py\end{DoxyCompactItemize}

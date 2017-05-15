@@ -1,0 +1,53 @@
+.TH "asamba.frontend" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.frontend
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBGUI\fP"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.RI "Capturing all logs under the hood to toss them to the Log tab\&. "
+.ti -1c
+.RI "\fBstdout\fP = logging\&.StreamHandler(sys\&.stdout)"
+.br
+.ti -1c
+.RI "\fBformatter\fP = logging\&.Formatter('%(name)s: %(levelname)s: %(message)s')"
+.br
+.ti -1c
+.RI "\fBmaster\fP = Tk()"
+.br
+.ti -1c
+.RI "\fBsession\fP = \fBGUI\fP(master)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module is the user's frontend to open a graphical user interface, GUI, and interact with the 
+underlying grid database and a (limited) suite of functionalities in the backend. There are millions 
+of ways one can design the GUI, provide different functionalities, and/or allow the user to interact 
+with the database. What is provided here is one way out of the millions of possibilities, and is a 
+basic attempt to start with the GUI. Indeed, this GUI is pretty extensible, and flexible to grow and
+accommodate additional tools for analysis.
+
+.fi
+.PP
+ 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

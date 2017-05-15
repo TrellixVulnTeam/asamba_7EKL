@@ -1,0 +1,32 @@
+digraph "asamba.sampler.sampling.trim_modes"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node55 [label="asamba.sampler.sampling.trim\l_modes",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node55 -> Node56 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node56 [label="asamba.artificial_neural\l_network.neural_net.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#afb2a64a48856eb07e4f48a3645d30843",tooltip="Setter. "];
+  Node55 -> Node57 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node57 [label="asamba.backend.Modelling\lSession.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a83549fd610225e6edea77914b0f65f30"];
+  Node55 -> Node58 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node58 [label="asamba.sampler.sampling.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a682af8a360751e2fb6dd215fe571ea43",tooltip="Setter. "];
+  Node58 -> Node59 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node59 [label="asamba.artificial_neural\l_network.neural_net.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#ad916fe73e8028f451fadbdb0436da70e",tooltip="Getter. "];
+  Node58 -> Node60 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node60 [label="asamba.backend.Modelling\lSession.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a32588cc6e0b3869d3d5ef688953599d2"];
+  Node58 -> Node61 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node61 [label="asamba.sampler.sampling.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a9e11f6bf4371b3dbe372dcc75c47ad3a",tooltip="Getter. "];
+  Node55 -> Node59 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node55 -> Node60 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node55 -> Node61 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node55 -> Node62 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node62 [label="asamba.sampler.constrained\l_pick_models_and_rotation_ids",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1sampler.html#a35fefd92d9be635fb89924a6778f9315"];
+  Node55 -> Node63 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node63 [label="asamba.sampler.randomly\l_pick_models_and_rotation_ids",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1sampler.html#a75d171190ae15adb0e2c6fabf2c04e7a"];
+  Node55 -> Node64 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node64 [label="asamba.sampler.sampling.trim\l_closest_modes",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a75e186291813796d1114ccf2e1f3b2c3",tooltip="Trimming Functions Note: The signatures of the following three functions must be identical, because they are tossed into self.search_function, and can be called from external (inherited) modules. "];
+  Node55 -> Node65 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node65 [label="asamba.sampler.sampling.trim\l_modes_by_dP",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a8058c0e4f2aa8642f7b19daeb016d73a"];
+  Node55 -> Node66 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node66 [label="asamba.sampler.sampling.trim\l_modes_by_df",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a0fe5ca163f5e1c07a017783818535579"];
+}

@@ -1,0 +1,67 @@
+\hypertarget{namespaceasamba_1_1star}{}\section{asamba.\+star Namespace Reference}
+\label{namespaceasamba_1_1star}\index{asamba.\+star@{asamba.\+star}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classasamba_1_1star_1_1mode}{mode}
+\item 
+class \hyperlink{classasamba_1_1star_1_1modes}{modes}
+\item 
+class \hyperlink{classasamba_1_1star_1_1star}{star}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_ad7dc47d8695f2f6c4233012de347fd8d}\label{namespaceasamba_1_1star_ad7dc47d8695f2f6c4233012de347fd8d}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a71f80b4f0c9f94090c885eb1f17efecb}\label{namespaceasamba_1_1star_a71f80b4f0c9f94090c885eb1f17efecb}} 
+float {\bfseries d\+\_\+to\+\_\+sec} = 24.\+0 $\ast$ 3600.
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_abe126cbfe92a9f682a8e5e40540e991c}\label{namespaceasamba_1_1star_abe126cbfe92a9f682a8e5e40540e991c}} 
+{\bfseries sec\+\_\+to\+\_\+d} = old\+\_\+div(1.\+0, d\+\_\+to\+\_\+sec)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a11cf44476c37f524099b4defdf75ca03}\label{namespaceasamba_1_1star_a11cf44476c37f524099b4defdf75ca03}} 
+int {\bfseries Hz\+\_\+to\+\_\+u\+Hz} = 1e6
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a876dccc99a4b4390cf8888deb3934a5d}\label{namespaceasamba_1_1star_a876dccc99a4b4390cf8888deb3934a5d}} 
+int {\bfseries u\+Hz\+\_\+to\+\_\+\+Hz} = 1e-\/6
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a8edb72bba5868708a29727b1c5d38111}\label{namespaceasamba_1_1star_a8edb72bba5868708a29727b1c5d38111}} 
+{\bfseries cd\+\_\+to\+\_\+\+Hz} = old\+\_\+div(1.\+0, d\+\_\+to\+\_\+sec)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a13fc70f6b59c6e47b41cc56802af801d}\label{namespaceasamba_1_1star_a13fc70f6b59c6e47b41cc56802af801d}} 
+int {\bfseries cd\+\_\+to\+\_\+u\+Hz} = cd\+\_\+to\+\_\+\+Hz $\ast$ Hz\+\_\+to\+\_\+u\+Hz
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a448122e74e65abb5784374d029546bb2}\label{namespaceasamba_1_1star_a448122e74e65abb5784374d029546bb2}} 
+{\bfseries Hz\+\_\+to\+\_\+cd} = old\+\_\+div(1.\+0, cd\+\_\+to\+\_\+\+Hz)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a27650b27200eb43968a4868a4c4d5f62}\label{namespaceasamba_1_1star_a27650b27200eb43968a4868a4c4d5f62}} 
+{\bfseries u\+Hz\+\_\+to\+\_\+cd} = old\+\_\+div(1.\+0, cd\+\_\+to\+\_\+u\+Hz)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a8611449c4d4b12ecd08d8c2006b199c1}\label{namespaceasamba_1_1star_a8611449c4d4b12ecd08d8c2006b199c1}} 
+{\bfseries log\+\_\+\+Teff}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_ac0a4dd6a2a9e6b351483ac8b7435a00b}\label{namespaceasamba_1_1star_ac0a4dd6a2a9e6b351483ac8b7435a00b}} 
+{\bfseries Teff}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_ab37c945fb1db9c74e76fa67f8138a686}\label{namespaceasamba_1_1star_ab37c945fb1db9c74e76fa67f8138a686}} 
+{\bfseries log\+\_\+\+Teff\+\_\+err\+\_\+lower}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a2d4353f8f856f0d2e5a6994f92147960}\label{namespaceasamba_1_1star_a2d4353f8f856f0d2e5a6994f92147960}} 
+{\bfseries log\+\_\+\+Teff\+\_\+err\+\_\+upper}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_a80e236c8c8b2cfd61fc7f3158a4ae6c9}\label{namespaceasamba_1_1star_a80e236c8c8b2cfd61fc7f3158a4ae6c9}} 
+{\bfseries Teff\+\_\+err\+\_\+lower}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1star_ae699b4859f9d08fcad534007f451f334}\label{namespaceasamba_1_1star_ae699b4859f9d08fcad534007f451f334}} 
+{\bfseries Teff\+\_\+err\+\_\+upper}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This module provides basic classes and methods to construct a star (given its observed quantities), 
+and construct the list of observed modes (including various features) if the star is pulsating. Other
+modules (e.g. sampling) inherit the "mode" and "star" objects from this moduele.
+\end{DoxyVerb}
+ 

@@ -1,0 +1,11 @@
+digraph "asamba.frontend.GUI.browse_frequency_file"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node2 [label="asamba.frontend.GUI.browse\l_frequency_file",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="asamba.frontend.GUI.update\l_status_bar",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#a9b882f15d916eb942b202888fa29cf12"];
+  Node2 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="asamba.frontend.GUI.plot\l_observed_frequencies",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#addc94b5d78cdf85660cc6b2b61377252"];
+}

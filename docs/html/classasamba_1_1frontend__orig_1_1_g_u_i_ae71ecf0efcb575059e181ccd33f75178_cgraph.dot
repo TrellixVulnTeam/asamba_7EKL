@@ -1,0 +1,22 @@
+digraph "asamba.frontend_orig.GUI.check_connection"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node6 [label="asamba.frontend_orig.GUI.check\l_connection",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node6 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="asamba.frontend.GUI.update\l_status_bar",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#a9b882f15d916eb942b202888fa29cf12"];
+  Node6 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="asamba.frontend_orig.GUI.update\l_status_bar",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#a630301b7e934776f232fcb4562974ae9",tooltip="Status Bar. "];
+  Node6 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="asamba.frontend.GUI.do\l_connect",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#afb43aa6632c5aa17f9cf4a0270659a7f"];
+  Node6 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="asamba.frontend_orig.GUI.do\l_connect",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#a68a716eaa1fb6d82a7b004c77a5ab270"];
+  Node6 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="asamba.frontend.GUI.update\l_connection_state",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#a905cc040d83a85cd64003f98b859a64a"];
+  Node11 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="asamba.frontend_orig.GUI.update\l_connection_state",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#a4a594242291c4ab10089f279073ae8a7"];
+  Node12 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

@@ -1,0 +1,338 @@
+.TH "asamba.artificial_neural_network.neural_net" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.artificial_neural_network.neural_net \- 
+.SS ""
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SS ""
+ 
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits \fBasamba\&.sampler\&.sampling\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.RI "Setter\&. "
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.RI "Getter\&. "
+.ti -1c
+.RI "def \fBsolve_normal_equation\fP (self)"
+.br
+.RI "Methods\&. "
+.ti -1c
+.RI "def \fBchi_square\fP (self)"
+.br
+.ti -1c
+.RI "def \fBmax_a_posteriori\fP (self)"
+.br
+.ti -1c
+.RI "def \fBmarginalize_wrt\fP (self, wrt)"
+.br
+.ti -1c
+.RI "def \fBmarginalize\fP (self)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBnormal_equation_done\fP"
+.br
+.ti -1c
+.RI "\fBnormal_equation_theta\fP"
+.br
+.ti -1c
+.RI "\fBnormal_equation_features\fP"
+.br
+.ti -1c
+.RI "\fBnormal_equation_cost\fP"
+.br
+.ti -1c
+.RI "\fBMAP_uniform_prior\fP"
+.br
+.ti -1c
+.RI "\fBMAP_use_log_Teff_log_g_prior\fP"
+.br
+.ti -1c
+.RI "\fBMAP_prior\fP"
+.br
+.ti -1c
+.RI "\fBMAP_ln_prior\fP"
+.br
+.ti -1c
+.RI "\fBchi_square_done\fP"
+.br
+.ti -1c
+.RI "\fBfrequency_sigma_factor\fP"
+.br
+.ti -1c
+.RI "\fBMAP_chi_square_matrix\fP"
+.br
+.ti -1c
+.RI "\fBMAP_chi_square\fP"
+.br
+.ti -1c
+.RI "\fBMAP_likelihood\fP"
+.br
+.ti -1c
+.RI "\fBMAP_ln_likelihood\fP"
+.br
+.ti -1c
+.RI "\fBrescale_ln_likelihood\fP"
+.br
+.ti -1c
+.RI "\fBMAP_evidence\fP"
+.br
+.ti -1c
+.RI "\fBMAP_ln_evidence\fP"
+.br
+.ti -1c
+.RI "\fBMAP_posterior\fP"
+.br
+.ti -1c
+.RI "\fBMAP_ln_posterior\fP"
+.br
+.ti -1c
+.RI "\fBMAP_feature\fP"
+.br
+.ti -1c
+.RI "\fBMAP_frequencies\fP"
+.br
+.ti -1c
+.RI "\fBMAP_id_track\fP"
+.br
+.ti -1c
+.RI "\fBMAP_id_model\fP"
+.br
+.ti -1c
+.RI "\fBMAP_radial_orders\fP"
+.br
+.ti -1c
+.RI "\fBMAP_mode_types\fP"
+.br
+.ti -1c
+.RI "\fBmarginal_results\fP"
+.br
+.ti -1c
+.RI "\fBmarginal_features\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS ""
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SS ""
+
+
+
+.PP
+.nf
+
+.fi
+.PP
+ 
+.PP
+Definition at line 36 of file artificial_neural_network\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.artificial_neural_network\&.neural_net\&.chi_square ( self)"
+
+.PP
+.nf
+We define the \f$ \chi^2\f$ score between the i-th observed frequency \f$ f_i^{\rm (obs)}, and the model
+frequency \f$ f_i^{\rm (mod)}\f$ (coming from e.g. the learning set) as the following
+
+\f[ \chi^2 = \sum_{i=1}^{K} \chi^2_i = \sum_{i=1}^{K} \frac{1}{2}
+         \left(\frac{f_i^{\rm (obs) - f_i^{\rm (mod)}{\sigma_i^2}\right)^2. 
+\f]
+
+Here, \f$ K\f$ is the total number of observed modes, and \f$\sigma_i\f$ is the 1-\f$\sigma\f$ uncertainty
+around each observed frequency.
+
+@param self: An instance of the neural_net() class
+@type self: obj
+@return: the "MAP_chi_square_matrix" and "MAP_chi_square" attributes of the class will be set
+@rtype: None
+
+.fi
+.PP
+ 
+.PP
+Definition at line 194 of file artificial_neural_network\&.py\&.
+.SS "def asamba\&.artificial_neural_network\&.neural_net\&.marginalize ( self)"
+
+.PP
+.nf
+Iterate over all features in the learning set (whose names are stored in self.sampling.feature_names),
+and marginalize with respect to each of these quantities. The outcome of the marginalization will be stored in
+two attribute of the neural_net class:
+
+1. marginal_results: which is a list of tuples; read the documentation of marginalize_wrt() method for more info.
+
+2. marginal_features: which is basically cherrypicking of the most likely value from the marginal_features list.
+   The order of the outputs here matches exactly that of sampling.features_names
+
+The return structure of "self.marginal_results" is noteworthy. Because we iteratively call the
+marginalize_wrt() method and collect its results (tuple with two ndarrays), the "self.marginal_results"
+is a list of tuples.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 265 of file artificial_neural_network\&.py\&.
+.SS "def asamba\&.artificial_neural_network\&.neural_net\&.marginalize_wrt ( self,  wrt)"
+
+.PP
+.nf
+Marginalize the learning features (learning_x), with respect to (hence "wrt") one of the feature columns (whose names
+are available as self.sampling.feature_names)
+
+@param self: an instance of the neural_net() class
+@type self: obj
+@param wrt: marginalize with respect to
+@type wrt: str
+@return: a tuple with two members:
+ - (ndarray) sorted array of the values of the attribute whose name was passed as wrt, e.g. 'logD'. Note that
+   the values in this array are unique, and all repetitions are marginalized over
+ - (ndarray) the marginalized posterior probability distribution associated with each of the values in the
+   first element of the tuple
+@rtype: tuple
+
+.fi
+.PP
+ 
+.PP
+Definition at line 246 of file artificial_neural_network\&.py\&.
+.SS "def asamba\&.artificial_neural_network\&.neural_net\&.max_a_posteriori ( self)"
+
+.PP
+.nf
+This routine finds the attributes of the model which maximizes the posterior likelihood function, hence MAP. 
+It consists of the following steps:
+
+1. Priors: Either set uniformly, or are set based on a comparison between log_Teff and log_g of the model and
+   the star. For each hypothesis \f$h\f$, we return the prior information \f$P(h)\f$, and \f$\ln P(h)\f$.
+
+2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data given the hypothesis, 
+   i.e. \f$\chi^2=\ln P(D|h) = K^{-1}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
+   A recommended option here is to "rescale" the chi-square values to avoid numerical overflow.
+
+3. Evidence, which is basically an inner dot product between the prior vector and the likelihood vector:
+   \f$P(D)=\sum_h P(D\h) P(h) \f$. We return both \f$P(D)\f$ and \f$\ln P(D)\f$.
+
+4. Posterior \f$P(h|D)\f$: Based on the Bayes Theorem, the posterior is 
+
+   \f[
+   \frac{P(h|D)}{s}=\frac{\frac{P(D|h)}{s}P(h)}{P(D)},
+   \f]
+
+   where \f$s\f$ is an optional "scaling" factor used to "rescale" the loglikelihood. Indeed, setting \f$s=1\f$
+   recovers the Bayes theorem in its original form. This scaling is allowed, since we only make relative 
+   comparison between the models.
+
+@param self: an instance of the neural_net() class    
+@type self: obj
+
+.fi
+.PP
+ 
+.PP
+Definition at line 215 of file artificial_neural_network\&.py\&.
+.SS "def asamba\&.artificial_neural_network\&.neural_net\&.solve_normal_equation ( self)"
+
+.PP
+Methods\&. 
+.PP
+.nf
+Find the analytic solution for the unknown hypothesis coefficients \f$\theta\f$, which minimizes the
+cost function \f$ J(\theta) \f$ as defined below.
+
+\f[ J(\theta)= \frac{1}{2m} (\theta^T X-y)^T \cdot (\theta^T X-y) \f]
+
+For more information refer to: 
+<a href="http://eli.thegreenplace.net/2014/derivation-of-the-normal-equation-for-linear-regression">Click to Open</a> 
+Consequently, the analytic solution to \f$\theta\f$ is:
+
+\f[ \theta_0 = (X^T \cdot X)^{-1} \cdot X^{-1} \cdot y. \f]
+
+A brief remark on the dimensionality of the terms: For a learning set of size \f$ m\f$, with \f$ n+1\f$ features
+(including the intercept coefficient), and for the observed/trained output \f$ y \f$ being a matrix of \f$ m\times K\f$
+(for \f$ K\f$ modes), then the coefficient matrix \f$ \theta_0\f$ is \f$ (n+1) \times K \f$.
+
+Once \f$\theta_0\f$ is analytically derived, then the cost function is minimized. If we assume
+this set of coefficients make the cost function approach zero \f$J(\theta_0)\approx 0\f$, intuitively 
+\f$ \theta_0^T\cdot X \approx y \f$. 
+
+One can immediately solve for the unknown feature vector \f$ X \f$, which reproduces the observations \f$ y_0\f$, 
+given the corresponding coefficients \f$ \theta_0 \f$. To that end, we multiply both sides of the last equation 
+by \f$ \theta \f$, followed by a multiplication with \f$ (\theta_0 \cdot \theta_0^T)^{-1} \f$ to yield \f$ X \f$:
+
+\f[ X_0 \approx (\theta_0 \cdot \theta_0^T)^{-1} \cdot (\theta \cdot y_0) \f]
+
+Needless to highlight that \f$X_0\f$ is a vector of size \f$(n+1)\f$, for an intercept and \f n\f$ features.
+
+Notes:
+- The resulting coefficients are saved as the following attribute self.normal_equation_theta, and the resulting
+  feature vector \f$ X_0 \f$ is stored as the attribute self.normal_equation_features.
+- The model frequencies \f$ y \f$ and the observed frequencies \f$ y_0 \f$ are converted to the per day 
+  (\f$ d^{-1} \f$) unit for a fair comparison.
+- "A major drawback of the Maximum Likelihood approach is that it is vulnerable to overfitting, because no care
+   is taken for cmplex models that try to learn the specificities of the particular training set (Theodoridis, S.
+   2015, Machine Learning book)."
+
+@param self: instance of the neural_net class
+@type self: object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 149 of file artificial_neural_network\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

@@ -1,0 +1,117 @@
+\hypertarget{namespaceasamba_1_1sampler}{}\section{asamba.\+sampler Namespace Reference}
+\label{namespaceasamba_1_1sampler}\index{asamba.\+sampler@{asamba.\+sampler}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classasamba_1_1sampler_1_1sampling}{sampling}
+\begin{DoxyCompactList}\small\item\em \paragraph*{}
+
+\subsection*{}
+
+\subsection*{}
+
+\subsection*{}
+
+\subsection*{}
+
+\subsection*{}
+
+\subparagraph*{}\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceasamba_1_1sampler_a35fefd92d9be635fb89924a6778f9315}{constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids} (self)
+\item 
+def \hyperlink{namespaceasamba_1_1sampler_a75d171190ae15adb0e2c6fabf2c04e7a}{randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids} (self)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1sampler_a31bac990964c19a031da8c2a21900426}\label{namespaceasamba_1_1sampler_a31bac990964c19a031da8c2a21900426}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1sampler_ae80824502e5910a1cfd2852fd042726b}\label{namespaceasamba_1_1sampler_ae80824502e5910a1cfd2852fd042726b}} 
+int {\bfseries is\+\_\+py3x} = 3
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This module prepares training/validatin/test datasets to train/validate/test an 
+artificial neural network. This is achieved through the "sampling" class, which 
+handles the task of collecting the models properly from the database.
+
+This module inherits from the "star" module, in order to sample the model frequencies
+based on the observed frequencies. On the flip side, it serves as superclass for the 
+interpolator.interpolation() class, who inherits/needs several of the functionlaities 
+offered in here. 
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1sampler_a35fefd92d9be635fb89924a6778f9315}\label{namespaceasamba_1_1sampler_a35fefd92d9be635fb89924a6778f9315}} 
+\index{asamba\+::sampler@{asamba\+::sampler}!constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids@{constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids}}
+\index{constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids@{constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids}!asamba\+::sampler@{asamba\+::sampler}}
+\subsubsection{\texorpdfstring{constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids()}{constrained\_pick\_models\_and\_rotation\_ids()}}
+{\footnotesize\ttfamily def asamba.\+sampler.\+constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return a combination of "models" id and "rotation_rate" id by applying constraints on log_Teff,
+log_g and rotation rates. For a totally random (unconstrained) 
+selection, you may call "randomly_pick_models_and_rotation_ids()", instead. 
+
+Notes:
+- the constraint ranges are inclusive. 
+- the results are fetched firectly from executing a SQL query
+- the combination of the models and rotation rates are shuffled
+
+Example of calling:
+>>>
+
+@param dbname: the name of the database
+@type dbname: str
+@param n: the *maximum* number of models to retrieve
+@type n: int
+@param range_log_Teff: the lower and upper range of log_Teff to scan the database. Default: [3.5, 5]
+@type range_log_Teff: list/tuple
+@param range_log_g: the lower and upper range of log_g to scan the database. Default: [0, 5]
+@type range_log_g: list/tuple
+@param range_eta: The range of rotation rates (in percentage w.r.t to critical, e.g. 15). 
+       Default: [0, 50]
+@type range_eta: list/tuple
+@return: a shuffled list of 2-element tuples, with the first element being the model id, and the
+       second element being the rotation_rate id.
+@rtype: list of tuples
+\end{DoxyVerb}
+ 
+
+Definition at line 956 of file sampler.\+py.
+
+Here is the caller graph for this function\+:
+% FIG 0
+\mbox{\Hypertarget{namespaceasamba_1_1sampler_a75d171190ae15adb0e2c6fabf2c04e7a}\label{namespaceasamba_1_1sampler_a75d171190ae15adb0e2c6fabf2c04e7a}} 
+\index{asamba\+::sampler@{asamba\+::sampler}!randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids@{randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids}}
+\index{randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids@{randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids}!asamba\+::sampler@{asamba\+::sampler}}
+\subsubsection{\texorpdfstring{randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids()}{randomly\_pick\_models\_and\_rotation\_ids()}}
+{\footnotesize\ttfamily def asamba.\+sampler.\+randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return a randomly-selected models together with their rotation rates from the database.
+This function fetches all model "id" number from the "models" table, in addition to all the "id"
+numbers from the "rotation_rates" table. Then, it iterates over them all, and creates all possible
+tupls with two elements: first element being the model id, and the second element being the rotaiton
+id. Then, this list is shuffled using the numpy.random.shuffle method, and only the subset of this
+whole list is returned, with the size specified by "n".
+
+@param dbname: The name of the database
+@type dbname: grid
+@param n: the size of the randomly-selected combinations of model id and rotation ids
+@type n: int
+@return: list of tuples where each tuple consists of two integers: 
+   - the model id
+   - the rotaiton id
+@rtype: list of tuples
+\end{DoxyVerb}
+ 
+
+Definition at line 1039 of file sampler.\+py.
+
+Here is the caller graph for this function\+:
+% FIG 1

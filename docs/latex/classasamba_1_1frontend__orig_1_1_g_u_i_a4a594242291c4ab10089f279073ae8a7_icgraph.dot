@@ -1,0 +1,11 @@
+digraph "asamba.frontend_orig.GUI.update_connection_state"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node54 [label="asamba.frontend_orig.GUI.update\l_connection_state",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node54 -> Node55 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node55 [label="asamba.frontend_orig.GUI.check\l_connection",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#ae71ecf0efcb575059e181ccd33f75178"];
+  Node55 -> Node56 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node56 [label="asamba.frontend_orig.GUI.\lFrontWindow",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#a0fd564268af273f977bc8065e26e110b"];
+}

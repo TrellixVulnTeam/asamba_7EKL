@@ -1,0 +1,84 @@
+.TH "asamba.star.modes" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.star.modes
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits \fBasamba\&.star\&.mode\fP\&.
+.PP
+Inherited by \fBasamba\&.star\&.star\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.RI "Setter\&. "
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.RI "Getter\&. "
+.ti -1c
+.RI "def \fBload_modes_from_file\fP (self, filename, delimiter='')"
+.br
+.RI "Methods\&. "
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBmodes\fP"
+.br
+.ti -1c
+.RI "\fBnum_modes\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Definition at line 114 of file star\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.star\&.modes\&.load_modes_from_file ( self,  filename,  delimiter = \fC''\fP)"
+
+.PP
+Methods\&. 
+.PP
+.nf
+Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
+as those of the "modes" class) into the "mode" attribute. It returns a list of modes, where each mode
+corresponds to one line in the file. The columns are delimited based on the passed delimiter
+
+Strict formatting of the input file:
+- The file has two headers as the first two lines:
+  + line 1: the name of each column
+  + line 2: the Python-intrinsic format of each line, e.g. int, float, boolean
+- The header names must be identical to the attributes of the mode object
+- If one attribute is unknown for all modes of the same star, that column would better be omitted.
+  E.g. if for a star we do not know the modes form a frequency spacing or not, we leave this column
+  off, instead of setting it off for all modes.
+- if a value for a mode is unknown, the column must read None or none. Never leave an unknown column
+  empty.
+- For boolean columns, "1" means True, and "0" means False.
+
+@param filename: the full path where the 
+@type filename: str
+@param delimiter: the delimiting character between the columns, e.g. ',', or space, etc. Default: ''
+@type delimiter: str
+@return: list of modes
+@rtype: list
+
+.fi
+.PP
+ 
+.PP
+Definition at line 148 of file star\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

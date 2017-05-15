@@ -1,0 +1,89 @@
+.TH "asamba.backend.ModellingSession" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.backend.ModellingSession \- U S E R - C O N T R O L L E D P A R A M E T E R S : B A C K E N D O B J E C T S T H A T D O T H E R E A L W O R K\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits interpolation, neural_net, sampling, and \fBasamba\&.star\&.star\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.in -1c
+.SS "Additional Inherited Members"
+.SH "Detailed Description"
+.PP 
+U S E R - C O N T R O L L E D P A R A M E T E R S : B A C K E N D O B J E C T S T H A T D O T H E R E A L W O R K\&. 
+
+
+.PP
+.nf
+The ModellingSession is a derived class from the underlying modules in the package. 
+Concretely, the parent classes which are used here are below, in the following "Method
+Resolution Order (MRO)":
+
+  - interpolator.interpolation
+  - artificial_neural_network.neural_net
+  - sampler.sampling
+  - star.star
+
+With the bundling of the above classes, we create a derived class which takes care of 
+the observatinal data, the theoretical models in the database, the interface between 
+the underlying routine and the PostgreSQL database, and the high-level machine learning
+analysis machinery.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 27 of file backend\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.backend\&.ModellingSession\&.__init__ ( self)"
+
+.PP
+.nf
+Constructor 
+.fi
+.PP
+ 
+.PP
+Definition at line 44 of file backend\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.backend\&.ModellingSession\&.get ( self,  attr)"
+
+.PP
+.nf
+Getter 
+.fi
+.PP
+ 
+.PP
+Definition at line 52 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.ModellingSession\&.set ( self,  attr,  val)"
+
+.PP
+.nf
+Setter 
+.fi
+.PP
+ 
+.PP
+Definition at line 48 of file backend\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

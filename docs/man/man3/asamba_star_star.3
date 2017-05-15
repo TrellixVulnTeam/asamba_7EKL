@@ -1,0 +1,257 @@
+.TH "asamba.star.star" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.star.star
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits \fBasamba\&.star\&.modes\fP\&.
+.PP
+Inherited by \fBasamba\&.backend\&.ModellingSession\fP, and \fBasamba\&.sampler\&.sampling\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.RI "Setter\&. "
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.RI "Getter\&. "
+.ti -1c
+.RI "def \fBload_star_from_inlist\fP (self, filename)"
+.br
+.RI "Methods\&. "
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBname\fP"
+.br
+.ti -1c
+.RI "\fBother_names\fP"
+.br
+.ti -1c
+.RI "\fBis_binary\fP"
+.br
+.ti -1c
+.RI "\fBspectral_type\fP"
+.br
+.ti -1c
+.RI "\fBluminosity_class\fP"
+.br
+.ti -1c
+.RI "\fBis_magnetic\fP"
+.br
+.ti -1c
+.RI "\fBB_mag\fP"
+.br
+.ti -1c
+.RI "\fBB_mag_err\fP"
+.br
+.ti -1c
+.RI "\fBvariability_type\fP"
+.br
+.ti -1c
+.RI "\fBTeff\fP"
+.br
+.ti -1c
+.RI "\fBTeff_err_lower\fP"
+.br
+.ti -1c
+.RI "\fBTeff_err_upper\fP"
+.br
+.ti -1c
+.RI "\fBlog_Teff\fP"
+.br
+.ti -1c
+.RI "\fBlog_Teff_err_lower\fP"
+.br
+.ti -1c
+.RI "\fBlog_Teff_err_upper\fP"
+.br
+.ti -1c
+.RI "\fBlog_g\fP"
+.br
+.ti -1c
+.RI "\fBlog_g_err_lower\fP"
+.br
+.ti -1c
+.RI "\fBlog_g_err_upper\fP"
+.br
+.ti -1c
+.RI "\fBparallax\fP"
+.br
+.ti -1c
+.RI "\fBparallax_err\fP"
+.br
+.ti -1c
+.RI "\fBluminosity\fP"
+.br
+.ti -1c
+.RI "\fBluminosity_err\fP"
+.br
+.ti -1c
+.RI "\fBv_sini\fP"
+.br
+.ti -1c
+.RI "\fBv_sini_err\fP"
+.br
+.ti -1c
+.RI "\fBfreq_rot\fP"
+.br
+.ti -1c
+.RI "\fBfreq_rot_err\fP"
+.br
+.ti -1c
+.RI "\fBv_micro\fP"
+.br
+.ti -1c
+.RI "\fBv_macro\fP"
+.br
+.ti -1c
+.RI "\fBmass\fP"
+.br
+.ti -1c
+.RI "\fBmass_err\fP"
+.br
+.ti -1c
+.RI "\fBZ\fP"
+.br
+.ti -1c
+.RI "\fBFe_H\fP"
+.br
+.ti -1c
+.RI "\fBZ_err\fP"
+.br
+.ti -1c
+.RI "\fBFe_H_err\fP"
+.br
+.ti -1c
+.RI "\fBalpha_ov\fP"
+.br
+.ti -1c
+.RI "\fBalpha_ov_err\fP"
+.br
+.ti -1c
+.RI "\fBf_ov\fP"
+.br
+.ti -1c
+.RI "\fBf_ov_err\fP"
+.br
+.ti -1c
+.RI "\fBsurface_He\fP"
+.br
+.ti -1c
+.RI "\fBsurface_He_err\fP"
+.br
+.ti -1c
+.RI "\fBsurface_C\fP"
+.br
+.ti -1c
+.RI "\fBsurface_C_err\fP"
+.br
+.ti -1c
+.RI "\fBsurface_N\fP"
+.br
+.ti -1c
+.RI "\fBsurface_N_err\fP"
+.br
+.ti -1c
+.RI "\fBsurface_O\fP"
+.br
+.ti -1c
+.RI "\fBsurface_O_err\fP"
+.br
+.ti -1c
+.RI "\fBcenter_H\fP"
+.br
+.ti -1c
+.RI "\fBcenter_H_err\fP"
+.br
+.ti -1c
+.RI "\fBcenter_He\fP"
+.br
+.ti -1c
+.RI "\fBcenter_He_err\fP"
+.br
+.ti -1c
+.RI "\fBprincipal_investigator\fP"
+.br
+.ti -1c
+.RI "\fBreferences\fP"
+.br
+.ti -1c
+.RI "\fBurl\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+Container for all possible observables of a star, and the uncertainties, if available. This class
+inherits the "mode()" class.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 259 of file star\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.star\&.star\&.get ( self,  attr)"
+
+.PP
+Getter\&. 
+.PP
+.nf
+Getter 
+.fi
+.PP
+ 
+.PP
+Definition at line 411 of file star\&.py\&.
+.SS "def asamba\&.star\&.star\&.load_star_from_inlist ( self,  filename)"
+
+.PP
+Methods\&. 
+.PP
+.nf
+One can set the attributes of a specific star all from an inlist. This method is used by the 
+backend module, but can be widely used in any script.
+
+@param self: an instance of the star.star() class 
+@type self: object
+@param filename: full path to the star inlist
+@type filename: str
+@return: None
+
+.fi
+.PP
+ 
+.PP
+Definition at line 422 of file star\&.py\&.
+.SS "def asamba\&.star\&.star\&.set ( self,  attr,  val)"
+
+.PP
+Setter\&. 
+.PP
+.nf
+Setter 
+.fi
+.PP
+ 
+.PP
+Definition at line 400 of file star\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

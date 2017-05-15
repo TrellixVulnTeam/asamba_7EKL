@@ -1,0 +1,223 @@
+.TH "asamba.db_def.grid_db" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.db_def.grid_db
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, dbname='grid')"
+.br
+.ti -1c
+.RI "def \fB__enter__\fP (self)"
+.br
+.ti -1c
+.RI "def \fB__exit__\fP (self, type, value, traceback)"
+.br
+.ti -1c
+.RI "def \fBset_dbname\fP (self, dbname)"
+.br
+.ti -1c
+.RI "def \fBget_dbname\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_connection\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_cursor\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_table_columns\fP (self, table)"
+.br
+.ti -1c
+.RI "def \fBhas_table\fP (self, table)"
+.br
+.ti -1c
+.RI "def \fBhas_function\fP (self, function_name)"
+.br
+.ti -1c
+.RI "def \fBhas_prepared_statement\fP (self, statement)"
+.br
+.ti -1c
+.RI "def \fBcommit\fP (self)"
+.br
+.ti -1c
+.RI "def \fBexecute_one\fP (self, cmnd, value, \fBcommit\fP=True)"
+.br
+.ti -1c
+.RI "def \fBexecute_many\fP (self, cmnd, values, \fBcommit\fP=True)"
+.br
+.ti -1c
+.RI "def \fBfetch_one\fP (self)"
+.br
+.ti -1c
+.RI "def \fBfetch_many\fP (self)"
+.br
+.ti -1c
+.RI "def \fBfetch_all\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_mode_types\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_rotation_rates\fP (self)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBdbname\fP"
+.br
+.ti -1c
+.RI "\fBconnection\fP"
+.br
+.ti -1c
+.RI "\fBcursor\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+The class to interact with the grid, and execute SQL commands/querries
+
+.fi
+.PP
+ 
+.PP
+Definition at line 26 of file db_def\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.db_def\&.grid_db\&.__init__ ( self,  dbname = \fC'grid'\fP)"
+
+.PP
+.nf
+The constructor of the class. Example of use:
+
+>>>my_job = db_def.grid_db()
+>>>cursor = my_job.get_cursor()
+>>>
+
+@param dbname: the name of the running database server. By default, it is called "grid" too.
+@type dbname: string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 31 of file db_def\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.db_def\&.grid_db\&.commit ( self)"
+
+.PP
+.nf
+Wrapper around the psycopg2.cursor.commit()
+
+.fi
+.PP
+ 
+.PP
+Definition at line 108 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.execute_many ( self,  cmnd,  values,  commit = \fCTrue\fP)"
+
+.PP
+.nf
+**Execute AND commit** many (a list of) SQL commands on the cursor.
+The command is passed by the "cmnd", and the corresponding values are passed
+by the "values" tuple. This function is very useful for inserting data into
+the database.
+
+@param cmnd: A general command to execute many. E.g., cmnd can look like the 
+   the following: cmnd = 'insert into table_name (var1, var2) values (?, ?)'
+   This ensures that the execute/commit process is protected against possible
+   Injection Attacks. 
+@type cmnd: string
+@param values: A list of tuples to execute the command. For every execute/commit
+  transaction, one tuple must be in this list. The order of the quantities 
+  in each tuple must match the order of the parameters in the command.
+@type values: list of tuples
+
+.fi
+.PP
+ 
+.PP
+Definition at line 126 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.execute_one ( self,  cmnd,  value,  commit = \fCTrue\fP)"
+
+.PP
+.nf
+**Execute AND commit** one SQL command on the cursor, passed by the "cmnd"
+
+.fi
+.PP
+ 
+.PP
+Definition at line 115 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.fetch_all ( self)"
+
+.PP
+.nf
+A wrapper around psycopg2.fetchall()
+
+.fi
+.PP
+ 
+.PP
+Definition at line 177 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.fetch_many ( self)"
+
+.PP
+.nf
+A wrapper around psycopg2.fetchmany()
+
+.fi
+.PP
+ 
+.PP
+Definition at line 170 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.fetch_one ( self)"
+
+.PP
+.nf
+A wrapper around the psycopg2.fetchone() method
+
+.fi
+.PP
+ 
+.PP
+Definition at line 163 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.get_mode_types ( self)"
+
+.PP
+.nf
+Retrieve the contents of the "mode_types" table
+
+.fi
+.PP
+ 
+.PP
+Definition at line 184 of file db_def\&.py\&.
+.SS "def asamba\&.db_def\&.grid_db\&.get_rotation_rates ( self)"
+
+.PP
+.nf
+Retrieve the contents of the "rotation_rates" table
+
+.fi
+.PP
+ 
+.PP
+Definition at line 195 of file db_def\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

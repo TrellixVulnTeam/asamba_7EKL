@@ -1,0 +1,85 @@
+.TH "asamba.star" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.star
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBmode\fP"
+.br
+.ti -1c
+.RI "class \fBmodes\fP"
+.br
+.ti -1c
+.RI "class \fBstar\fP"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "float \fBd_to_sec\fP = 24\&.0 * 3600\&."
+.br
+.ti -1c
+.RI "\fBsec_to_d\fP = old_div(1\&.0, d_to_sec)"
+.br
+.ti -1c
+.RI "int \fBHz_to_uHz\fP = 1e6"
+.br
+.ti -1c
+.RI "int \fBuHz_to_Hz\fP = 1e\-6"
+.br
+.ti -1c
+.RI "\fBcd_to_Hz\fP = old_div(1\&.0, d_to_sec)"
+.br
+.ti -1c
+.RI "int \fBcd_to_uHz\fP = cd_to_Hz * Hz_to_uHz"
+.br
+.ti -1c
+.RI "\fBHz_to_cd\fP = old_div(1\&.0, cd_to_Hz)"
+.br
+.ti -1c
+.RI "\fBuHz_to_cd\fP = old_div(1\&.0, cd_to_uHz)"
+.br
+.ti -1c
+.RI "\fBlog_Teff\fP"
+.br
+.ti -1c
+.RI "\fBTeff\fP"
+.br
+.ti -1c
+.RI "\fBlog_Teff_err_lower\fP"
+.br
+.ti -1c
+.RI "\fBlog_Teff_err_upper\fP"
+.br
+.ti -1c
+.RI "\fBTeff_err_lower\fP"
+.br
+.ti -1c
+.RI "\fBTeff_err_upper\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module provides basic classes and methods to construct a star (given its observed quantities), 
+and construct the list of observed modes (including various features) if the star is pulsating. Other
+modules (e.g. sampling) inherit the "mode" and "star" objects from this moduele.
+
+.fi
+.PP
+ 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

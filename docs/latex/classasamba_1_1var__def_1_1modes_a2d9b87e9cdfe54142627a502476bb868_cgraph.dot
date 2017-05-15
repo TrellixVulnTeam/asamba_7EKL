@@ -1,0 +1,29 @@
+digraph "asamba.var_def.modes.set_by_dic"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node5 [label="asamba.var_def.modes.set\l_by_dic",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node5 -> Node6 [color="midnightblue",fontsize="10",style="solid"];
+  Node6 [label="asamba.artificial_neural\l_network.neural_net.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#afb2a64a48856eb07e4f48a3645d30843",tooltip="Setter. "];
+  Node5 -> Node7 [color="midnightblue",fontsize="10",style="solid"];
+  Node7 [label="asamba.backend.Modelling\lSession.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a83549fd610225e6edea77914b0f65f30"];
+  Node5 -> Node8 [color="midnightblue",fontsize="10",style="solid"];
+  Node8 [label="asamba.sampler.sampling.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a682af8a360751e2fb6dd215fe571ea43",tooltip="Setter. "];
+  Node8 -> Node9 [color="midnightblue",fontsize="10",style="solid"];
+  Node9 [label="asamba.artificial_neural\l_network.neural_net.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#ad916fe73e8028f451fadbdb0436da70e",tooltip="Getter. "];
+  Node8 -> Node10 [color="midnightblue",fontsize="10",style="solid"];
+  Node10 [label="asamba.backend.Modelling\lSession.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a32588cc6e0b3869d3d5ef688953599d2"];
+  Node8 -> Node11 [color="midnightblue",fontsize="10",style="solid"];
+  Node11 [label="asamba.sampler.sampling.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a9e11f6bf4371b3dbe372dcc75c47ad3a",tooltip="Getter. "];
+  Node5 -> Node12 [color="midnightblue",fontsize="10",style="solid"];
+  Node12 [label="asamba.star.mode.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1mode.html#acd7157d9ec303f09579e24ba7d2638cc",tooltip="Setter. "];
+  Node5 -> Node13 [color="midnightblue",fontsize="10",style="solid"];
+  Node13 [label="asamba.star.modes.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1modes.html#a86f1dd21b0af24cc60d521fbeb391ef8",tooltip="Setter. "];
+  Node5 -> Node14 [color="midnightblue",fontsize="10",style="solid"];
+  Node14 [label="asamba.star.star.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1star.html#af0cfdd4049f081617d13919decddc5af",tooltip="Setter. "];
+  Node5 -> Node15 [color="midnightblue",fontsize="10",style="solid"];
+  Node15 [label="asamba.var_def.model.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1model.html#adf918a64e584736b39e108f4c705d413"];
+  Node5 -> Node16 [color="midnightblue",fontsize="10",style="solid"];
+  Node16 [label="asamba.var_def.modes.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1modes.html#a68e3175f54a123a371a9e5345b2cfe6e"];
+}

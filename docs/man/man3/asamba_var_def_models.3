@@ -1,0 +1,131 @@
+.TH "asamba.var_def.models" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.var_def.models
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, dir_repos)"
+.br
+.ti -1c
+.RI "def \fB__enter__\fP (self)"
+.br
+.ti -1c
+.RI "def \fB__exit__\fP (self, type, value, traceback)"
+.br
+.ti -1c
+.RI "def \fBset_model_search_pattern\fP (self, model_search_pattern)"
+.br
+.ti -1c
+.RI "def \fBset_model_extension\fP (self, model_extension)"
+.br
+.ti -1c
+.RI "def \fBset_n_models\fP (self, n_models)"
+.br
+.ti -1c
+.RI "def \fBset_list_filenames\fP (self, list_filenames)"
+.br
+.ti -1c
+.RI "def \fBset_list_models\fP (self, list_models)"
+.br
+.ti -1c
+.RI "def \fBfind_list_filenames\fP (self)"
+.br
+.ti -1c
+.RI "def \fBsort_list_filenames\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_model_search_pattern\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_model_extension\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_list_filenames\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_list_models\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_n_models\fP (self)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBdir_repos\fP"
+.br
+.ti -1c
+.RI "\fBmodel_search_pattern\fP"
+.br
+.ti -1c
+.RI "\fBmodel_extension\fP"
+.br
+.ti -1c
+.RI "\fBn_models\fP"
+.br
+.ti -1c
+.RI "\fBlist_filenames\fP"
+.br
+.ti -1c
+.RI "\fBlist_models\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+An agglomeration (container) of the objects from the "model" class
+
+.fi
+.PP
+ 
+.PP
+Definition at line 464 of file var_def\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.models\&.__init__ ( self,  dir_repos)"
+
+.PP
+.nf
+Constructor of the class. It can be instantiated by specifying the full path to the repository. 
+E.g.
+
+>>>many_models = var_def.models('/home/user/projects/mygrid')
+.fi
+.PP
+ 
+.PP
+Definition at line 468 of file var_def\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.models\&.find_list_filenames ( self)"
+
+.PP
+.nf
+Find present models on the disk that match the search pattern.
+
+@param dir_repos: the full path to the repository where the files sit, e.g. '/home/user/mygrid'
+@type dir_repos: string
+@param model_search_pattern: the search pattern for globbing the available model files. e.g.
+  'M*/gyre_in/*'
+@type model_search_pattern: string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 518 of file var_def\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

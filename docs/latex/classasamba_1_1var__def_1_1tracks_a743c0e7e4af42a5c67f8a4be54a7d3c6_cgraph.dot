@@ -1,0 +1,15 @@
+digraph "asamba.var_def.tracks.set_track_parameters"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node7 [label="asamba.var_def.tracks.set\l_track_parameters",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node7 -> Node8 [color="midnightblue",fontsize="10",style="solid"];
+  Node8 [label="asamba.var_def.tracks.get\l_list_dirs_M_ini",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1tracks.html#a25425bb3a9c187e4fb4cfcfc45f794f9"];
+  Node7 -> Node9 [color="midnightblue",fontsize="10",style="solid"];
+  Node9 [label="asamba.var_def.tracks.get\l_hist_search_pattern",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1tracks.html#aeb2f2c3e19db68028deb8bcd65eee114"];
+  Node7 -> Node10 [color="midnightblue",fontsize="10",style="solid"];
+  Node10 [label="asamba.var_def.tracks.set\l_n_tracks",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1tracks.html#a148ce756693d708911775b3c2820c1f0"];
+  Node7 -> Node11 [color="midnightblue",fontsize="10",style="solid"];
+  Node11 [label="asamba.var_def.tracks.set\l_list_tracks",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1var__def_1_1tracks.html#ad8905211d69ef4b3199cedc83bc94803"];
+}

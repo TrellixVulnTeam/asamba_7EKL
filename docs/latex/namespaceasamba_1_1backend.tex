@@ -1,0 +1,250 @@
+\hypertarget{namespaceasamba_1_1backend}{}\section{asamba.\+backend Namespace Reference}
+\label{namespaceasamba_1_1backend}\index{asamba.\+backend@{asamba.\+backend}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classasamba_1_1backend_1_1_modelling_session}{Modelling\+Session}
+\begin{DoxyCompactList}\small\item\em U S E R -\/ C O N T R O L L E D P A R A M E T E R S \+: B A C K E N D O B J E C T S T H A T D O T H E R E A L W O R K. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceasamba_1_1backend_aefeca01f2d6cfbd7f78c26901d48b37f}{do\+\_\+connect} (dbname)
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a6312398e26ae20a0e2ca43fb80866328}{set\+\_\+input\+\_\+freq\+\_\+file} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a5cc5719b5de5aadd02843c5746a10313}{get\+\_\+example\+\_\+input\+\_\+freq} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a4f5499ca7e69d4d088309b1f6a3e14b8}{read\+\_\+star\+\_\+inlist} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a5df45c487576d585748d45f92a587ad9}{get\+\_\+example\+\_\+star\+\_\+inlist} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a0f88980e600c7c4bbf21efb7274dae9a}{read\+\_\+sampling\+\_\+inlist} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a29100d2ee6f88a4ca3bf2f7dff20f715}{get\+\_\+example\+\_\+sampling\+\_\+inlist} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a46038cbb0a9dd4320c0357f78b392076}{do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a6d6a812ce0d681b4deb0768cb9b2df69}{get\+\_\+samp\+\_\+results} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a7991be555fc395ba6753a5d18976c0f0}{do\+\_\+split\+\_\+sample} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_aae574ec8e5b56784a17eac85f49b9ff6}{do\+\_\+normal\+\_\+eq} ()
+\item 
+def \hyperlink{namespaceasamba_1_1backend_a0632807c78a1c7393f0c6295de7130f0}{get\+\_\+norm\+\_\+eq\+\_\+result} ()
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1backend_adc477dafe7d63a619926e80ee1ce7d07}\label{namespaceasamba_1_1backend_adc477dafe7d63a619926e80ee1ce7d07}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\hyperlink{namespaceasamba_1_1backend_afd7e436e1e620c4ee06153ef5817ad7e}{Back\+End\+Session} = \hyperlink{classasamba_1_1backend_1_1_modelling_session}{Modelling\+Session}()
+\begin{DoxyCompactList}\small\item\em def set\+\_\+obs\+\_\+log\+\_\+\+Teff(val, err)\+: \char`\"{}\char`\"{}" Set using the observed effective temperature \char`\"{}\char`\"{}" \subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\textquotesingle{}, val)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+lower\textquotesingle{}, err)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+upper\textquotesingle{}, err)}
+
+Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\textquotesingle{}, val) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+lower\textquotesingle{}, err) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+upper\textquotesingle{}, err) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This backend serves as a facade between the underlying functionalities built around the grid database, 
+and the user's frontend (GUI). The idea is that the user uses the mouse and keybord to specify the inputs;
+then, those inputs are immediately communicated to the backend. The backend imports the "grid", and passes
+the user's choices to the underlying functions, and calls them properly. There is a huge potential of 
+extention here, which can be provided gradually as new needs emerge.
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a46038cbb0a9dd4320c0357f78b392076}\label{namespaceasamba_1_1backend_a46038cbb0a9dd4320c0357f78b392076}} 
+\index{asamba\+::backend@{asamba\+::backend}!do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set@{do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set}}
+\index{do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set@{do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set()}{do\_call\_build\_learning\_set()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+do\+\_\+call\+\_\+build\+\_\+learning\+\_\+set (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}This is a basic wrapper around the sampler method: build_learning_set() \end{DoxyVerb}
+ 
+
+Definition at line 220 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_aefeca01f2d6cfbd7f78c26901d48b37f}\label{namespaceasamba_1_1backend_aefeca01f2d6cfbd7f78c26901d48b37f}} 
+\index{asamba\+::backend@{asamba\+::backend}!do\+\_\+connect@{do\+\_\+connect}}
+\index{do\+\_\+connect@{do\+\_\+connect}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{do\+\_\+connect()}{do\_connect()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+do\+\_\+connect (\begin{DoxyParamCaption}\item[{}]{dbname }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Make a trial attempt to the connection port, passed as "dbname", and assert if the 
+connection is possible (returns True) or not (returns False). If successful, we set
+the connection name in the backend instance of the sampling() class.
+
+@param dbname: The full name of the connection port, e.g. 'grid' for local machine. 
+       This value is passed by the frontend.GUI.dbname attribute
+@type dbname: str
+@return: True if the connection is possible, and False, otherwise
+@rtype: bool
+\end{DoxyVerb}
+ 
+
+Definition at line 64 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_aae574ec8e5b56784a17eac85f49b9ff6}\label{namespaceasamba_1_1backend_aae574ec8e5b56784a17eac85f49b9ff6}} 
+\index{asamba\+::backend@{asamba\+::backend}!do\+\_\+normal\+\_\+eq@{do\+\_\+normal\+\_\+eq}}
+\index{do\+\_\+normal\+\_\+eq@{do\+\_\+normal\+\_\+eq}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{do\+\_\+normal\+\_\+eq()}{do\_normal\_eq()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+do\+\_\+normal\+\_\+eq (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}A wrapper around ann.solve_normal_equation() method \end{DoxyVerb}
+ 
+
+Definition at line 269 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a7991be555fc395ba6753a5d18976c0f0}\label{namespaceasamba_1_1backend_a7991be555fc395ba6753a5d18976c0f0}} 
+\index{asamba\+::backend@{asamba\+::backend}!do\+\_\+split\+\_\+sample@{do\+\_\+split\+\_\+sample}}
+\index{do\+\_\+split\+\_\+sample@{do\+\_\+split\+\_\+sample}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{do\+\_\+split\+\_\+sample()}{do\_split\_sample()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+do\+\_\+split\+\_\+sample (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}a wrapper around the sampler method split_learning_sets() \end{DoxyVerb}
+ 
+
+Definition at line 265 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a5cc5719b5de5aadd02843c5746a10313}\label{namespaceasamba_1_1backend_a5cc5719b5de5aadd02843c5746a10313}} 
+\index{asamba\+::backend@{asamba\+::backend}!get\+\_\+example\+\_\+input\+\_\+freq@{get\+\_\+example\+\_\+input\+\_\+freq}}
+\index{get\+\_\+example\+\_\+input\+\_\+freq@{get\+\_\+example\+\_\+input\+\_\+freq}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{get\+\_\+example\+\_\+input\+\_\+freq()}{get\_example\_input\_freq()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+get\+\_\+example\+\_\+input\+\_\+freq (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return a long string that gives an example of how the input frequency list must be structured
+@return: example text
+@rtype: str
+\end{DoxyVerb}
+ 
+
+Definition at line 101 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a29100d2ee6f88a4ca3bf2f7dff20f715}\label{namespaceasamba_1_1backend_a29100d2ee6f88a4ca3bf2f7dff20f715}} 
+\index{asamba\+::backend@{asamba\+::backend}!get\+\_\+example\+\_\+sampling\+\_\+inlist@{get\+\_\+example\+\_\+sampling\+\_\+inlist}}
+\index{get\+\_\+example\+\_\+sampling\+\_\+inlist@{get\+\_\+example\+\_\+sampling\+\_\+inlist}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{get\+\_\+example\+\_\+sampling\+\_\+inlist()}{get\_example\_sampling\_inlist()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+get\+\_\+example\+\_\+sampling\+\_\+inlist (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return a long string that gives an example of how the sampling inlist file must be structured
+@return: example text
+@rtype: str
+\end{DoxyVerb}
+ 
+
+Definition at line 188 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a5df45c487576d585748d45f92a587ad9}\label{namespaceasamba_1_1backend_a5df45c487576d585748d45f92a587ad9}} 
+\index{asamba\+::backend@{asamba\+::backend}!get\+\_\+example\+\_\+star\+\_\+inlist@{get\+\_\+example\+\_\+star\+\_\+inlist}}
+\index{get\+\_\+example\+\_\+star\+\_\+inlist@{get\+\_\+example\+\_\+star\+\_\+inlist}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{get\+\_\+example\+\_\+star\+\_\+inlist()}{get\_example\_star\_inlist()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+get\+\_\+example\+\_\+star\+\_\+inlist (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return a long string that gives an example of how the star parameter inlist file must be structured
+@return: example text
+@rtype: str
+\end{DoxyVerb}
+ 
+
+Definition at line 149 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a0632807c78a1c7393f0c6295de7130f0}\label{namespaceasamba_1_1backend_a0632807c78a1c7393f0c6295de7130f0}} 
+\index{asamba\+::backend@{asamba\+::backend}!get\+\_\+norm\+\_\+eq\+\_\+result@{get\+\_\+norm\+\_\+eq\+\_\+result}}
+\index{get\+\_\+norm\+\_\+eq\+\_\+result@{get\+\_\+norm\+\_\+eq\+\_\+result}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{get\+\_\+norm\+\_\+eq\+\_\+result()}{get\_norm\_eq\_result()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+get\+\_\+norm\+\_\+eq\+\_\+result (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse the results of solving the normal equation. By results, we mean the set of 
+regression parameters \f$\theta\f$ which minimize the cost function (normally the 
+chi square function). For further details, you can refer to the docmunetion below
+the following method: artificial_neural_network.solve_normal_equation(). 
+\end{DoxyVerb}
+ 
+
+Definition at line 278 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a6d6a812ce0d681b4deb0768cb9b2df69}\label{namespaceasamba_1_1backend_a6d6a812ce0d681b4deb0768cb9b2df69}} 
+\index{asamba\+::backend@{asamba\+::backend}!get\+\_\+samp\+\_\+results@{get\+\_\+samp\+\_\+results}}
+\index{get\+\_\+samp\+\_\+results@{get\+\_\+samp\+\_\+results}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{get\+\_\+samp\+\_\+results()}{get\_samp\_results()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+get\+\_\+samp\+\_\+results (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Grab several useful information after the learning set is built \end{DoxyVerb}
+ 
+
+Definition at line 225 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a0f88980e600c7c4bbf21efb7274dae9a}\label{namespaceasamba_1_1backend_a0f88980e600c7c4bbf21efb7274dae9a}} 
+\index{asamba\+::backend@{asamba\+::backend}!read\+\_\+sampling\+\_\+inlist@{read\+\_\+sampling\+\_\+inlist}}
+\index{read\+\_\+sampling\+\_\+inlist@{read\+\_\+sampling\+\_\+inlist}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{read\+\_\+sampling\+\_\+inlist()}{read\_sampling\_inlist()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+read\+\_\+sampling\+\_\+inlist (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read the sampling inlist, and load the instructions to the BackEndSession object
+\end{DoxyVerb}
+ 
+
+Definition at line 181 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a4f5499ca7e69d4d088309b1f6a3e14b8}\label{namespaceasamba_1_1backend_a4f5499ca7e69d4d088309b1f6a3e14b8}} 
+\index{asamba\+::backend@{asamba\+::backend}!read\+\_\+star\+\_\+inlist@{read\+\_\+star\+\_\+inlist}}
+\index{read\+\_\+star\+\_\+inlist@{read\+\_\+star\+\_\+inlist}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{read\+\_\+star\+\_\+inlist()}{read\_star\_inlist()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+read\+\_\+star\+\_\+inlist (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read the star inlist, and load the available information to the BackEndSession object
+\end{DoxyVerb}
+ 
+
+Definition at line 142 of file backend.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1backend_a6312398e26ae20a0e2ca43fb80866328}\label{namespaceasamba_1_1backend_a6312398e26ae20a0e2ca43fb80866328}} 
+\index{asamba\+::backend@{asamba\+::backend}!set\+\_\+input\+\_\+freq\+\_\+file@{set\+\_\+input\+\_\+freq\+\_\+file}}
+\index{set\+\_\+input\+\_\+freq\+\_\+file@{set\+\_\+input\+\_\+freq\+\_\+file}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{set\+\_\+input\+\_\+freq\+\_\+file()}{set\_input\_freq\_file()}}
+{\footnotesize\ttfamily def asamba.\+backend.\+set\+\_\+input\+\_\+freq\+\_\+file (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Set the modes file for reading by star.load_modes_from_file()
+@param filename: full path to the local frequency list file
+@type filename: str
+\end{DoxyVerb}
+ 
+
+Definition at line 88 of file backend.\+py.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1backend_afd7e436e1e620c4ee06153ef5817ad7e}\label{namespaceasamba_1_1backend_afd7e436e1e620c4ee06153ef5817ad7e}} 
+\index{asamba\+::backend@{asamba\+::backend}!Back\+End\+Session@{Back\+End\+Session}}
+\index{Back\+End\+Session@{Back\+End\+Session}!asamba\+::backend@{asamba\+::backend}}
+\subsubsection{\texorpdfstring{Back\+End\+Session}{BackEndSession}}
+{\footnotesize\ttfamily asamba.\+backend.\+Back\+End\+Session = \hyperlink{classasamba_1_1backend_1_1_modelling_session}{Modelling\+Session}()}
+
+
+
+def set\+\_\+obs\+\_\+log\+\_\+\+Teff(val, err)\+: \char`\"{}\char`\"{}" Set using the observed effective temperature \char`\"{}\char`\"{}" \subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\textquotesingle{}, val)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+lower\textquotesingle{}, err)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+upper\textquotesingle{}, err)}
+
+Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\textquotesingle{}, val) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+lower\textquotesingle{}, err) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+\+Teff\+\_\+err\+\_\+upper\textquotesingle{}, err) 
+
+def set\+\_\+obs\+\_\+log\+\_\+g(val, err)\+: \char`\"{}\char`\"{}" Set using the observed surface gravity \char`\"{}\char`\"{}" \subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+g\textquotesingle{}, val)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+g\+\_\+err\+\_\+lower\textquotesingle{}, err)}
+
+\subsection*{bk\+\_\+star.\+set(\textquotesingle{}log\+\_\+g\+\_\+err\+\_\+upper\textquotesingle{}, err)}
+
+Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+g\textquotesingle{}, val) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+g\+\_\+err\+\_\+lower\textquotesingle{}, err) Back\+End\+Session.\+set(\textquotesingle{}log\+\_\+g\+\_\+err\+\_\+upper\textquotesingle{}, err) def set\+\_\+sampling\+\_\+function(choice)\+: \char`\"{}\char`\"{}" Set the one of the two sampling functions from the sampler module. True means choosing the \char`\"{}sampler.\+constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids\char`\"{} function and False means selecting \char`\"{}sampler.\+randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids\char`\"{} \char`\"{}\char`\"{}" if choice is True\+: Back\+End\+Session.\+set(\textquotesingle{}sampling\+\_\+func\textquotesingle{}, smpl.\+constrained\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids) else\+: Back\+End\+Session.\+set(\textquotesingle{}sampling\+\_\+func\textquotesingle{}, smpl.\+randomly\+\_\+pick\+\_\+models\+\_\+and\+\_\+rotation\+\_\+ids) def set\+\_\+shuffling(choice)\+: \char`\"{}\char`\"{}" Set the sampling shuffling mode. choice=True means apply the shuffling of the learning set, and False means otherwise. \char`\"{}\char`\"{}" \subsection*{bk\+\_\+sample.\+set(\textquotesingle{}sampling\+\_\+shuffle\textquotesingle{}, choice)}
+
+Back\+End\+Session.\+set(\textquotesingle{}sampling\+\_\+shuffle\textquotesingle{}, choice) B A C K E N D W O R K I N G S E S S I O N 
+
+Definition at line 358 of file backend.\+py.
+

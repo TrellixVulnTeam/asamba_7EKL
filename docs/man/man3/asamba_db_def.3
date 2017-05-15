@@ -1,0 +1,65 @@
+.TH "asamba.db_def" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.db_def
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBgrid_db\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBexists\fP (dbname)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "int \fBis_py3x\fP = 3"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+Define the basic class objects of the database (db), and some basic functionalities.
+Some of the methods are wrappers around similar methods in psycopg2, with an additional
+underscore "_" in the name; e.g. 
+- grid_db.execute_one() wraps around psycopg2.execute()
+- grid_db.execute_many() wraps around psycopg2.executemany()
+- grid_db.fetch_one() wraps around psycopg2.fetchone()
+- grid_db.fetch_many() wraps around psycopg2.fetchmany()
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.db_def\&.exists ( dbname)"
+
+.PP
+.nf
+Check if the database already exists.
+Returns True if the database exists, and False otherwise.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 208 of file db_def\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

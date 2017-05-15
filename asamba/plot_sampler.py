@@ -72,7 +72,7 @@ def hist_learning_y(self, figure_name):
   @type figure_out: str
   """
   # observed values
-  modes = self.star.modes
+  modes = self.get('modes')
   freqs = np.array([mode.freq for mode in modes])
 
   # Learning set

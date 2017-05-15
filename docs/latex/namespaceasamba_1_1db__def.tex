@@ -1,0 +1,50 @@
+\hypertarget{namespaceasamba_1_1db__def}{}\section{asamba.\+db\+\_\+def Namespace Reference}
+\label{namespaceasamba_1_1db__def}\index{asamba.\+db\+\_\+def@{asamba.\+db\+\_\+def}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classasamba_1_1db__def_1_1grid__db}{grid\+\_\+db}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceasamba_1_1db__def_ae036f59b82c15b96d4d833e9f2fa5d95}{exists} (dbname)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1db__def_a384fe1451672227e44229595c4d6901c}\label{namespaceasamba_1_1db__def_a384fe1451672227e44229595c4d6901c}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1db__def_ac836e2ab6f9a230b10275bd6f9ac29d1}\label{namespaceasamba_1_1db__def_ac836e2ab6f9a230b10275bd6f9ac29d1}} 
+int {\bfseries is\+\_\+py3x} = 3
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Define the basic class objects of the database (db), and some basic functionalities.
+Some of the methods are wrappers around similar methods in psycopg2, with an additional
+underscore "_" in the name; e.g. 
+- grid_db.execute_one() wraps around psycopg2.execute()
+- grid_db.execute_many() wraps around psycopg2.executemany()
+- grid_db.fetch_one() wraps around psycopg2.fetchone()
+- grid_db.fetch_many() wraps around psycopg2.fetchmany()
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1db__def_ae036f59b82c15b96d4d833e9f2fa5d95}\label{namespaceasamba_1_1db__def_ae036f59b82c15b96d4d833e9f2fa5d95}} 
+\index{asamba\+::db\+\_\+def@{asamba\+::db\+\_\+def}!exists@{exists}}
+\index{exists@{exists}!asamba\+::db\+\_\+def@{asamba\+::db\+\_\+def}}
+\subsubsection{\texorpdfstring{exists()}{exists()}}
+{\footnotesize\ttfamily def asamba.\+db\+\_\+def.\+exists (\begin{DoxyParamCaption}\item[{}]{dbname }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if the database already exists.
+Returns True if the database exists, and False otherwise.
+\end{DoxyVerb}
+ 
+
+Definition at line 208 of file db\+\_\+def.\+py.
+
+Here is the caller graph for this function\+:
+% FIG 0

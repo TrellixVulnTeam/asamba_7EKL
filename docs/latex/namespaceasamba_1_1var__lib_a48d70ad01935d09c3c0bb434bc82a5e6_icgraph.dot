@@ -1,0 +1,11 @@
+digraph "asamba.var_lib.get_model_parameters_from_gyre_in_filename"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node28 [label="asamba.var_lib.get\l_model_parameters_from\l_gyre_in_filename",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node28 -> Node29 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node29 [label="asamba.var_lib.get\l_list_models_from_hist\l_and_gyre_in_files",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a31c9bde7f3cc889b6f3bd873d002dbf1"];
+  Node28 -> Node30 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node30 [label="asamba.var_lib.prepare\l_models_data",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#ac3a34f468d31f54f0d29486fbd1d3ab5"];
+}

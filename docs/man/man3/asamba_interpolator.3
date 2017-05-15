@@ -1,0 +1,350 @@
+.TH "asamba.interpolator" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.interpolator
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBinterpolation\fP"
+.br
+.RI "
+.SS ""
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SS ""
+"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.RI "Setter\&. "
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.RI "Getter\&. "
+.ti -1c
+.RI "def \fBdo_interpolate\fP (self)"
+.br
+.RI "Methods\&. "
+.ti -1c
+.RI "def \fBcollect_inputs\fP (self)"
+.br
+.ti -1c
+.RI "def \fBcheck_inputs\fP (self)"
+.br
+.ti -1c
+.RI "def \fBprepare\fP (self)"
+.br
+.ti -1c
+.RI "def \fBbuild_meshgrid\fP (self)"
+.br
+.ti -1c
+.RI "def \fBcheck_meshgrid\fP (self)"
+.br
+.ti -1c
+.RI "def \fBcall_griddata\fP (self)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "int \fBis_py3x\fP = 3"
+.br
+.ti -1c
+.RI "\fBanchor_param_names\fP"
+.br
+.ti -1c
+.RI "\fBanchor_param_values\fP"
+.br
+.ti -1c
+.RI "\fBanchor_frequencies\fP"
+.br
+.ti -1c
+.RI "\fBanchor_radial_orders\fP"
+.br
+.ti -1c
+.RI "\fBanchor_mode_types\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_M_ini_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_fov_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_Z_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_logD_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_Xc_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_around_anchor_eta_n\fP"
+.br
+.ti -1c
+.RI "\fBinputs_by_range\fP"
+.br
+.ti -1c
+.RI "\fBinterp_inputs_OK\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_M_ini\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_fov\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_Z\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_logD\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_Xc\fP"
+.br
+.ti -1c
+.RI "\fBinterp_range_eta\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta_ids\fP"
+.br
+.ti -1c
+.RI "\fBinterp_check_inputs_OK\fP"
+.br
+.ti -1c
+.RI "\fBinput_features\fP"
+.br
+.ti -1c
+.RI "\fBinput_features_rec\fP"
+.br
+.ti -1c
+.RI "\fBinput_frequencies\fP"
+.br
+.ti -1c
+.RI "\fBinput_frequencies_rec\fP"
+.br
+.ti -1c
+.RI "\fBinterp_M_ini\fP"
+.br
+.ti -1c
+.RI "\fBinterp_M_ini_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_M_ini_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_M_ini_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_M_ini_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_M_ini\fP"
+.br
+.ti -1c
+.RI "\fBinterp_fov\fP"
+.br
+.ti -1c
+.RI "\fBinterp_fov_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_fov_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_fov_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_fov_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_fov\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Z\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Z_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Z_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Z_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Z_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_Z\fP"
+.br
+.ti -1c
+.RI "\fBinterp_logD\fP"
+.br
+.ti -1c
+.RI "\fBinterp_logD_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_logD_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_logD_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_logD_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_logD\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Xc\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Xc_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Xc_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Xc_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_Xc_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_Xc\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta_from\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta_to\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta_steps\fP"
+.br
+.ti -1c
+.RI "\fBinterp_eta_array\fP"
+.br
+.ti -1c
+.RI "\fBinterp_grid_eta\fP"
+.br
+.ti -1c
+.RI "\fBinterp_prepare_OK\fP"
+.br
+.ti -1c
+.RI "\fBinterp_param_names\fP"
+.br
+.ti -1c
+.RI "\fBinterp_n_dim\fP"
+.br
+.ti -1c
+.RI "\fBinterp_slices\fP"
+.br
+.ti -1c
+.RI "\fBinterp_1d_points\fP"
+.br
+.ti -1c
+.RI "\fBinterp_n_points\fP"
+.br
+.ti -1c
+.RI "\fBinterp_meshgrid_OK\fP"
+.br
+.ti -1c
+.RI "\fBinterp_check_meshgrid_OK\fP"
+.br
+.ti -1c
+.RI "\fBinterp_meshgrid\fP"
+.br
+.ti -1c
+.RI "\fBdbname\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module provides interpolation between frequencies over a give range of input 
+stellar parameters. With this tool, it is no longer needed to compute too 
+highly-resolved grids around the best asteroseismic models. Instead, the resolved 
+models are prepared by the interpolation in between the grid points from the coarse model.
+
+The interpolation class is a derived/subclass of the sampler.sampling class, because we require
+several of the methods defined there in this module. This is to ensure we minimize/suppress 
+the redundancy, and make the best runtime use of the parameters that are set therein.
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.interpolator\&.__init__ ( self)"
+
+.PP
+.nf
+The base class for internal interpolation means, which extends upon the functionalities in the 
+sampler.sampling class.
+
+If interp_... is True, then that parameter will be interpolated
+from interp_..._from to interp_..._to, in interp_..._steps number of 
+meshpoints, including the last point (i.e. interp_..._to).
+
+.fi
+.PP
+ 
+.PP
+Definition at line 52 of file interpolator\&.py\&.
+.SS "def asamba\&.interpolator\&.do_interpolate ( self)"
+
+.PP
+Methods\&. 
+.PP
+.nf
+This routine carries out the interpolation of frequencies over non-uniformly 
+gridded background layout of data points (attributes like M_ini, Z, etc).
+
+.fi
+.PP
+ 
+.PP
+Definition at line 220 of file interpolator\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

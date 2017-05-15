@@ -1,0 +1,177 @@
+\hypertarget{namespaceasamba_1_1read}{}\section{asamba.\+read Namespace Reference}
+\label{namespaceasamba_1_1read}\index{asamba.\+read@{asamba.\+read}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceasamba_1_1read_ace4b0a61b1709d8ed716d72ee1970116}{convert\+\_\+val} (str\+\_\+val)
+\item 
+def \hyperlink{namespaceasamba_1_1read_a1506842017eb500635c24715c4336084}{read\+\_\+inlist} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1read_a9d452d521d54c77714542bea2e6e93fa}{gyre\+\_\+h5} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1read_ae83b875713bb96212678b765231b4687}{read\+\_\+mesa\+\_\+ascii} (filename)
+\item 
+def \hyperlink{namespaceasamba_1_1read_abb755ca6d69a403b2cbdc28d54eb0e24}{read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii} (ascii\+\_\+in)
+\item 
+def \hyperlink{namespaceasamba_1_1read_ad29a871a69a759e56c120bfc3d898702}{read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii} (ascii\+\_\+in)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1read_ae7575eddb0ba9f0b562ed6cc789969df}\label{namespaceasamba_1_1read_ae7575eddb0ba9f0b562ed6cc789969df}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This module provides basic functionalities to read a variety of data e.g. in ASCII 
+and HDF5 etc. formats. The highlight of the module is the "read_mesa_ascii()" function
+which can read MESA history or profile files.
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1read_ace4b0a61b1709d8ed716d72ee1970116}\label{namespaceasamba_1_1read_ace4b0a61b1709d8ed716d72ee1970116}} 
+\index{asamba\+::read@{asamba\+::read}!convert\+\_\+val@{convert\+\_\+val}}
+\index{convert\+\_\+val@{convert\+\_\+val}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{convert\+\_\+val()}{convert\_val()}}
+{\footnotesize\ttfamily def asamba.\+read.\+convert\+\_\+val (\begin{DoxyParamCaption}\item[{}]{str\+\_\+val }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}This function receives an integer, float or a boolean variable in a string representation, identifies
+the correct type, and returns the variable in the expected/appropriate python native data type. 
+E.g. '1' --> 1, and 'True' --> True
+
+@param str_val: 
+\end{DoxyVerb}
+ 
+
+Definition at line 23 of file read.\+py.
+
+Here is the caller graph for this function\+:
+% FIG 0
+\mbox{\Hypertarget{namespaceasamba_1_1read_a9d452d521d54c77714542bea2e6e93fa}\label{namespaceasamba_1_1read_a9d452d521d54c77714542bea2e6e93fa}} 
+\index{asamba\+::read@{asamba\+::read}!gyre\+\_\+h5@{gyre\+\_\+h5}}
+\index{gyre\+\_\+h5@{gyre\+\_\+h5}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{gyre\+\_\+h5()}{gyre\_h5()}}
+{\footnotesize\ttfamily def asamba.\+read.\+gyre\+\_\+h5 (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read the GYRE output HDF5 file in full detail, and return an instance of the var_def.modes() with
+relevant attributes filled up. Thus, this routine reads the summary file or the eigenfunction file
+conveniently. Example of use:
+
+>>>from asamba import read
+>>>gyre_file = '/home/user/projects/gyre/beta_Cep.h5'
+>>>mode_list = gyre_h5(gyre_file)
+>>>freq      = np.real( mode_list.freq )
+
+@param filename: full path to the output GYRE HDF5 file
+@type filename: string
+@return: an instance of the var_def.modes() class
+@rtype: object
+\end{DoxyVerb}
+ 
+
+Definition at line 137 of file read.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1read_a1506842017eb500635c24715c4336084}\label{namespaceasamba_1_1read_a1506842017eb500635c24715c4336084}} 
+\index{asamba\+::read@{asamba\+::read}!read\+\_\+inlist@{read\+\_\+inlist}}
+\index{read\+\_\+inlist@{read\+\_\+inlist}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{read\+\_\+inlist()}{read\_inlist()}}
+{\footnotesize\ttfamily def asamba.\+read.\+read\+\_\+inlist (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}This function reads an ASCII file which specifies any set of options as a list of tuples (attr, val) for 
+valid entries in the file. It follows the same idea as the widely-used Fortran inlists.
+
+The user comments, specified using "#" are trimmed off from anywhere in the lines, so that one may comment 
+the inlist file in a line before the attr = val set or after it. E.g., the following two options are both 
+valid:
+
+   # Here, I specify the name of my star
+   name = 'beta Cephei'
+
+or 
+
+   name = 'beta Cephei'  # The name of my star
+
+if the val is 'True', it is set to boolean True, if it is 'False', it is set to boolean False, if it contains
+'.', 'e+' or 'e-', it is interpreted as a fload, and otherwise, it is converted to integer. So, a great caution
+has to be practiced when assigning values to the attributes in the inlist files.
+
+As a nice feature, the user can even toss in a list/tuple of values, e.g. var = [1, 2.3, True]. Each element inside
+the list/tuple will be split (comma as a delimiter), and converted to the correct datatype by calling the 
+function convert_val().
+
+@param filename: full path to the inlist file
+@type filename: str
+@return: a list of (attr, val) tuples, where 
+\end{DoxyVerb}
+ 
+
+Definition at line 57 of file read.\+py.
+
+Here is the call graph for this function\+:
+% FIG 1
+\mbox{\Hypertarget{namespaceasamba_1_1read_ae83b875713bb96212678b765231b4687}\label{namespaceasamba_1_1read_ae83b875713bb96212678b765231b4687}} 
+\index{asamba\+::read@{asamba\+::read}!read\+\_\+mesa\+\_\+ascii@{read\+\_\+mesa\+\_\+ascii}}
+\index{read\+\_\+mesa\+\_\+ascii@{read\+\_\+mesa\+\_\+ascii}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{read\+\_\+mesa\+\_\+ascii()}{read\_mesa\_ascii()}}
+{\footnotesize\ttfamily def asamba.\+read.\+read\+\_\+mesa\+\_\+ascii (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read a history or profile ascii output from MESA.
+An example of using this function to read the file "input_file" is the following
+
+>>> input_file = '/home/user/my-files/The_Sun/LOGS/history.data'
+>>> header, data = read.read_mesa_ascii(input_file)
+
+@param filename: full path to the input ascii file
+@type filename: string
+@return dictionary of the header of the file, and the record array for the data block. 
+@rtype: dictionary and numpy record array
+\end{DoxyVerb}
+ 
+
+Definition at line 173 of file read.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1read_abb755ca6d69a403b2cbdc28d54eb0e24}\label{namespaceasamba_1_1read_abb755ca6d69a403b2cbdc28d54eb0e24}} 
+\index{asamba\+::read@{asamba\+::read}!read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii@{read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii}}
+\index{read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii@{read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii()}{read\_models\_parameters\_from\_ascii()}}
+{\footnotesize\ttfamily def asamba.\+read.\+read\+\_\+models\+\_\+parameters\+\_\+from\+\_\+ascii (\begin{DoxyParamCaption}\item[{}]{ascii\+\_\+in }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Warning: If the size of the input ascii is too large (which is practically the case), then this 
+function crashes raising a MemoryError exception.
+
+Read the contents of the input ASCII file containing the whole grid models data.
+
+@param ascii_in: full path to the ASCII file to be read
+@type ascii_in: string
+@return: array containing the whole data. Each field can be accessed using the same attributes of
+         the var_def.model class object.
+@rtype: numpy record array
+\end{DoxyVerb}
+ 
+
+Definition at line 227 of file read.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1read_ad29a871a69a759e56c120bfc3d898702}\label{namespaceasamba_1_1read_ad29a871a69a759e56c120bfc3d898702}} 
+\index{asamba\+::read@{asamba\+::read}!read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii@{read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii}}
+\index{read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii@{read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii}!asamba\+::read@{asamba\+::read}}
+\subsubsection{\texorpdfstring{read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii()}{read\_tracks\_parameters\_from\_ascii()}}
+{\footnotesize\ttfamily def asamba.\+read.\+read\+\_\+tracks\+\_\+parameters\+\_\+from\+\_\+ascii (\begin{DoxyParamCaption}\item[{}]{ascii\+\_\+in }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}This routine reads the contents of an ascii file which tabulates the track parameters, and returns
+a list of "var_def.track()" objects, one per each row in the file. The list can be used later on
+for any manipulation (plotting, inserting into the database, etc). Note that we skip the first row
+as the header.
+
+@param ascii_in: the full path to the already-available ascii file that contains the entire (or part)
+       of the tracks parameters. This file can be generated by first calling the function  
+       write_tracks_parameters_to_ascii().
+@type ascii_out: string
+@return: list of instances of var_def.track() class objects, one object per each row (i.e. track).
+@rtype: list
+\end{DoxyVerb}
+ 
+
+Definition at line 295 of file read.\+py.
+

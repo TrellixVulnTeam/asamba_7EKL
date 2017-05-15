@@ -1,0 +1,18 @@
+digraph "asamba.sampler.sampling"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node0 [label="asamba.sampler.sampling",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node0 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node1 [label="asamba.star.star",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1star.html"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node2 [label="asamba.star.modes",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1modes.html"];
+  Node3 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node3 [label="asamba.star.mode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1star_1_1mode.html"];
+  Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node4 [label="object",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node0 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node5 [label="asamba.artificial_neural\l_network.neural_net",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html"];
+  Node0 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node6 [label="asamba.interpolator.interpolation",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1interpolator_1_1interpolation.html"];
+}

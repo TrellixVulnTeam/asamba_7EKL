@@ -1,0 +1,161 @@
+.TH "asamba.utils" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.utils
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBlist_to_recarray\fP (list_input, dtype)"
+.br
+.ti -1c
+.RI "def \fBlist_to_ndarray\fP (list_input)"
+.br
+.ti -1c
+.RI "def \fBndarray_to_recarray\fP (arr, dtype)"
+.br
+.ti -1c
+.RI "def \fBrecarray_to_ndarray\fP (rec)"
+.br
+.ti -1c
+.RI "def \fBprepend_with_column_1\fP (matrix)"
+.br
+.ti -1c
+.RI "def \fBgaussian\fP (x, mu, sigma)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "int \fBis_py3x\fP = 3"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module provides some generic utilities to facilitate working with different datatypes
+and input/outputs conveniently.
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.utils\&.gaussian ( x,  mu,  sigma)"
+
+.PP
+.nf
+Return the Normal (Gaussian) probability distribution function g(x) for x with mean mu and standard
+deviation sigma, following the definition 
+
+\f[
+    N(x,\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}\exp\left[-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2\right].
+\f]
+
+@param x: array or value of the input 
+@type x: ndarray or float
+@param mu: the mean of the population
+@type mu: float
+@param sigma: the standard deviation of the population around the mean
+@type sigma: npdarray or float
+@return: The probability of x being between the interval x and x+epsilon, where epsilon goes to zero
+@rtype: ndarray or float
+
+.fi
+.PP
+ 
+.PP
+Definition at line 107 of file utils\&.py\&.
+.SS "def asamba\&.utils\&.list_to_ndarray ( list_input)"
+
+.PP
+.nf
+Convert a list of tuples to a numpy ndarray. 
+
+@param list_input: The inputs to be converted to numpy recorda array
+@type list_input: list
+@return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+      number of columns equal to the number of items in each tuple.
+@rtype: np.recarray
+
+.fi
+.PP
+ 
+.PP
+Definition at line 48 of file utils\&.py\&.
+.SS "def asamba\&.utils\&.list_to_recarray ( list_input,  dtype)"
+
+.PP
+.nf
+Convert a list of tuples to a numpy recordarray. Each tuple is one retrieved row of data from calling
+the SQL queries, and fetching them through e.g. db.fetch_all() method.
+
+@param list_input: The inputs to be converted to numpy record array. 
+@type list_input: list
+@return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+      number of columns equal to the number of items in each tuple. The dtype for each column is 
+      passed as an input argument by the user.
+@rtype: np.recarray
+
+.fi
+.PP
+ 
+.PP
+Definition at line 22 of file utils\&.py\&.
+.SS "def asamba\&.utils\&.ndarray_to_recarray ( arr,  dtype)"
+
+.PP
+.nf
+Convert a numpy ndarray to a numpy record array
+
+@param arr: the input array
+@param dtype: the list of np.dtype for all columns/attributes
+@return: a corresponding record array
+
+.fi
+.PP
+ 
+.PP
+Definition at line 61 of file utils\&.py\&.
+.SS "def asamba\&.utils\&.prepend_with_column_1 ( matrix)"
+
+.PP
+.nf
+Add a column of ones to the m-by-n matrix, so that the result is a m-by-n+1 matrix
+@param matrix: The general matrix of any arbitrary size with m rows and n columns
+@type matrix: np.ndarray
+@return: a matrix of m rows and n+1 columns where the 0-th column is all one.
+@rtype: np.ndarray
+
+.fi
+.PP
+ 
+.PP
+Definition at line 88 of file utils\&.py\&.
+.SS "def asamba\&.utils\&.recarray_to_ndarray ( rec)"
+
+.PP
+.nf
+Convert a numpy record array to a matrix ndarray
+
+@param rec: numpy record array
+@return: ndarray
+
+.fi
+.PP
+ 
+.PP
+Definition at line 77 of file utils\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

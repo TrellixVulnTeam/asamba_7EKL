@@ -1,0 +1,9 @@
+digraph "asamba.var_lib.get_track_parameters_from_hist_filename"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node38 [label="asamba.var_lib.get\l_track_parameters_from\l_hist_filename",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node38 -> Node39 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node39 [label="asamba.var_lib.get\l_list_models_from_hist\l_and_gyre_in_files",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a31c9bde7f3cc889b6f3bd873d002dbf1"];
+}

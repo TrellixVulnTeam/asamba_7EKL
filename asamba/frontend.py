@@ -90,7 +90,7 @@ class GUI(object):
     self.conn_ivs     = 2   # user from the Institute of Astronomy, KUL
     self.conn_ivs_str = 'IvS'
     self.conn_https   = 3   # 'https://'
-    self.conn_https_str = 'https://'
+    self.conn_https_str = 'asamba-test' # password: ASAMBA%USER0
     self.dbname       = ''  # The final user's choice
     self.conn_status  = BooleanVar()
     self.conn_status.set(False)
@@ -270,13 +270,13 @@ class GUI(object):
     ##########################################
     # The Interpolation Frame
     ##########################################
-    self.but_interp     = ttk.Button(self.frame_interp, text='Load Interp. Settings', command=None)
+    self.but_interp     = ttk.Button(self.frame_interp, text='Load Interp. Settings', command=None, state=DISABLED)
     self.but_interp.grid(row=0, column=0, sticky=(W, E))
 
-    self.but_interp_ex  = ttk.Button(self.frame_interp, text='Example', command=None)
+    self.but_interp_ex  = ttk.Button(self.frame_interp, text='Example', command=None, state=DISABLED)
     self.but_interp_ex.grid(row=0, column=1, sticky=(W, E))
 
-    self.but_interp_exec=ttk.Button(self.frame_interp, text='Execute', command=None)
+    self.but_interp_exec=ttk.Button(self.frame_interp, text='Execute', command=None, state=DISABLED)
     self.but_interp_exec.grid(row=1, column=0, sticky=(W, E))
 
     ##########################################

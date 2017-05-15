@@ -1,0 +1,11 @@
+digraph "asamba.var_lib.get_track_attrs"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node34 [label="asamba.var_lib.get\l_track_attrs",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node34 -> Node35 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node35 [label="asamba.var_lib.get\l_model_basic_attrs",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a300a7811388375b1f7a3267412235a28"];
+  Node35 -> Node36 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node36 [label="asamba.var_lib.get\l_model_attrs",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a0c87523dbf5108a45ba622f3a931ea61"];
+}

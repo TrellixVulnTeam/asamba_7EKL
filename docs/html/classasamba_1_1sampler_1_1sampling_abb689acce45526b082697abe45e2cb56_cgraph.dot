@@ -1,0 +1,19 @@
+digraph "asamba.sampler.sampling.build_learning_set"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node0 [label="asamba.sampler.sampling.build\l_learning_set",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node0 -> Node1 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 [label="asamba.artificial_neural\l_network.neural_net.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#afb2a64a48856eb07e4f48a3645d30843",tooltip="Setter. "];
+  Node0 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="asamba.backend.Modelling\lSession.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a83549fd610225e6edea77914b0f65f30"];
+  Node0 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="asamba.sampler.sampling.set",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a682af8a360751e2fb6dd215fe571ea43",tooltip="Setter. "];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="asamba.artificial_neural\l_network.neural_net.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#ad916fe73e8028f451fadbdb0436da70e",tooltip="Getter. "];
+  Node3 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="asamba.backend.Modelling\lSession.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1backend_1_1_modelling_session.html#a32588cc6e0b3869d3d5ef688953599d2"];
+  Node3 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="asamba.sampler.sampling.get",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1sampler_1_1sampling.html#a9e11f6bf4371b3dbe372dcc75c47ad3a",tooltip="Getter. "];
+}

@@ -1,0 +1,275 @@
+.TH "asamba.backend" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.backend
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBModellingSession\fP"
+.br
+.RI "U S E R - C O N T R O L L E D P A R A M E T E R S : B A C K E N D O B J E C T S T H A T D O T H E R E A L W O R K\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBdo_connect\fP (dbname)"
+.br
+.ti -1c
+.RI "def \fBset_input_freq_file\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_example_input_freq\fP ()"
+.br
+.ti -1c
+.RI "def \fBread_star_inlist\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_example_star_inlist\fP ()"
+.br
+.ti -1c
+.RI "def \fBread_sampling_inlist\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_example_sampling_inlist\fP ()"
+.br
+.ti -1c
+.RI "def \fBdo_call_build_learning_set\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_samp_results\fP ()"
+.br
+.ti -1c
+.RI "def \fBdo_split_sample\fP ()"
+.br
+.ti -1c
+.RI "def \fBdo_normal_eq\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_norm_eq_result\fP ()"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "\fBBackEndSession\fP = \fBModellingSession\fP()"
+.br
+.RI "def set_obs_log_Teff(val, err): ''" Set using the observed effective temperature ''" 
+.SH "bk_star\&.set('log_Teff', val)"
+.PP
+.PP
+.SH "bk_star\&.set('log_Teff_err_lower', err)"
+.PP
+.PP
+.SH "bk_star\&.set('log_Teff_err_upper', err)"
+.PP
+.PP
+BackEndSession\&.set('log_Teff', val) BackEndSession\&.set('log_Teff_err_lower', err) BackEndSession\&.set('log_Teff_err_upper', err) "
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This backend serves as a facade between the underlying functionalities built around the grid database, 
+and the user's frontend (GUI). The idea is that the user uses the mouse and keybord to specify the inputs;
+then, those inputs are immediately communicated to the backend. The backend imports the "grid", and passes
+the user's choices to the underlying functions, and calls them properly. There is a huge potential of 
+extention here, which can be provided gradually as new needs emerge.
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.backend\&.do_call_build_learning_set ()"
+
+.PP
+.nf
+This is a basic wrapper around the sampler method: build_learning_set() 
+.fi
+.PP
+ 
+.PP
+Definition at line 220 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.do_connect ( dbname)"
+
+.PP
+.nf
+Make a trial attempt to the connection port, passed as "dbname", and assert if the 
+connection is possible (returns True) or not (returns False). If successful, we set
+the connection name in the backend instance of the sampling() class.
+
+@param dbname: The full name of the connection port, e.g. 'grid' for local machine. 
+       This value is passed by the frontend.GUI.dbname attribute
+@type dbname: str
+@return: True if the connection is possible, and False, otherwise
+@rtype: bool
+
+.fi
+.PP
+ 
+.PP
+Definition at line 64 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.do_normal_eq ()"
+
+.PP
+.nf
+A wrapper around ann.solve_normal_equation() method 
+.fi
+.PP
+ 
+.PP
+Definition at line 269 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.do_split_sample ()"
+
+.PP
+.nf
+a wrapper around the sampler method split_learning_sets() 
+.fi
+.PP
+ 
+.PP
+Definition at line 265 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.get_example_input_freq ()"
+
+.PP
+.nf
+Return a long string that gives an example of how the input frequency list must be structured
+@return: example text
+@rtype: str
+
+.fi
+.PP
+ 
+.PP
+Definition at line 101 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.get_example_sampling_inlist ()"
+
+.PP
+.nf
+Return a long string that gives an example of how the sampling inlist file must be structured
+@return: example text
+@rtype: str
+
+.fi
+.PP
+ 
+.PP
+Definition at line 188 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.get_example_star_inlist ()"
+
+.PP
+.nf
+Return a long string that gives an example of how the star parameter inlist file must be structured
+@return: example text
+@rtype: str
+
+.fi
+.PP
+ 
+.PP
+Definition at line 149 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.get_norm_eq_result ()"
+
+.PP
+.nf
+Parse the results of solving the normal equation. By results, we mean the set of 
+regression parameters \f$\theta\f$ which minimize the cost function (normally the 
+chi square function). For further details, you can refer to the docmunetion below
+the following method: artificial_neural_network.solve_normal_equation(). 
+
+.fi
+.PP
+ 
+.PP
+Definition at line 278 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.get_samp_results ()"
+
+.PP
+.nf
+Grab several useful information after the learning set is built 
+.fi
+.PP
+ 
+.PP
+Definition at line 225 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.read_sampling_inlist ( filename)"
+
+.PP
+.nf
+Read the sampling inlist, and load the instructions to the BackEndSession object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 181 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.read_star_inlist ( filename)"
+
+.PP
+.nf
+Read the star inlist, and load the available information to the BackEndSession object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 142 of file backend\&.py\&.
+.SS "def asamba\&.backend\&.set_input_freq_file ( filename)"
+
+.PP
+.nf
+Set the modes file for reading by star.load_modes_from_file()
+@param filename: full path to the local frequency list file
+@type filename: str
+
+.fi
+.PP
+ 
+.PP
+Definition at line 88 of file backend\&.py\&.
+.SH "Variable Documentation"
+.PP 
+.SS "asamba\&.backend\&.BackEndSession = \fBModellingSession\fP()"
+
+.PP
+def set_obs_log_Teff(val, err): ''" Set using the observed effective temperature ''" 
+.SH "bk_star\&.set('log_Teff', val)"
+.PP
+.PP
+.SH "bk_star\&.set('log_Teff_err_lower', err)"
+.PP
+.PP
+.SH "bk_star\&.set('log_Teff_err_upper', err)"
+.PP
+.PP
+BackEndSession\&.set('log_Teff', val) BackEndSession\&.set('log_Teff_err_lower', err) BackEndSession\&.set('log_Teff_err_upper', err) def set_obs_log_g(val, err): ''" Set using the observed surface gravity ''" 
+.SH "bk_star\&.set('log_g', val)"
+.PP
+.PP
+.SH "bk_star\&.set('log_g_err_lower', err)"
+.PP
+.PP
+.SH "bk_star\&.set('log_g_err_upper', err)"
+.PP
+.PP
+BackEndSession\&.set('log_g', val) BackEndSession\&.set('log_g_err_lower', err) BackEndSession\&.set('log_g_err_upper', err) def set_sampling_function(choice): ''" Set the one of the two sampling functions from the sampler module\&. True means choosing the 'sampler\&.constrained_pick_models_and_rotation_ids' function and False means selecting 'sampler\&.randomly_pick_models_and_rotation_ids' ''" if choice is True: BackEndSession\&.set('sampling_func', smpl\&.constrained_pick_models_and_rotation_ids) else: BackEndSession\&.set('sampling_func', smpl\&.randomly_pick_models_and_rotation_ids) def set_shuffling(choice): ''" Set the sampling shuffling mode\&. choice=True means apply the shuffling of the learning set, and False means otherwise\&. ''" 
+.SH "bk_sample\&.set('sampling_shuffle', choice)"
+.PP
+.PP
+BackEndSession\&.set('sampling_shuffle', choice) B A C K E N D W O R K I N G S E S S I O N 
+.PP
+Definition at line 358 of file backend\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

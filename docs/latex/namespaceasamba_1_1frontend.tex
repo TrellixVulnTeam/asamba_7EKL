@@ -1,0 +1,36 @@
+\hypertarget{namespaceasamba_1_1frontend}{}\section{asamba.\+frontend Namespace Reference}
+\label{namespaceasamba_1_1frontend}\index{asamba.\+frontend@{asamba.\+frontend}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classasamba_1_1frontend_1_1_g_u_i}{G\+UI}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1frontend_a69e38c2fd23f7d69379cf0ad9be2918e}\label{namespaceasamba_1_1frontend_a69e38c2fd23f7d69379cf0ad9be2918e}} 
+\hyperlink{namespaceasamba_1_1frontend_a69e38c2fd23f7d69379cf0ad9be2918e}{logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\begin{DoxyCompactList}\small\item\em Capturing all logs under the hood to toss them to the Log tab. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespaceasamba_1_1frontend_a2edc421a47737cb1305a9f4a81aa3035}\label{namespaceasamba_1_1frontend_a2edc421a47737cb1305a9f4a81aa3035}} 
+{\bfseries stdout} = logging.\+Stream\+Handler(sys.\+stdout)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1frontend_ab66d69a53f458beccf2b7c34ea87696d}\label{namespaceasamba_1_1frontend_ab66d69a53f458beccf2b7c34ea87696d}} 
+{\bfseries formatter} = logging.\+Formatter(\textquotesingle{}\%(name)s\+: \%(levelname)s\+: \%(message)s\textquotesingle{})
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1frontend_a210c55a01645118986bda6851c802eaf}\label{namespaceasamba_1_1frontend_a210c55a01645118986bda6851c802eaf}} 
+{\bfseries master} = Tk()
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1frontend_a5bb008fcb3fe950c78730b2d38210348}\label{namespaceasamba_1_1frontend_a5bb008fcb3fe950c78730b2d38210348}} 
+{\bfseries session} = \hyperlink{classasamba_1_1frontend_1_1_g_u_i}{G\+UI}(master)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This module is the user's frontend to open a graphical user interface, GUI, and interact with the 
+underlying grid database and a (limited) suite of functionalities in the backend. There are millions 
+of ways one can design the GUI, provide different functionalities, and/or allow the user to interact 
+with the database. What is provided here is one way out of the millions of possibilities, and is a 
+basic attempt to start with the GUI. Indeed, this GUI is pretty extensible, and flexible to grow and
+accommodate additional tools for analysis.
+\end{DoxyVerb}
+ 

@@ -1,0 +1,13 @@
+digraph "asamba.var_lib.get_list_models_from_hist_and_gyre_in_files"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node6 [label="asamba.var_lib.get\l_list_models_from_hist\l_and_gyre_in_files",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node6 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="asamba.var_lib.get\l_track_parameters_from\l_hist_filename",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a0aceded8224b425f6576bad342e05069"];
+  Node6 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="asamba.var_lib.get\l_gyre_in_search_pattern\l_from_hist",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a6872a059696addcf6898489c86fb9458"];
+  Node6 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="asamba.var_lib.get\l_model_parameters_from\l_gyre_in_filename",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#a48d70ad01935d09c3c0bb434bc82a5e6"];
+}

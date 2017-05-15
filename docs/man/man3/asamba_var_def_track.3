@@ -1,0 +1,130 @@
+.TH "asamba.var_def.track" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.var_def.track
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, M_ini=\-1\&.0, Z=\-1\&.0, fov=\-1\&.0, logD=\-1\&.0)"
+.br
+.ti -1c
+.RI "def \fB__exit__\fP (self, type, value, traceback)"
+.br
+.ti -1c
+.RI "def \fBset_M_ini\fP (self, M_ini)"
+.br
+.ti -1c
+.RI "def \fBset_Z\fP (self, Z)"
+.br
+.ti -1c
+.RI "def \fBset_fov\fP (self, fov)"
+.br
+.ti -1c
+.RI "def \fBset_logD\fP (self, logD)"
+.br
+.ti -1c
+.RI "def \fBset_filename\fP (self, filename)"
+.br
+.ti -1c
+.RI "def \fBget_M_ini\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_Z\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_fov\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_logD\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_filename\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_attr_as_dic\fP (self)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBM_ini\fP"
+.br
+.ti -1c
+.RI "\fBZ\fP"
+.br
+.ti -1c
+.RI "\fBfov\fP"
+.br
+.ti -1c
+.RI "\fBlogD\fP"
+.br
+.ti -1c
+.RI "\fBfilename\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+Class object that stores the data for MESA tracks
+
+.fi
+.PP
+ 
+.PP
+Definition at line 18 of file var_def\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.track\&.__init__ ( self,  M_ini = \fC\-1\&.0\fP,  Z = \fC\-1\&.0\fP,  fov = \fC\-1\&.0\fP,  logD = \fC\-1\&.0\fP)"
+
+.PP
+.nf
+Constructor that stores the mass, metalicity, overshoot and extra diffusive mixing per each 
+track. By default, the attributes are set to "-1.0" as a physically meaningless initial value,
+to facilitate more convenient capturing of wrong initializations. E.g. you can initialize a track
+as:
+
+>>>a_track = var_def.track(M_ini=12.0, Z=0.014, fov=0.024, logD=2.25)
+
+@param M_ini: the initial mass in solar unit
+@type M_ini: float
+@param Z: metallicity (where the solar metallicity from Asplund et al. 2009 is 0.014)
+@type Z: float
+@param fov: the exponential overshoot free parameter (see e.g. Eq. 2 in Moravveji et al.
+   2016, ApJ)
+@type fov: float
+@param logD: the (logarithm of the) constant diffusive mixing in the radiative envelope.
+   See e.g. Fig. 2a in Moravveji et al. (2016, ApJ)
+@type logD: float
+
+.fi
+.PP
+ 
+.PP
+Definition at line 22 of file var_def\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.track\&.get_attr_as_dic ( self)"
+
+.PP
+.nf
+Convert the attributes of the "track" object into a dictionary, with the attribute names as keys
+
+.fi
+.PP
+ 
+.PP
+Definition at line 94 of file var_def\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

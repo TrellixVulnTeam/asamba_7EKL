@@ -292,7 +292,6 @@ def get_norm_eq_result():
 
   lines =  'The set of attributes which minimize the cost function \n'
   for key_val in zip(names, X_Neq):
-    print(key_val[0], key_val[1])
     lines += '{0}: {1:0.4f} \n'.format(key_val[0], key_val[1])
   lines += '\n' 
   lines += 'Cost function: J(theta) = {0:0.2e} \n'.format(BackEndSession.normal_equation_cost)

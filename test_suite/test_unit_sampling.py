@@ -72,9 +72,9 @@ def main():
   print('   ')
 
   # Plot the histogram of the learning Y sample
-  if False:
-    plot_sampler.hist_learning_x(TheSample, 'test_suite/plots/KIC-10526294-hist-X.png')
-    plot_sampler.hist_learning_y(TheSample, 'test_suite/plots/KIC-10526294-hist-Y.png')
+  if True:
+    plot_sampler.hist_learning_x(TheSample, 'plots/KIC-10526294-hist-X.png')
+    plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
 
   # Set percentages for training, cross-validation and test sets
   TheSample.set('training_percentage', 0.80)

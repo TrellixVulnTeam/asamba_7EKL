@@ -1,0 +1,95 @@
+.TH "asamba.star.mode" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.star.mode
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.PP
+Inherited by \fBasamba\&.star\&.modes\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset\fP (self, attr, val)"
+.br
+.RI "Setter\&. "
+.ti -1c
+.RI "def \fBget\fP (self, attr)"
+.br
+.RI "Getter\&. "
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBfreq\fP"
+.br
+.ti -1c
+.RI "\fBfreq_err\fP"
+.br
+.ti -1c
+.RI "\fBfreq_unit\fP"
+.br
+.ti -1c
+.RI "\fBamplitude\fP"
+.br
+.ti -1c
+.RI "\fBamplitude_err\fP"
+.br
+.ti -1c
+.RI "\fBamplitude_unit\fP"
+.br
+.ti -1c
+.RI "\fBn\fP"
+.br
+.ti -1c
+.RI "\fBl\fP"
+.br
+.ti -1c
+.RI "\fBm\fP"
+.br
+.ti -1c
+.RI "\fBp_mode\fP"
+.br
+.ti -1c
+.RI "\fBg_mode\fP"
+.br
+.ti -1c
+.RI "\fBin_df\fP"
+.br
+.ti -1c
+.RI "\fBin_dP\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+Container for a single pulsation mode of a star. E.g. 
+
+>>>from star import mode
+>>>mode_1 = star.mode()
+>>>mode_1.set('freq_unit', 'cd')
+
+Note that the frequency unit is converted to "per day" if not already in this unit. This is convenient
+because the typical frequencies of massive stars are around a day, and further feature normalization
+is not really needed for frequencies. Whereas with Hertz, there is roughly a factor of 10^{-6} always
+hanging around without any added value.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 49 of file star\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

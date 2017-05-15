@@ -1,0 +1,382 @@
+.TH "asamba.frontend_orig.GUI" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.frontend_orig.GUI
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, root)"
+.br
+.ti -1c
+.RI "def \fBFrontWindow\fP (self)"
+.br
+.ti -1c
+.RI "def \fBconnection_choice\fP (self)"
+.br
+.RI "M E T H O D S\&. "
+.ti -1c
+.RI "def \fBcheck_connection\fP (self)"
+.br
+.ti -1c
+.RI "def \fBdo_connect\fP (self)"
+.br
+.ti -1c
+.RI "def \fBupdate_connection_state\fP (self)"
+.br
+.ti -1c
+.RI "def \fBbrowse_file\fP (self)"
+.br
+.RI "File Inputs\&. "
+.ti -1c
+.RI "def \fBexample_input_freq\fP (self)"
+.br
+.ti -1c
+.RI "def \fBplot_observed_frequencies\fP (self)"
+.br
+.ti -1c
+.RI "def \fBrelease_obs_log_Teff\fP (self)"
+.br
+.RI "Observatinal Inputs\&. "
+.ti -1c
+.RI "def \fBrelease_obs_log_g\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_observations\fP (self)"
+.br
+.ti -1c
+.RI "def \fBsampling_setup\fP (self)"
+.br
+.RI "Inputs through checkbuttons and radiobuttons\&. "
+.ti -1c
+.RI "def \fBshuffling_setup\fP (self)"
+.br
+.ti -1c
+.RI "def \fBupdate_status_bar\fP (self, message)"
+.br
+.RI "Status Bar\&. "
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBroot\fP"
+.br
+.ti -1c
+.RI "\fBdir_data\fP"
+.br
+.ti -1c
+.RI "\fBdir_bitmaps\fP"
+.br
+.ti -1c
+.RI "\fBframe_conn\fP"
+.br
+.RI "The mother frame and the children frames\&. "
+.ti -1c
+.RI "\fBframe_inputs\fP"
+.br
+.ti -1c
+.RI "\fBframe_sample\fP"
+.br
+.ti -1c
+.RI "\fBframe_MAP\fP"
+.br
+.ti -1c
+.RI "\fBframe_stat_bar\fP"
+.br
+.ti -1c
+.RI "\fBinputs_left\fP"
+.br
+.RI "The inputs frame\&. "
+.ti -1c
+.RI "\fBinputs_right\fP"
+.br
+.ti -1c
+.RI "\fBconnection\fP"
+.br
+.ti -1c
+.RI "\fBconn_loc\fP"
+.br
+.ti -1c
+.RI "\fBconn_loc_str\fP"
+.br
+.ti -1c
+.RI "\fBconn_ivs\fP"
+.br
+.ti -1c
+.RI "\fBconn_ivs_str\fP"
+.br
+.ti -1c
+.RI "\fBconn_https\fP"
+.br
+.ti -1c
+.RI "\fBconn_https_str\fP"
+.br
+.ti -1c
+.RI "\fBdbname\fP"
+.br
+.ti -1c
+.RI "\fBconn_status\fP"
+.br
+.ti -1c
+.RI "\fBconn_lbl_str\fP"
+.br
+.ti -1c
+.RI "\fBbitmap_OK\fP"
+.br
+.ti -1c
+.RI "\fBbitmap_NOK\fP"
+.br
+.ti -1c
+.RI "\fBinput_freq_file\fP"
+.br
+.ti -1c
+.RI "\fBinput_freq_done\fP"
+.br
+.ti -1c
+.RI "\fBuse_obs_log_Teff\fP"
+.br
+.ti -1c
+.RI "\fBobs_log_Teff\fP"
+.br
+.ti -1c
+.RI "\fBobs_log_Teff_err\fP"
+.br
+.ti -1c
+.RI "\fBuse_obs_log_g\fP"
+.br
+.ti -1c
+.RI "\fBobs_log_g\fP"
+.br
+.ti -1c
+.RI "\fBobs_log_g_err\fP"
+.br
+.ti -1c
+.RI "\fBwhich_sampling_function\fP"
+.br
+.ti -1c
+.RI "\fBsampling_constrained\fP"
+.br
+.ti -1c
+.RI "\fBsampling_randomly\fP"
+.br
+.ti -1c
+.RI "\fBsampling_shuffle\fP"
+.br
+.ti -1c
+.RI "\fBstatus_bar_message\fP"
+.br
+.ti -1c
+.RI "\fBconn_lbl\fP"
+.br
+.RI "The connection frame\&. "
+.ti -1c
+.RI "\fBbut_input_freq\fP"
+.br
+.ti -1c
+.RI "\fBbut_ex_freq\fP"
+.br
+.ti -1c
+.RI "\fBbut_input_options\fP"
+.br
+.ti -1c
+.RI "\fBckbx_obs_log_Teff\fP"
+.br
+.ti -1c
+.RI "\fBenter_log_Teff\fP"
+.br
+.ti -1c
+.RI "\fBenter_log_Teff_err\fP"
+.br
+.ti -1c
+.RI "\fBckbx_obs_log_g\fP"
+.br
+.ti -1c
+.RI "\fBenter_log_g\fP"
+.br
+.ti -1c
+.RI "\fBenter_log_g_err\fP"
+.br
+.ti -1c
+.RI "\fBbut_obs\fP"
+.br
+.ti -1c
+.RI "\fBbut_ex_options\fP"
+.br
+.ti -1c
+.RI "\fBrad_but_samp_cnstr\fP"
+.br
+.ti -1c
+.RI "\fBrad_but_samp_rand\fP"
+.br
+.ti -1c
+.RI "\fBckbx_sampling_shuffle\fP"
+.br
+.ti -1c
+.RI "\fBstatus_bar\fP"
+.br
+.RI "Display observed data\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Definition at line 39 of file frontend_orig\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.frontend_orig\&.GUI\&.browse_file ( self)"
+
+.PP
+File Inputs\&. 
+.PP
+.nf
+Browse the local disk for an ASCII file 
+.fi
+.PP
+ 
+.PP
+Definition at line 349 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.check_connection ( self)"
+
+.PP
+.nf
+Try connecting to the database based on the user's choice 
+.fi
+.PP
+ 
+.PP
+Definition at line 315 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.connection_choice ( self)"
+
+.PP
+M E T H O D S\&. Connection 
+.PP
+.nf
+Receive the 3 possible connection choices in int format 
+.fi
+.PP
+ 
+.PP
+Definition at line 306 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.do_connect ( self)"
+
+.PP
+.nf
+The backend will connect based on the user's connecton choice 
+.fi
+.PP
+ 
+.PP
+Definition at line 328 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.example_input_freq ( self)"
+
+.PP
+.nf
+Show a static window with an example of how the input frequency file is structured 
+.fi
+.PP
+ 
+.PP
+Definition at line 365 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.FrontWindow ( self)"
+
+.PP
+.nf
+The front GUI window 
+.fi
+.PP
+ 
+.PP
+Definition at line 100 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.get_observations ( self)"
+
+.PP
+.nf
+Get all the observed values which are set in Entry boxes 
+.fi
+.PP
+ 
+.PP
+Definition at line 423 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.plot_observed_frequencies ( self)"
+
+.PP
+.nf
+If reading in put frequencies is successfull, the modes will be plotted, as a reward! 
+.fi
+.PP
+ 
+.PP
+Definition at line 377 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.release_obs_log_g ( self)"
+
+.PP
+.nf
+Release the log_g two entry boxes 
+.fi
+.PP
+ 
+.PP
+Definition at line 415 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.release_obs_log_Teff ( self)"
+
+.PP
+Observatinal Inputs\&. 
+.PP
+.nf
+Release the log_Teff two entry boxes 
+.fi
+.PP
+ 
+.PP
+Definition at line 407 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.update_connection_state ( self)"
+
+.PP
+.nf
+Update the label in the connection frame based on the connection test 
+.fi
+.PP
+ 
+.PP
+Definition at line 332 of file frontend_orig\&.py\&.
+.SS "def asamba\&.frontend_orig\&.GUI\&.update_status_bar ( self,  message)"
+
+.PP
+Status Bar\&. 
+.PP
+.nf
+Concurrently update the status printed on the StatusBar. Very handly method here! 
+.fi
+.PP
+ 
+.PP
+Definition at line 493 of file frontend_orig\&.py\&.
+.SH "Member Data Documentation"
+.PP 
+.SS "asamba\&.frontend_orig\&.GUI\&.conn_lbl"
+
+.PP
+The connection frame\&. define the left, middle and right insets 
+.PP
+Definition at line 161 of file frontend_orig\&.py\&.
+.SS "asamba\&.frontend_orig\&.GUI\&.inputs_left"
+
+.PP
+The inputs frame\&. define the left and right insets 
+.PP
+Definition at line 55 of file frontend_orig\&.py\&.
+.SS "asamba\&.frontend_orig\&.GUI\&.status_bar"
+
+.PP
+Display observed data\&. canv_input_freqs = tk\&.Canvas(inputs_right, confine=False, cursor='circle', relief='flat') coord = 10, 50, 240, 240 arc = canv_input_freqs\&.create_arc(coord, start=0, extent=150, fill='blue') canv_input_freqs\&.pack(side='right') Sampling, and online plotting frame MAP analysis frame Status Bar 
+.PP
+Definition at line 296 of file frontend_orig\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

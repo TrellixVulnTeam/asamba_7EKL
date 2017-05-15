@@ -408,7 +408,6 @@ def _set_priors(self):
     logger.error('_set_priors: set only one of "MAP_uniform_prior" or "MAP_use_log_Teff_log_g_prior" to True:')
     sys.exit(1)
 
-  # sample     = self.get('sampling')
   learning_y = self.get('learning_y')
   m, K       = learning_y.shape
 
@@ -416,7 +415,6 @@ def _set_priors(self):
     prior    = old_div(np.ones(m), float(m))
   elif self.MAP_use_log_Teff_log_g_prior:
     # get observed log_Teff and log_g together with their errors from the star
-    # star         = sample.get('star')
     if self.log_Teff_err_lower == 0 or self.log_Teff_err_upper == 0:
       logger.error('_set_priors: set log_Teff_err_lower and log_Teff_err_upper first')
       sys.exit(1)
@@ -429,8 +427,6 @@ def _set_priors(self):
                  obs_log_g != 0, obs_log_g_err != 0 ]):
       logger.error('_set_priors: Specify the log_Teff, log_g and their errors properly')
       sys.exit(1)
-
-    # sample   = self.sampling
 
     lrn_log_Teff = self.learning_log_Teff[:]
     lrn_log_g    = self.learning_log_g[:]
@@ -450,10 +446,11 @@ def _chi_square(self):
   """
   Refer to the documentation below the chi_square() method for further details  
   """
-  # sample = self.get('sampling')
   modes  = self.modes
   freqs  = np.array([ mode.freq for mode in modes ])
   sigma  = np.array([ mode.freq_err for mode in modes ])
+  print(sigma / freqs)
+  sys.exit()
   sigma  *= self.frequency_sigma_factor
   n_freq = len(freqs)                    # (1, K)
 

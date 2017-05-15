@@ -1,0 +1,188 @@
+.TH "asamba.read" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.read
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBconvert_val\fP (str_val)"
+.br
+.ti -1c
+.RI "def \fBread_inlist\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBgyre_h5\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBread_mesa_ascii\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBread_models_parameters_from_ascii\fP (ascii_in)"
+.br
+.ti -1c
+.RI "def \fBread_tracks_parameters_from_ascii\fP (ascii_in)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module provides basic functionalities to read a variety of data e.g. in ASCII 
+and HDF5 etc. formats. The highlight of the module is the "read_mesa_ascii()" function
+which can read MESA history or profile files.
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.read\&.convert_val ( str_val)"
+
+.PP
+.nf
+This function receives an integer, float or a boolean variable in a string representation, identifies
+the correct type, and returns the variable in the expected/appropriate python native data type. 
+E.g. '1' --> 1, and 'True' --> True
+
+@param str_val: 
+
+.fi
+.PP
+ 
+.PP
+Definition at line 23 of file read\&.py\&.
+.SS "def asamba\&.read\&.gyre_h5 ( filename)"
+
+.PP
+.nf
+Read the GYRE output HDF5 file in full detail, and return an instance of the var_def.modes() with
+relevant attributes filled up. Thus, this routine reads the summary file or the eigenfunction file
+conveniently. Example of use:
+
+>>>from asamba import read
+>>>gyre_file = '/home/user/projects/gyre/beta_Cep.h5'
+>>>mode_list = gyre_h5(gyre_file)
+>>>freq      = np.real( mode_list.freq )
+
+@param filename: full path to the output GYRE HDF5 file
+@type filename: string
+@return: an instance of the var_def.modes() class
+@rtype: object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 137 of file read\&.py\&.
+.SS "def asamba\&.read\&.read_inlist ( filename)"
+
+.PP
+.nf
+This function reads an ASCII file which specifies any set of options as a list of tuples (attr, val) for 
+valid entries in the file. It follows the same idea as the widely-used Fortran inlists.
+
+The user comments, specified using "#" are trimmed off from anywhere in the lines, so that one may comment 
+the inlist file in a line before the attr = val set or after it. E.g., the following two options are both 
+valid:
+
+   # Here, I specify the name of my star
+   name = 'beta Cephei'
+
+or 
+
+   name = 'beta Cephei'  # The name of my star
+
+if the val is 'True', it is set to boolean True, if it is 'False', it is set to boolean False, if it contains
+'.', 'e+' or 'e-', it is interpreted as a fload, and otherwise, it is converted to integer. So, a great caution
+has to be practiced when assigning values to the attributes in the inlist files.
+
+As a nice feature, the user can even toss in a list/tuple of values, e.g. var = [1, 2.3, True]. Each element inside
+the list/tuple will be split (comma as a delimiter), and converted to the correct datatype by calling the 
+function convert_val().
+
+@param filename: full path to the inlist file
+@type filename: str
+@return: a list of (attr, val) tuples, where 
+
+.fi
+.PP
+ 
+.PP
+Definition at line 57 of file read\&.py\&.
+.SS "def asamba\&.read\&.read_mesa_ascii ( filename)"
+
+.PP
+.nf
+Read a history or profile ascii output from MESA.
+An example of using this function to read the file "input_file" is the following
+
+>>> input_file = '/home/user/my-files/The_Sun/LOGS/history.data'
+>>> header, data = read.read_mesa_ascii(input_file)
+
+@param filename: full path to the input ascii file
+@type filename: string
+@return dictionary of the header of the file, and the record array for the data block. 
+@rtype: dictionary and numpy record array
+
+.fi
+.PP
+ 
+.PP
+Definition at line 173 of file read\&.py\&.
+.SS "def asamba\&.read\&.read_models_parameters_from_ascii ( ascii_in)"
+
+.PP
+.nf
+Warning: If the size of the input ascii is too large (which is practically the case), then this 
+function crashes raising a MemoryError exception.
+
+Read the contents of the input ASCII file containing the whole grid models data.
+
+@param ascii_in: full path to the ASCII file to be read
+@type ascii_in: string
+@return: array containing the whole data. Each field can be accessed using the same attributes of
+         the var_def.model class object.
+@rtype: numpy record array
+
+.fi
+.PP
+ 
+.PP
+Definition at line 227 of file read\&.py\&.
+.SS "def asamba\&.read\&.read_tracks_parameters_from_ascii ( ascii_in)"
+
+.PP
+.nf
+This routine reads the contents of an ascii file which tabulates the track parameters, and returns
+a list of "var_def.track()" objects, one per each row in the file. The list can be used later on
+for any manipulation (plotting, inserting into the database, etc). Note that we skip the first row
+as the header.
+
+@param ascii_in: the full path to the already-available ascii file that contains the entire (or part)
+       of the tracks parameters. This file can be generated by first calling the function  
+       write_tracks_parameters_to_ascii().
+@type ascii_out: string
+@return: list of instances of var_def.track() class objects, one object per each row (i.e. track).
+@rtype: list
+
+.fi
+.PP
+ 
+.PP
+Definition at line 295 of file read\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

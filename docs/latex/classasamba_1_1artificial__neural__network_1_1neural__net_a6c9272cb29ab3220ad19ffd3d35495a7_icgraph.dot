@@ -1,0 +1,9 @@
+digraph "asamba.artificial_neural_network.neural_net.marginalize_wrt"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node10 [label="asamba.artificial_neural\l_network.neural_net.marginalize_wrt",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node10 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid"];
+  Node11 [label="asamba.artificial_neural\l_network.neural_net.marginalize",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1artificial__neural__network_1_1neural__net.html#aa5832df25488526021198613fc2f6ce6"];
+}

@@ -1,0 +1,87 @@
+\hypertarget{classasamba_1_1star_1_1modes}{}\section{asamba.\+star.\+modes Class Reference}
+\label{classasamba_1_1star_1_1modes}\index{asamba.\+star.\+modes@{asamba.\+star.\+modes}}
+
+
+Inheritance diagram for asamba.\+star.\+modes\+:
+% FIG 0
+
+
+Collaboration diagram for asamba.\+star.\+modes\+:
+% FIG 1
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_abce4d33b22e4f51db250c3e384591be6}\label{classasamba_1_1star_1_1modes_abce4d33b22e4f51db250c3e384591be6}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self)
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_a86f1dd21b0af24cc60d521fbeb391ef8}\label{classasamba_1_1star_1_1modes_a86f1dd21b0af24cc60d521fbeb391ef8}} 
+def \hyperlink{classasamba_1_1star_1_1modes_a86f1dd21b0af24cc60d521fbeb391ef8}{set} (self, attr, val)
+\begin{DoxyCompactList}\small\item\em Setter. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_a4bf25d680e466f4e888b3a63df76281d}\label{classasamba_1_1star_1_1modes_a4bf25d680e466f4e888b3a63df76281d}} 
+def \hyperlink{classasamba_1_1star_1_1modes_a4bf25d680e466f4e888b3a63df76281d}{get} (self, attr)
+\begin{DoxyCompactList}\small\item\em Getter. \end{DoxyCompactList}\item 
+def \hyperlink{classasamba_1_1star_1_1modes_a5164b765f3ed46300e4c5a1970f2c784}{load\+\_\+modes\+\_\+from\+\_\+file} (self, filename, delimiter=\textquotesingle{}\textquotesingle{})
+\begin{DoxyCompactList}\small\item\em Methods. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_a876e916c49eba64dc7cff4997a486000}\label{classasamba_1_1star_1_1modes_a876e916c49eba64dc7cff4997a486000}} 
+{\bfseries modes}
+\item 
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_a2a36ba9c82cc7c23db125cfcdd2bf1d7}\label{classasamba_1_1star_1_1modes_a2a36ba9c82cc7c23db125cfcdd2bf1d7}} 
+{\bfseries num\+\_\+modes}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 114 of file star.\+py.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classasamba_1_1star_1_1modes_a5164b765f3ed46300e4c5a1970f2c784}\label{classasamba_1_1star_1_1modes_a5164b765f3ed46300e4c5a1970f2c784}} 
+\index{asamba\+::star\+::modes@{asamba\+::star\+::modes}!load\+\_\+modes\+\_\+from\+\_\+file@{load\+\_\+modes\+\_\+from\+\_\+file}}
+\index{load\+\_\+modes\+\_\+from\+\_\+file@{load\+\_\+modes\+\_\+from\+\_\+file}!asamba\+::star\+::modes@{asamba\+::star\+::modes}}
+\subsubsection{\texorpdfstring{load\+\_\+modes\+\_\+from\+\_\+file()}{load\_modes\_from\_file()}}
+{\footnotesize\ttfamily def asamba.\+star.\+modes.\+load\+\_\+modes\+\_\+from\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{filename,  }\item[{}]{delimiter = {\ttfamily \textquotesingle{}\textquotesingle{}} }\end{DoxyParamCaption})}
+
+
+
+Methods. 
+
+\begin{DoxyVerb}Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
+as those of the "modes" class) into the "mode" attribute. It returns a list of modes, where each mode
+corresponds to one line in the file. The columns are delimited based on the passed delimiter
+
+Strict formatting of the input file:
+- The file has two headers as the first two lines:
+  + line 1: the name of each column
+  + line 2: the Python-intrinsic format of each line, e.g. int, float, boolean
+- The header names must be identical to the attributes of the mode object
+- If one attribute is unknown for all modes of the same star, that column would better be omitted.
+  E.g. if for a star we do not know the modes form a frequency spacing or not, we leave this column
+  off, instead of setting it off for all modes.
+- if a value for a mode is unknown, the column must read None or none. Never leave an unknown column
+  empty.
+- For boolean columns, "1" means True, and "0" means False.
+
+@param filename: the full path where the 
+@type filename: str
+@param delimiter: the delimiting character between the columns, e.g. ',', or space, etc. Default: ''
+@type delimiter: str
+@return: list of modes
+@rtype: list
+\end{DoxyVerb}
+ 
+
+Definition at line 148 of file star.\+py.
+
+Here is the call graph for this function\+:
+% FIG 2
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+star.\+py\end{DoxyCompactItemize}

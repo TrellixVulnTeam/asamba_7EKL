@@ -1,0 +1,146 @@
+\hypertarget{namespaceasamba_1_1utils}{}\section{asamba.\+utils Namespace Reference}
+\label{namespaceasamba_1_1utils}\index{asamba.\+utils@{asamba.\+utils}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceasamba_1_1utils_aa37a19f15b6c956eb813b052f8971f09}{list\+\_\+to\+\_\+recarray} (list\+\_\+input, dtype)
+\item 
+def \hyperlink{namespaceasamba_1_1utils_a28c2bc8cc997b1e6bb6fedc4ebc8cb2a}{list\+\_\+to\+\_\+ndarray} (list\+\_\+input)
+\item 
+def \hyperlink{namespaceasamba_1_1utils_af201868f9291b34bea14c4635687c190}{ndarray\+\_\+to\+\_\+recarray} (arr, dtype)
+\item 
+def \hyperlink{namespaceasamba_1_1utils_a1cb8e79c01ffa1dbbd8dec58aa531ae7}{recarray\+\_\+to\+\_\+ndarray} (rec)
+\item 
+def \hyperlink{namespaceasamba_1_1utils_a304af08913aaa7042678dc3f0b80a149}{prepend\+\_\+with\+\_\+column\+\_\+1} (matrix)
+\item 
+def \hyperlink{namespaceasamba_1_1utils_af0a79ac380cda69e73c44389a8a059d8}{gaussian} (x, mu, sigma)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1utils_ab8a549bae1ee5f0cae09601644c00235}\label{namespaceasamba_1_1utils_ab8a549bae1ee5f0cae09601644c00235}} 
+{\bfseries logger} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\mbox{\Hypertarget{namespaceasamba_1_1utils_a2a4735f104cb2989c1ed9185b2076c83}\label{namespaceasamba_1_1utils_a2a4735f104cb2989c1ed9185b2076c83}} 
+int {\bfseries is\+\_\+py3x} = 3
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}This module provides some generic utilities to facilitate working with different datatypes
+and input/outputs conveniently.
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceasamba_1_1utils_af0a79ac380cda69e73c44389a8a059d8}\label{namespaceasamba_1_1utils_af0a79ac380cda69e73c44389a8a059d8}} 
+\index{asamba\+::utils@{asamba\+::utils}!gaussian@{gaussian}}
+\index{gaussian@{gaussian}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{gaussian()}{gaussian()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+gaussian (\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{mu,  }\item[{}]{sigma }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return the Normal (Gaussian) probability distribution function g(x) for x with mean mu and standard
+deviation sigma, following the definition 
+
+\f[
+    N(x,\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}\exp\left[-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2\right].
+\f]
+
+@param x: array or value of the input 
+@type x: ndarray or float
+@param mu: the mean of the population
+@type mu: float
+@param sigma: the standard deviation of the population around the mean
+@type sigma: npdarray or float
+@return: The probability of x being between the interval x and x+epsilon, where epsilon goes to zero
+@rtype: ndarray or float
+\end{DoxyVerb}
+ 
+
+Definition at line 107 of file utils.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1utils_a28c2bc8cc997b1e6bb6fedc4ebc8cb2a}\label{namespaceasamba_1_1utils_a28c2bc8cc997b1e6bb6fedc4ebc8cb2a}} 
+\index{asamba\+::utils@{asamba\+::utils}!list\+\_\+to\+\_\+ndarray@{list\+\_\+to\+\_\+ndarray}}
+\index{list\+\_\+to\+\_\+ndarray@{list\+\_\+to\+\_\+ndarray}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{list\+\_\+to\+\_\+ndarray()}{list\_to\_ndarray()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+list\+\_\+to\+\_\+ndarray (\begin{DoxyParamCaption}\item[{}]{list\+\_\+input }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert a list of tuples to a numpy ndarray. 
+
+@param list_input: The inputs to be converted to numpy recorda array
+@type list_input: list
+@return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+      number of columns equal to the number of items in each tuple.
+@rtype: np.recarray
+\end{DoxyVerb}
+ 
+
+Definition at line 48 of file utils.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1utils_aa37a19f15b6c956eb813b052f8971f09}\label{namespaceasamba_1_1utils_aa37a19f15b6c956eb813b052f8971f09}} 
+\index{asamba\+::utils@{asamba\+::utils}!list\+\_\+to\+\_\+recarray@{list\+\_\+to\+\_\+recarray}}
+\index{list\+\_\+to\+\_\+recarray@{list\+\_\+to\+\_\+recarray}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{list\+\_\+to\+\_\+recarray()}{list\_to\_recarray()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+list\+\_\+to\+\_\+recarray (\begin{DoxyParamCaption}\item[{}]{list\+\_\+input,  }\item[{}]{dtype }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert a list of tuples to a numpy recordarray. Each tuple is one retrieved row of data from calling
+the SQL queries, and fetching them through e.g. db.fetch_all() method.
+
+@param list_input: The inputs to be converted to numpy record array. 
+@type list_input: list
+@return: recarray with the number of rows equal to the number of tuples in the input list, and the 
+      number of columns equal to the number of items in each tuple. The dtype for each column is 
+      passed as an input argument by the user.
+@rtype: np.recarray
+\end{DoxyVerb}
+ 
+
+Definition at line 22 of file utils.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1utils_af201868f9291b34bea14c4635687c190}\label{namespaceasamba_1_1utils_af201868f9291b34bea14c4635687c190}} 
+\index{asamba\+::utils@{asamba\+::utils}!ndarray\+\_\+to\+\_\+recarray@{ndarray\+\_\+to\+\_\+recarray}}
+\index{ndarray\+\_\+to\+\_\+recarray@{ndarray\+\_\+to\+\_\+recarray}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{ndarray\+\_\+to\+\_\+recarray()}{ndarray\_to\_recarray()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+ndarray\+\_\+to\+\_\+recarray (\begin{DoxyParamCaption}\item[{}]{arr,  }\item[{}]{dtype }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert a numpy ndarray to a numpy record array
+
+@param arr: the input array
+@param dtype: the list of np.dtype for all columns/attributes
+@return: a corresponding record array
+\end{DoxyVerb}
+ 
+
+Definition at line 61 of file utils.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1utils_a304af08913aaa7042678dc3f0b80a149}\label{namespaceasamba_1_1utils_a304af08913aaa7042678dc3f0b80a149}} 
+\index{asamba\+::utils@{asamba\+::utils}!prepend\+\_\+with\+\_\+column\+\_\+1@{prepend\+\_\+with\+\_\+column\+\_\+1}}
+\index{prepend\+\_\+with\+\_\+column\+\_\+1@{prepend\+\_\+with\+\_\+column\+\_\+1}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{prepend\+\_\+with\+\_\+column\+\_\+1()}{prepend\_with\_column\_1()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+prepend\+\_\+with\+\_\+column\+\_\+1 (\begin{DoxyParamCaption}\item[{}]{matrix }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add a column of ones to the m-by-n matrix, so that the result is a m-by-n+1 matrix
+@param matrix: The general matrix of any arbitrary size with m rows and n columns
+@type matrix: np.ndarray
+@return: a matrix of m rows and n+1 columns where the 0-th column is all one.
+@rtype: np.ndarray
+\end{DoxyVerb}
+ 
+
+Definition at line 88 of file utils.\+py.
+
+\mbox{\Hypertarget{namespaceasamba_1_1utils_a1cb8e79c01ffa1dbbd8dec58aa531ae7}\label{namespaceasamba_1_1utils_a1cb8e79c01ffa1dbbd8dec58aa531ae7}} 
+\index{asamba\+::utils@{asamba\+::utils}!recarray\+\_\+to\+\_\+ndarray@{recarray\+\_\+to\+\_\+ndarray}}
+\index{recarray\+\_\+to\+\_\+ndarray@{recarray\+\_\+to\+\_\+ndarray}!asamba\+::utils@{asamba\+::utils}}
+\subsubsection{\texorpdfstring{recarray\+\_\+to\+\_\+ndarray()}{recarray\_to\_ndarray()}}
+{\footnotesize\ttfamily def asamba.\+utils.\+recarray\+\_\+to\+\_\+ndarray (\begin{DoxyParamCaption}\item[{}]{rec }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert a numpy record array to a matrix ndarray
+
+@param rec: numpy record array
+@return: ndarray
+\end{DoxyVerb}
+ 
+
+Definition at line 77 of file utils.\+py.
+

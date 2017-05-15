@@ -1,0 +1,173 @@
+.TH "asamba.var_def.tracks" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.var_def.tracks
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, dir_repos)"
+.br
+.ti -1c
+.RI "def \fB__enter__\fP (self)"
+.br
+.ti -1c
+.RI "def \fB__exit__\fP (self, type, value, traceback)"
+.br
+.ti -1c
+.RI "def \fBset_dir_repos\fP (self, dir_repos)"
+.br
+.ti -1c
+.RI "def \fBset_mass_search_pattern\fP (self, mass_search_pattern)"
+.br
+.ti -1c
+.RI "def \fBset_hist_search_pattern\fP (self, hist_search_pattern)"
+.br
+.ti -1c
+.RI "def \fBset_hist_extension\fP (self, hist_extension)"
+.br
+.ti -1c
+.RI "def \fBset_n_dirs_M_ini\fP (self, n_dirs_M_ini)"
+.br
+.ti -1c
+.RI "def \fBset_list_dirs_M_ini\fP (self, list_dirs_M_ini)"
+.br
+.ti -1c
+.RI "def \fBset_n_tracks\fP (self, n_tracks)"
+.br
+.ti -1c
+.RI "def \fBset_list_tracks\fP (self, list_tracks)"
+.br
+.ti -1c
+.RI "def \fBset_mass_directories\fP (self)"
+.br
+.ti -1c
+.RI "def \fBset_track_parameters\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_dir_repos\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_mass_search_pattern\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_hist_search_pattern\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_hist_extension\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_n_dirs_M_ini\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_list_dirs_M_ini\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_n_tracks\fP (self)"
+.br
+.ti -1c
+.RI "def \fBget_list_tracks\fP (self)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBdir_repos\fP"
+.br
+.ti -1c
+.RI "\fBmass_search_pattern\fP"
+.br
+.ti -1c
+.RI "\fBhist_search_pattern\fP"
+.br
+.ti -1c
+.RI "\fBhist_extension\fP"
+.br
+.ti -1c
+.RI "\fBn_dirs_M_ini\fP"
+.br
+.ti -1c
+.RI "\fBlist_dirs_M_ini\fP"
+.br
+.ti -1c
+.RI "\fBn_tracks\fP"
+.br
+.ti -1c
+.RI "\fBlist_tracks\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+Class object that agglemerates multiple instances of the "track" object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 105 of file var_def\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.tracks\&.__init__ ( self,  dir_repos)"
+
+.PP
+.nf
+The constructor of the class. E.g.
+
+>>>some_tracks = var_def.tracks(dir_repos='/home/username/projects/mygrid')
+
+@param dir_repos: Full path to the directory where the grid is stored, e.g. 
+   /home/user/projects/asamba-grid
+@type dir_repos: string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 109 of file var_def\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.var_def\&.tracks\&.set_mass_directories ( self)"
+
+.PP
+.nf
+Return the list of directories labelled with track initial masses residing in the repository path.
+E.g. the directories have names like "dir_repos/M01.234", "dir_repos/M56.789", and so on.
+@result: list of full paths to the mass directories
+@rtype: list of strings
+
+.fi
+.PP
+ 
+.PP
+Definition at line 176 of file var_def\&.py\&.
+.SS "def asamba\&.var_def\&.tracks\&.set_track_parameters ( self)"
+
+.PP
+.nf
+Glob and find all available tracks that are organized inside the repository (hence dir_repos).
+The tracks are organized based on their initial mass, and lie inside the "hist" subdirectory, e.g.
+"dir_repos/M12.345/hist/M12.345-ov0.010-Z0.018-logD01.23.hist"
+Then, the whole track parameters will be stored into the "tracks" object
+
+@param self: an instance of the var_def.tracks() object
+@type self: class object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 201 of file var_def\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

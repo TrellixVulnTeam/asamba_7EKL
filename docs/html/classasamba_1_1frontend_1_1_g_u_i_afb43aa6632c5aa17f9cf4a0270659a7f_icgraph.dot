@@ -1,0 +1,16 @@
+digraph "asamba.frontend.GUI.do_connect"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node28 [label="asamba.frontend.GUI.do\l_connect",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node28 -> Node29 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node29 [label="asamba.frontend.GUI.check\l_connection",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#aacca71c626bd1753c1277e13b5ad8eec"];
+  Node29 -> Node30 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node30 [label="asamba.frontend.GUI.Front\lWindow",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend_1_1_g_u_i.html#acaec11d5fbe0228d9da0e3ba10a4ea33"];
+  Node29 -> Node31 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node31 [label="asamba.frontend_orig.GUI.\lFrontWindow",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#a0fd564268af273f977bc8065e26e110b"];
+  Node28 -> Node32 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node32 [label="asamba.frontend_orig.GUI.check\l_connection",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classasamba_1_1frontend__orig_1_1_g_u_i.html#ae71ecf0efcb575059e181ccd33f75178"];
+  Node32 -> Node31 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

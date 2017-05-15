@@ -1,0 +1,138 @@
+.TH "asamba.sampler" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.sampler
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBsampling\fP"
+.br
+.RI "
+.SS ""
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SH ""
+.PP
+.PP
+.SS ""
+"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBconstrained_pick_models_and_rotation_ids\fP (self)"
+.br
+.ti -1c
+.RI "def \fBrandomly_pick_models_and_rotation_ids\fP (self)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.ti -1c
+.RI "int \fBis_py3x\fP = 3"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module prepares training/validatin/test datasets to train/validate/test an 
+artificial neural network. This is achieved through the "sampling" class, which 
+handles the task of collecting the models properly from the database.
+
+This module inherits from the "star" module, in order to sample the model frequencies
+based on the observed frequencies. On the flip side, it serves as superclass for the 
+interpolator.interpolation() class, who inherits/needs several of the functionlaities 
+offered in here. 
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.sampler\&.constrained_pick_models_and_rotation_ids ( self)"
+
+.PP
+.nf
+Return a combination of "models" id and "rotation_rate" id by applying constraints on log_Teff,
+log_g and rotation rates. For a totally random (unconstrained) 
+selection, you may call "randomly_pick_models_and_rotation_ids()", instead. 
+
+Notes:
+- the constraint ranges are inclusive. 
+- the results are fetched firectly from executing a SQL query
+- the combination of the models and rotation rates are shuffled
+
+Example of calling:
+>>>
+
+@param dbname: the name of the database
+@type dbname: str
+@param n: the *maximum* number of models to retrieve
+@type n: int
+@param range_log_Teff: the lower and upper range of log_Teff to scan the database. Default: [3.5, 5]
+@type range_log_Teff: list/tuple
+@param range_log_g: the lower and upper range of log_g to scan the database. Default: [0, 5]
+@type range_log_g: list/tuple
+@param range_eta: The range of rotation rates (in percentage w.r.t to critical, e.g. 15). 
+       Default: [0, 50]
+@type range_eta: list/tuple
+@return: a shuffled list of 2-element tuples, with the first element being the model id, and the
+       second element being the rotation_rate id.
+@rtype: list of tuples
+
+.fi
+.PP
+ 
+.PP
+Definition at line 956 of file sampler\&.py\&.
+.SS "def asamba\&.sampler\&.randomly_pick_models_and_rotation_ids ( self)"
+
+.PP
+.nf
+Return a randomly-selected models together with their rotation rates from the database.
+This function fetches all model "id" number from the "models" table, in addition to all the "id"
+numbers from the "rotation_rates" table. Then, it iterates over them all, and creates all possible
+tupls with two elements: first element being the model id, and the second element being the rotaiton
+id. Then, this list is shuffled using the numpy.random.shuffle method, and only the subset of this
+whole list is returned, with the size specified by "n".
+
+@param dbname: The name of the database
+@type dbname: grid
+@param n: the size of the randomly-selected combinations of model id and rotation ids
+@type n: int
+@return: list of tuples where each tuple consists of two integers: 
+   - the model id
+   - the rotaiton id
+@rtype: list of tuples
+
+.fi
+.PP
+ 
+.PP
+Definition at line 1039 of file sampler\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

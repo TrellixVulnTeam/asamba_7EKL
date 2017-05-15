@@ -1,0 +1,486 @@
+.TH "asamba.frontend.GUI" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.frontend.GUI
+.SH SYNOPSIS
+.br
+.PP
+.PP
+Inherits object\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fB__init__\fP (self, root)"
+.br
+.ti -1c
+.RI "def \fBFrontWindow\fP (self)"
+.br
+.ti -1c
+.RI "def \fBconnection_choice\fP (self)"
+.br
+.ti -1c
+.RI "def \fBcheck_connection\fP (self)"
+.br
+.ti -1c
+.RI "def \fBdo_connect\fP (self)"
+.br
+.ti -1c
+.RI "def \fBupdate_connection_state\fP (self)"
+.br
+.ti -1c
+.RI "def \fBbrowse_frequency_file\fP (self)"
+.br
+.RI "File Inputs\&. "
+.ti -1c
+.RI "def \fBexample_input_freq\fP (self)"
+.br
+.ti -1c
+.RI "def \fBplot_observed_frequencies\fP (self)"
+.br
+.ti -1c
+.RI "def \fBbrowse_star_file\fP (self)"
+.br
+.ti -1c
+.RI "def \fBexample_star_inlist\fP (self)"
+.br
+.ti -1c
+.RI "def \fBbrowse_sampling_file\fP (self)"
+.br
+.ti -1c
+.RI "def \fBexample_sampling_inlist\fP (self)"
+.br
+.ti -1c
+.RI "def \fBcall_build_learning_set\fP (self)"
+.br
+.ti -1c
+.RI "def \fBshow_samp_results\fP (self)"
+.br
+.ti -1c
+.RI "def \fBsplit_samp\fP (self)"
+.br
+.ti -1c
+.RI "def \fBnorm_eq\fP (self)"
+.br
+.ti -1c
+.RI "def \fBshow_norm_eq_result\fP (self)"
+.br
+.ti -1c
+.RI "def \fBupdate_status_bar\fP (self, message)"
+.br
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "\fBroot\fP"
+.br
+.ti -1c
+.RI "\fBnotebook\fP"
+.br
+.RI "The root and the notebook\&. "
+.ti -1c
+.RI "\fBdir_data\fP"
+.br
+.ti -1c
+.RI "\fBdir_bitmaps\fP"
+.br
+.ti -1c
+.RI "\fBtab_seism\fP"
+.br
+.RI "Tabs\&. "
+.ti -1c
+.RI "\fBtab_query\fP"
+.br
+.ti -1c
+.RI "\fBtab_log\fP"
+.br
+.ti -1c
+.RI "\fBframe_conn\fP"
+.br
+.RI "Mother & Child Frames\&. "
+.ti -1c
+.RI "\fBframe_sample\fP"
+.br
+.ti -1c
+.RI "\fBframe_MAP\fP"
+.br
+.ti -1c
+.RI "\fBframe_input\fP"
+.br
+.ti -1c
+.RI "\fBframe_interp\fP"
+.br
+.ti -1c
+.RI "\fBframe_query\fP"
+.br
+.ti -1c
+.RI "\fBframe_stat_bar\fP"
+.br
+.ti -1c
+.RI "\fBconnection\fP"
+.br
+.ti -1c
+.RI "\fBconn_loc\fP"
+.br
+.ti -1c
+.RI "\fBconn_loc_str\fP"
+.br
+.ti -1c
+.RI "\fBconn_ivs\fP"
+.br
+.ti -1c
+.RI "\fBconn_ivs_str\fP"
+.br
+.ti -1c
+.RI "\fBconn_https\fP"
+.br
+.ti -1c
+.RI "\fBconn_https_str\fP"
+.br
+.ti -1c
+.RI "\fBdbname\fP"
+.br
+.ti -1c
+.RI "\fBconn_status\fP"
+.br
+.ti -1c
+.RI "\fBconn_lbl_str\fP"
+.br
+.ti -1c
+.RI "\fBbitmap_OK\fP"
+.br
+.ti -1c
+.RI "\fBbitmap_NOK\fP"
+.br
+.ti -1c
+.RI "\fBinput_freq_file\fP"
+.br
+.ti -1c
+.RI "\fBinput_freq_done\fP"
+.br
+.ti -1c
+.RI "\fBstar_inlist\fP"
+.br
+.ti -1c
+.RI "\fBstar_inlist_done\fP"
+.br
+.ti -1c
+.RI "\fBfigure_is_shown\fP"
+.br
+.ti -1c
+.RI "\fBfigure_object\fP"
+.br
+.ti -1c
+.RI "\fBsampling_inlist\fP"
+.br
+.ti -1c
+.RI "\fBsampling_inlist_done\fP"
+.br
+.ti -1c
+.RI "\fBbuild_learning_set_done\fP"
+.br
+.ti -1c
+.RI "\fBnorm_eq_done\fP"
+.br
+.ti -1c
+.RI "\fBstatus_bar_message\fP"
+.br
+.ti -1c
+.RI "\fBframe_plot_modes\fP"
+.br
+.ti -1c
+.RI "\fBconn_lbl\fP"
+.br
+.RI "The connection frame\&. "
+.ti -1c
+.RI "\fBbut_input_freq\fP"
+.br
+.RI "The Inputs Frame\&. "
+.ti -1c
+.RI "\fBbut_ex_freq\fP"
+.br
+.ti -1c
+.RI "\fBbut_input_star\fP"
+.br
+.ti -1c
+.RI "\fBbut_input_star_ex\fP"
+.br
+.ti -1c
+.RI "\fBbut_samp_input\fP"
+.br
+.RI "The Sampling Frame\&. "
+.ti -1c
+.RI "\fBbut_samp_ex\fP"
+.br
+.ti -1c
+.RI "\fBbut_samp_exec\fP"
+.br
+.ti -1c
+.RI "\fBbut_samp_res\fP"
+.br
+.ti -1c
+.RI "\fBbut_samp_slit\fP"
+.br
+.ti -1c
+.RI "\fBbut_norm_eq\fP"
+.br
+.RI "The Maximum a Posteriori Frame\&. "
+.ti -1c
+.RI "\fBbut_norm_eq_res\fP"
+.br
+.ti -1c
+.RI "\fBbut_MAP\fP"
+.br
+.ti -1c
+.RI "\fBbut_MAP_ex\fP"
+.br
+.ti -1c
+.RI "\fBbut_MAP_exec\fP"
+.br
+.ti -1c
+.RI "\fBbut_interp\fP"
+.br
+.RI "The Interpolation Frame\&. "
+.ti -1c
+.RI "\fBbut_interp_ex\fP"
+.br
+.ti -1c
+.RI "\fBbut_interp_exec\fP"
+.br
+.ti -1c
+.RI "\fBbut_query\fP"
+.br
+.RI "The Query Frame\&. "
+.ti -1c
+.RI "\fBbut_query_ex\fP"
+.br
+.ti -1c
+.RI "\fBbut_query_exec\fP"
+.br
+.ti -1c
+.RI "\fBsave_query\fP"
+.br
+.ti -1c
+.RI "\fBstatus_bar\fP"
+.br
+.RI "Display observed data\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Definition at line 56 of file frontend\&.py\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "def asamba\&.frontend\&.GUI\&.__init__ ( self,  root)"
+
+.PP
+.nf
+Get an instance of the frontend GUI.
+
+@param root: An instance of the tk.Tk() object
+@type root: object
+
+.fi
+.PP
+ 
+.PP
+Definition at line 58 of file frontend\&.py\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "def asamba\&.frontend\&.GUI\&.browse_frequency_file ( self)"
+
+.PP
+File Inputs\&. 
+.PP
+.nf
+Browse the local disk for an ASCII file 
+.fi
+.PP
+ 
+.PP
+Definition at line 370 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.browse_sampling_file ( self)"
+
+.PP
+.nf
+Browse and locate the user-specified sampling inlist file 
+.fi
+.PP
+ 
+.PP
+Definition at line 486 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.browse_star_file ( self)"
+
+.PP
+.nf
+Browse and locate the user-specified star inlist file 
+.fi
+.PP
+ 
+.PP
+Definition at line 460 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.call_build_learning_set ( self)"
+
+.PP
+.nf
+A wrapper to call sampler.build_learning_set through the backend 
+.fi
+.PP
+ 
+.PP
+Definition at line 512 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.check_connection ( self)"
+
+.PP
+.nf
+Try connecting to the database based on the user's choice 
+.fi
+.PP
+ 
+.PP
+Definition at line 335 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.connection_choice ( self)"
+
+.PP
+.nf
+Receive the 3 possible connection choices in int format 
+.fi
+.PP
+ 
+.PP
+Definition at line 326 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.do_connect ( self)"
+
+.PP
+.nf
+The backend will connect based on the user's connecton choice 
+.fi
+.PP
+ 
+.PP
+Definition at line 348 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.example_input_freq ( self)"
+
+.PP
+.nf
+Show a static window with an example of how the input frequency file is structured 
+.fi
+.PP
+ 
+.PP
+Definition at line 386 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.example_sampling_inlist ( self)"
+
+.PP
+.nf
+Show a static window with an example of how the sampling inlist file is structured 
+.fi
+.PP
+ 
+.PP
+Definition at line 501 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.example_star_inlist ( self)"
+
+.PP
+.nf
+Show a static window with an example of how the star inlist file is structured 
+.fi
+.PP
+ 
+.PP
+Definition at line 475 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.FrontWindow ( self)"
+
+.PP
+.nf
+The front GUI window 
+.fi
+.PP
+ 
+.PP
+Definition at line 133 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.norm_eq ( self)"
+
+.PP
+.nf
+a wrapper around bk.do_normal_eq 
+.fi
+.PP
+ 
+.PP
+Definition at line 565 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.plot_observed_frequencies ( self)"
+
+.PP
+.nf
+If reading in put frequencies is successfull, the modes will be plotted, as a reward! 
+.fi
+.PP
+ 
+.PP
+Definition at line 397 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.show_norm_eq_result ( self)"
+
+.PP
+.nf
+Show the outcome of solving the normal equation 
+.fi
+.PP
+ 
+.PP
+Definition at line 582 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.show_samp_results ( self)"
+
+.PP
+.nf
+Show the outcome of the sampling in a new pop up window 
+.fi
+.PP
+ 
+.PP
+Definition at line 545 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.split_samp ( self)"
+
+.PP
+.nf
+This is a wrapper around the bk.do_split_sample 
+.fi
+.PP
+ 
+.PP
+Definition at line 556 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.update_connection_state ( self)"
+
+.PP
+.nf
+Update the label in the connection frame based on the connection test 
+.fi
+.PP
+ 
+.PP
+Definition at line 353 of file frontend\&.py\&.
+.SS "def asamba\&.frontend\&.GUI\&.update_status_bar ( self,  message)"
+
+.PP
+.nf
+Concurrently update the status printed on the StatusBar. Very handly method here! 
+.fi
+.PP
+ 
+.PP
+Definition at line 692 of file frontend\&.py\&.
+.SH "Member Data Documentation"
+.PP 
+.SS "asamba\&.frontend\&.GUI\&.status_bar"
+
+.PP
+Display observed data\&. canv_input_freqs = tk\&.Canvas(inputs_right, confine=False, cursor='circle', relief='flat') coord = 10, 50, 240, 240 arc = canv_input_freqs\&.create_arc(coord, start=0, extent=150, fill='blue') canv_input_freqs\&.pack(side='right') Sampling, and online plotting frame
+.PP
+Canv_plot_1 = tk\&.Canvas(self\&.frame_sample, confine=False) plot_1_file = tk\&.PhotoImage(file=='Ehsan\&.JPG') plot_1 = Canv_plot_1\&.create_image(500, 500, anchor='center', image=plot_1_file) Canv_plot_1\&.pack() Status Bar 
+.PP
+Definition at line 316 of file frontend\&.py\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

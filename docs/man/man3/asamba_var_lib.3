@@ -1,0 +1,320 @@
+.TH "asamba.var_lib" 3 "Mon May 15 2017" "ASAMBA" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+asamba.var_lib
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "def \fBget_model_attrs\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_model_basic_attrs\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_model_other_attrs\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_model_color_attrs\fP ()"
+.br
+.ti -1c
+.RI "def \fBget_list_models_from_hist_and_gyre_in_files\fP (self_tracks)"
+.br
+.ti -1c
+.RI "def \fBget_model_parameters_from_gyre_out_filename\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_track_parameters_from_hist_filename\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_model_parameters_from_gyre_in_filename\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_model_number_from_gyre_in_filename\fP (filename)"
+.br
+.ti -1c
+.RI "def \fBget_gyre_in_search_pattern_from_hist\fP (dir_repos, filename)"
+.br
+.ti -1c
+.RI "def \fBgen_histname_from_gyre_in\fP (gyre_in_filename)"
+.br
+.ti -1c
+.RI "def \fBprepare_models_data\fP (self_models)"
+.br
+.ti -1c
+.RI "def \fBget_track_attrs\fP ()"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "\fBlogger\fP = logging\&.getLogger(__name__)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+.nf
+This module provides auxilary functinalities to work with the database, in reading, writng and 
+manipulating the grid data (tracks, models, modes, etc) into a proper format. 
+
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "def asamba\&.var_lib\&.gen_histname_from_gyre_in ( gyre_in_filename)"
+
+.PP
+.nf
+convert the full filename of the gyre_in file to a full path of the hist file, by following these 
+steps:
+1. substitute "gyre_in" with "hist"
+2. strip off the part of the filename after "logDxx.xx" 
+3. append '.hist' at the end of the file
+
+.fi
+.PP
+ 
+.PP
+Definition at line 385 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_gyre_in_search_pattern_from_hist ( dir_repos,  filename)"
+
+.PP
+.nf
+From the full path to the MESA history file, generate a search string for globbing GYRE input files.
+This function replaces the "/hist/" in the input filename with "/gyre_in/", and also replaces the 
+hist suffix e.g. ".hist" with "*".
+
+@param dir_repos: the full path to the repository, where hist files are stored. Normally, this is 
+       available from tracks.dir_repos
+@type dir_repos: string
+@param filename: full path to the history filename. 
+@type filename: string
+@return: regular expression for explicitly searching for gyre_in files that are linked to a specific
+      track
+@rtype: string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 357 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_list_models_from_hist_and_gyre_in_files ( self_tracks)"
+
+.PP
+.nf
+Extract the data for all GYRE input models in the repository, using their associated line in the 
+MESA history file.
+
+.fi
+.PP
+ 
+.PP
+Definition at line 108 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_attrs ()"
+
+.PP
+.nf
+Get the entire list of attributes for an instance of the var_def.model class. The attributes are 
+sorted in the way they are defined in the class (which might be different from the order in which 
+they are stored/allocated in memory!). The returned list is a concatenation of the two following 
+lists:
+- basic attributes, retrieved by calling get_model_basic_attrs()
+- other attributes, retrieved by calling get_model_other_attrs()
+
+@return: the full list of var_def.model attribute names 
+@rtype: list of strings
+
+.fi
+.PP
+ 
+.PP
+Definition at line 31 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_basic_attrs ()"
+
+.PP
+.nf
+Get the basic attributes of a var_def.model() object. These six attributes distinguish a MESA 
+model from another.
+
+@return: list of basic attribute names, i.e. 'M_ini', 'fov', 'Z', 'logD', 'Xc', 'model_number'
+@rtype: list of strings
+
+.fi
+.PP
+ 
+.PP
+Definition at line 47 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_color_attrs ()"
+
+.PP
+.nf
+Get the attributes of the model, corresponding to the color indixes.
+
+@return: list of color attribute names
+@rtype: list of string
+
+.fi
+.PP
+ 
+.PP
+Definition at line 95 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_number_from_gyre_in_filename ( filename)"
+
+.PP
+.nf
+Extract the MESA evolution model number (when recording the file) from the GYRE input filename.
+E.g. the GYRE input file looks like the following:
+/home/user/my_grid/M01.400/gyre_in/M01.400-ov0.025-Z0.014-logD02.50-MS-Xc0.7075-00107.gyre
+The model number is the integer after the last dash "-" in the filename (easy to extract)
+
+@param filename: full path to the GYRE input filename
+@type filename: string
+@return: the model number of the file
+@rtype: int
+
+.fi
+.PP
+ 
+.PP
+Definition at line 338 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_other_attrs ()"
+
+.PP
+.nf
+Get the other attribute names of the var_def.model() object. These attributes are retrieved from
+MESA history information, and are in the same order as they appear as history column names. This
+choice facilitates much faster conversion of history rows/columns and writing them down into an 
+ASCII file. The same is true when reading the file. For other purposes, the ordering is not 
+important.
+
+@return: list of other attribute names 
+@rtype: list of strings
+
+.fi
+.PP
+ 
+.PP
+Definition at line 58 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_parameters_from_gyre_in_filename ( filename)"
+
+.PP
+.nf
+Extract the whole parameters in the GYRE input filename, and return them as a tuple. The GYRE input
+file can look like this:
+/home/user/my_grid/M12.345/gyre_in/M12.345-ov0.012-Z0.014-logD02.50-MS-Xc0.5432-98765.gyre
+whic corresponds to the following parameters:
+- M_ini    = 12.345 Msun
+- fov      = 0.012
+- Z        = 0.014
+- logD     = 2.50
+- evol_stat = 'MS'
+- Xc       = 0.5432
+- model_number = 98765
+
+@param filename: full path to the input GYRE filename
+@type filename: string
+@return: tuple with the following items in the order: M_ini, fov, Z, logD, evol_state, Xc, model_number
+@rtype: tuple
+
+.fi
+.PP
+ 
+.PP
+Definition at line 304 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_model_parameters_from_gyre_out_filename ( filename)"
+
+.PP
+.nf
+Extract all parameters in the MESA output/GYRE input file, and return them as a tuple. A random file
+may look like the following:
+/home/user/my_grid/M12.345/gyre_out/eta25.00/ad-sum-M12.345-ov0.012-Z0.014-logD02.50-MS-Xc0.3217-00312-eta25.00.h5
+
+@param filename: The full path to the GYRE output file
+@type filename: string
+@return: a tuple with 7 parameters of the model as float or integer values. The order of the 
+         output is the following:
+         - 0: M_ini, initial mass
+         - 1: fov, exponential overshoot parameter
+         - 2: Z, initial metallicity
+         - 3: logD: the logarithm of the extra diffusive mixing
+         - 4: Xc: the core hydrogen mass fraction
+         - 5: model_number: integer, giving MESA step number
+         - 6: eta: rotation rate in percentage w.r.t. the break up rotation rate
+@rtype: tuple
+
+.fi
+.PP
+ 
+.PP
+Definition at line 227 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_track_attrs ()"
+
+.PP
+.nf
+Get the attribute names of the var_def.track object. These are the four basic attributes used to 
+define/distinguish an evolutionary track in MESA.
+
+@return: list of attribute names, i.e. 'M_ini', 'fov', 'Z', 'logD'
+@rtype: list of strings
+
+.fi
+.PP
+ 
+.PP
+Definition at line 491 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.get_track_parameters_from_hist_filename ( filename)"
+
+.PP
+.nf
+Extract the whole parameters in the MESA history filename, and return them as a tuple. The hist 
+file can look like this:
+/home/user/my_grid/M12.345/hist/M12.345-ov0.012-Z0.014-logD02.50.hist
+whic corresponds to the following parameters:
+- M_ini    = 12.345 Msun
+- fov      = 0.012
+- Z        = 0.014
+- logD     = 2.50
+
+@param filename: full path to the input GYRE filename
+@type filename: string
+@return: tuple with the following items in the order: M_ini, fov, Z, logD
+@rtype: tuple
+
+.fi
+.PP
+ 
+.PP
+Definition at line 276 of file var_lib\&.py\&.
+.SS "def asamba\&.var_lib\&.prepare_models_data ( self_models)"
+
+.PP
+.nf
+Obsolete: This routine is a no Go, when dealing with the entire database, because we immediately 
+run out of memory.
+
+This routine prepares the necessary data needed to fill up all required fields in the "model" objects.
+For that, we use the values from the history filenames, from GYRE input filename, and from the history
+columns, as soon as we match the model_number of the input model with that of the evolution step in
+the history file.
+Note: For large number of input GYRE files, this routine is extremely inefficient, because for every 
+input model, the history file is read one time. A better approach is provided by this routine:
+var_lib.get_hist_and_gyre_in_data().
+
+@param self_models: an instance of the "var_def.models" class 
+@type self_models: models object
+.fi
+.PP
+ 
+.PP
+Definition at line 402 of file var_lib\&.py\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for ASAMBA from the source code\&.

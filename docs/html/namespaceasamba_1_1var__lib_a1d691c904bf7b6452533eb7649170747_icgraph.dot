@@ -1,0 +1,9 @@
+digraph "asamba.var_lib.gen_histname_from_gyre_in"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="asamba.var_lib.gen\l_histname_from_gyre_in",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="asamba.var_lib.prepare\l_models_data",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespaceasamba_1_1var__lib.html#ac3a34f468d31f54f0d29486fbd1d3ab5"];
+}
