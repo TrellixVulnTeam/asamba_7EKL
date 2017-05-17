@@ -43,7 +43,7 @@ def main():
   TheSample.set('dbname', 'grid')
   # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
   TheSample.set('use_constrained_sampling', True)
-  TheSample.set('max_sample_size', 5000)
+  TheSample.set('max_sample_size', 20000)
   TheSample.set('range_log_Teff', [3.95, 4.11])
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])
@@ -52,6 +52,7 @@ def main():
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
   # search plan for matching frequencies
+  TheSample.set('sampling_shuffle', True)
   TheSample.set('search_strictly_for_dP', True)
   TheSample.set('trim_delta_freq_factor', 0.25)
 
@@ -72,7 +73,7 @@ def main():
   print('   ')
 
   # Plot the histogram of the learning Y sample
-  if True:
+  if False:
     plot_sampler.hist_learning_x(TheSample, 'plots/KIC-10526294-hist-X.png')
     plot_sampler.hist_learning_y(TheSample, 'plots/KIC-10526294-hist-Y.png')
 

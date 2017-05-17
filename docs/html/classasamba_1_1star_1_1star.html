@@ -9,13 +9,6 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="resize.js"></script>
-<script type="text/javascript" src="navtreedata.js"></script>
-<script type="text/javascript" src="navtree.js"></script>
-<script type="text/javascript">
-  $(document).ready(initResizable);
-</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -24,7 +17,7 @@
     extensions: ["tex2jax.js"],
     jax: ["input/TeX","output/HTML-CSS"],
 });
-</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML/MathJax.js"></script>
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -55,21 +48,6 @@ $(function() {
 });
 </script>
 <div id="main-nav"></div>
-</div><!-- top -->
-<div id="side-nav" class="ui-resizable side-nav-resizable">
-  <div id="nav-tree">
-    <div id="nav-tree-contents">
-      <div id="nav-sync" class="sync"></div>
-    </div>
-  </div>
-  <div id="splitbar" style="-moz-user-select:none;" 
-       class="ui-resizable-handle">
-  </div>
-</div>
-<script type="text/javascript">
-$(document).ready(function(){initNavTree('classasamba_1_1star_1_1star.html','');});
-</script>
-<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -84,6 +62,11 @@ $(document).ready(function(){initNavTree('classasamba_1_1star_1_1star.html','');
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1star.html">star</a></li><li class="navelem"><a class="el" href="classasamba_1_1star_1_1star.html">star</a></li>  </ul>
+</div>
+</div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
@@ -96,15 +79,17 @@ $(document).ready(function(){initNavTree('classasamba_1_1star_1_1star.html','');
 <div class="dynheader">
 Inheritance diagram for asamba.star.star:</div>
 <div class="dyncontent">
-<div class="center"><img src="classasamba_1_1star_1_1star__inherit__graph.png" border="0" usemap="#asamba_8star_8star_inherit__map" alt="Inheritance graph"/></div>
-<!-- MAP 0 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for asamba.star.star:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1star_1_1star__coll__graph.png" border="0" usemap="#asamba_8star_8star_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 1 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+ <div class="center">
+  <img src="classasamba_1_1star_1_1star.png" usemap="#asamba.star.star_map" alt=""/>
+  <map id="asamba.star.star_map" name="asamba.star.star_map">
+<area href="classasamba_1_1star_1_1modes.html" alt="asamba.star.modes" shape="rect" coords="136,112,398,136"/>
+<area href="classasamba_1_1star_1_1mode.html" alt="asamba.star.mode" shape="rect" coords="136,56,398,80"/>
+<area href="classasamba_1_1backend_1_1_modelling_session.html" title="U S E R - C O N T R O L L E D P A R A M E T E R S : B A C K E N D O B J E C T S T H A T D O T H E R E..." alt="asamba.backend.ModellingSession" shape="rect" coords="0,224,262,248"/>
+<area href="classasamba_1_1sampler_1_1sampling.html" alt="asamba.sampler.sampling" shape="rect" coords="272,224,534,248"/>
+<area href="classasamba_1_1artificial__neural__network_1_1neural__net.html" alt="asamba.artificial_neural_network.neural_net" shape="rect" coords="136,280,398,304"/>
+<area href="classasamba_1_1interpolator_1_1interpolation.html" alt="asamba.interpolator.interpolation" shape="rect" coords="408,280,670,304"/>
+</map>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -432,12 +417,6 @@ backend module, but can be widely used in any script.
 @return: None
 </pre> 
 <p class="definition">Definition at line <a class="el" href="star_8py_source.html#l00422">422</a> of file <a class="el" href="star_8py_source.html">star.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1star_1_1star_aec75624cd5c21ff1f0121012ccb01903_cgraph.png" border="0" usemap="#classasamba_1_1star_1_1star_aec75624cd5c21ff1f0121012ccb01903_cgraph" alt=""/></div>
-<!-- MAP 2 -->
-</div>
 
 </div>
 </div>
@@ -476,12 +455,6 @@ Here is the call graph for this function:</div>
 <p>Setter. </p>
 <pre class="fragment">Setter </pre> 
 <p class="definition">Definition at line <a class="el" href="star_8py_source.html#l00400">400</a> of file <a class="el" href="star_8py_source.html">star.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1star_1_1star_af0cfdd4049f081617d13919decddc5af_icgraph.png" border="0" usemap="#classasamba_1_1star_1_1star_af0cfdd4049f081617d13919decddc5af_icgraph" alt=""/></div>
-<!-- MAP 3 -->
-</div>
 
 </div>
 </div>
@@ -489,15 +462,11 @@ Here is the caller graph for this function:</div>
 <li><a class="el" href="star_8py_source.html">star.py</a></li>
 </ul>
 </div><!-- contents -->
-</div><!-- doc-content -->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1star.html">star</a></li><li class="navelem"><a class="el" href="classasamba_1_1star_1_1star.html">star</a></li>
-    <li class="footer">Generated by
-    <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
-  </ul>
-</div>
+<hr class="footer"/><address class="footer"><small>
+Generated by &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.13
+</small></address>
 </body>
 </html>

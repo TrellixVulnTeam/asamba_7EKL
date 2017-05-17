@@ -11,6 +11,7 @@ import numpy as np
 
 from test_unit_sampling import main as main_sampling
 from asamba import artificial_neural_network as ann
+from asamba import plot_ann
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -66,8 +67,9 @@ def main():
 
   # Maximum a posteriori analysis
   TheANN.set('MAP_use_log_Teff_log_g_prior', True)
-  TheANN.set('frequency_sigma_factor', 1.)
-  TheANN.set('rescale_ln_likelihood', True)
+  # TheANN.set('MAP_uniform_prior', True)
+  TheANN.set('frequency_sigma_factor', 1000.)
+  TheANN.set('rescale_ln_probabilities', True)
   MAP       = TheANN.max_a_posteriori()
   
   ln_prior  = TheANN.get('MAP_ln_prior')
@@ -104,6 +106,10 @@ def main():
   for i, name in enumerate(features):
     print('   {0} = {1:.4f}'.format(name, marg_vals[i]))
   print()
+
+  if True:
+    plot_ann.all_marginal_1D(TheANN, 'plots/KIC-10526294-marg1D-Mini_.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='fov', figure_name='plots/KIC-10526294-marg2D-Mini-fov_.png')
 
   return TheANN
 

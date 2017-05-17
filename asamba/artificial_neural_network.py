@@ -60,6 +60,11 @@ class neural_net(sampler.sampling):
     #.............................
     # Maximum a posteriori (MAP)
     #.............................
+    # Working feature matrix for MAP
+    self.MAP_work_features = 0
+    # Working frequency matrix for MAP
+    self.MAP_work_frequencies = 0
+
     # Use uniform prior distribution or not
     self.MAP_uniform_prior = False
     # Set prior based on log_Teff and log_g
@@ -84,8 +89,9 @@ class neural_net(sampler.sampling):
     self.MAP_likelihood = 0
     # The likelihood in natural log scale
     self.MAP_ln_likelihood = 0
-    # Rescale ln(likelihood) by subtracting the median(ln(likelihood)) from all
-    self.rescale_ln_likelihood = True
+    # Rescale ln(likelihood) + ln(prior) so that for the MAP model,
+    # the sum of the two is zero
+    self.rescale_ln_probabilities = True
 
     # The evidence
     self.MAP_evidence = 0
@@ -114,6 +120,8 @@ class neural_net(sampler.sampling):
     #.............................
     # Marginalization
     #.............................
+    # Flag to specify if all features are marginalized
+    self.marginalize_done  = False
     # List of marginalized feature arrays with identical order as in
     # sampling.feature_names, dtype: list of tuples (two ndarrays each)
     self.marginal_results  = []
@@ -220,8 +228,9 @@ class neural_net(sampler.sampling):
     1. Priors: Either set uniformly, or are set based on a comparison between log_Teff and log_g of the model and
        the star. For each hypothesis \f$h\f$, we return the prior information \f$P(h)\f$, and \f$\ln P(h)\f$.
     
-    2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data given the hypothesis, 
-       i.e. \f$\chi^2=\ln P(D|h) = K^{-1}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
+    2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data 
+       given the hypothesis, i.e. 
+       \f$\chi^2=\ln P(D|h) = \frac{1}{2K}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
        A recommended option here is to "rescale" the chi-square values to avoid numerical overflow.
 
     3. Evidence, which is basically an inner dot product between the prior vector and the likelihood vector:
@@ -243,21 +252,40 @@ class neural_net(sampler.sampling):
     _max_a_posteriori(self)
 
   ##########################
+  def marginalize_wrt_x_y(self, wrt_x, wrt_y):
+    """
+    Marginalize the learning features (MAP_work_features), with respect to two (hence "wrt_x" and "wrt_y")
+    feature columns (whose names are available as self.sampling.feature_names).
+    We internally assert that the the sum of all marginal probabilities add sufficiently close to one.
+
+    @param self: an instance of the neural_net() class
+    @type self: obj
+    @param wrt_x, wrt_y: marginalize with respect to wrt_x and wrt_y
+    @type wrt_x, wrt_y: str
+    @return: a list of tuples, where each tuple corresponds to one marginal probability with the following
+         three elements:
+         - val_x: which is the value of the marginal parameter (wrt_x) used 
+         - val_y: which is the value of the marginal parameter (wrt_y) used
+         - marg_x_y: the marginal probability (sum=1) with respect to wrt_x and wrt_y
+    @rtype: list of tuples
+    """
+    return _marginalize_wrt_x_y(self, wrt_x, wrt_y)
+
+  ##########################
   def marginalize_wrt(self, wrt):
     """
-    Marginalize the learning features (learning_x), with respect to (hence "wrt") one of the feature columns (whose names
-    are available as self.sampling.feature_names)
+    Marginalize the learning features (MAP_work_features), with respect to one (hence "wrt") of the 
+    feature columns (whose names are available as self.sampling.feature_names)
+    We internally assert that the the sum of all marginal probabilities add sufficiently close to one.
 
     @param self: an instance of the neural_net() class
     @type self: obj
     @param wrt: marginalize with respect to
     @type wrt: str
-    @return: a tuple with two members:
-         - (ndarray) sorted array of the values of the attribute whose name was passed as wrt, e.g. 'logD'. Note that
-           the values in this array are unique, and all repetitions are marginalized over
-         - (ndarray) the marginalized posterior probability distribution associated with each of the values in the
-           first element of the tuple
-    @rtype: tuple
+    @return: list of tuples, where each member tuple has the following two elements
+         - val_wrt, which is the value of the marginal parameter (assigned as wrt)
+         - marg_wrt, the marginal probability corresponding to val_wrt
+    @rtype: list of tuples
     """
     return _marginalize_wrt(self, wrt)
 
@@ -278,6 +306,16 @@ class neural_net(sampler.sampling):
     is a list of tuples.
     """
     _marginalize(self)
+
+  ##########################
+  def sort_by_posterior(self):
+    """
+    This method sorts all input feature and frequency lists, in addition to the prior/likelihood/posterior
+    arrays based on the ln_posterior in *decreasing* order, so that the maximum a posteriori (MAP) model is 
+    always the zeroth-element of all those arrays, after this method is called.
+    """
+    _sort_by_posterior(self)
+
   ##########################
 
 
@@ -307,9 +345,9 @@ def _solve_normal_equation(self):
     logger.error('_solve_normal_equation: The sampling is not done yet. Call sampler.sampling.build_sampling_sets() first')
     sys.exit(1)
 
-  x = self.learning_x                # (m, n)
-  x = utils.prepend_with_column_1(x)        # (m, n+1)
-  y = self.learning_y                # (m, K)
+  x = self.learning_x                  # (m, n)
+  x = utils.prepend_with_column_1(x)   # (m, n+1)
+  y = self.learning_y                  # (m, K)
 
   a = np.dot(x.T, x)                   # (n+1, n+1)
   b = np.linalg.inv(a)                 # (n+1, n+1)
@@ -345,58 +383,40 @@ def _max_a_posteriori(self):
   """
   Refer to the documentation below the max_a_posteriori() method for further details
   """
+  _set_work_matrixes(self)
+
   _set_priors(self)
   _chi_square(self)
   _set_likelihood(self)
+  _rescale_ln_probabilities(self)
   _set_evidence(self)
   _set_posterior(self)
   
   ln_posterior     = self.get('MAP_ln_posterior')
-  ind_min_posterior= np.argmin(ln_posterior)
-  # sample           = self.get('sampling')
-  learning_x       = self.get('learning_x')
-  learning_y       = self.get('learning_y')
+  ind_max_post     = np.argmax(ln_posterior)
+  MAP_work_x       = self.get('MAP_work_features')
+  MAP_work_y       = self.get('MAP_work_frequencies')
   learning_n_pg    = self.get('learning_radial_orders')
   learning_types   = self.get('learning_mode_types')
-  MAP_feature      = learning_x[ind_min_posterior]
-  MAP_frequencies  = learning_y[ind_min_posterior]
-  MAP_n_pg         = learning_n_pg[ind_min_posterior]
-  MAP_mode_types   = learning_types[ind_min_posterior]
+  MAP_feature      = MAP_work_x[ind_max_post]
+  MAP_frequencies  = MAP_work_y[ind_max_post]
+  MAP_n_pg         = learning_n_pg[ind_max_post]
+  MAP_mode_types   = learning_types[ind_max_post]
   self.set('MAP_feature', MAP_feature)
   self.set('MAP_frequencies', MAP_frequencies)
   self.set('MAP_radial_orders', MAP_n_pg)
   self.set('MAP_mode_types', MAP_mode_types)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _set_posterior(self):
+def _set_work_matrixes(self):
   """
-  Refer to the documentation below the max_a_posteriori() method for further details
+  This routine copies the learning_x and learning_y matrixes into self.MAP_work_features and 
+  self.MAP_work_frequencies, and the rest of the routines only use the MAP_work_* matrixes for 
+  the posterior calculations
   """
-  ln_prior      = self.get('MAP_ln_prior')
-  chi_2         = self.get('MAP_chi_square')
-  ln_likelihood = self.get('MAP_ln_likelihood') 
-  ln_evidence   = self.get('MAP_ln_evidence')
-
-  ln_posterior  = ln_likelihood + ln_prior - ln_evidence
-  posterior     = np.exp(ln_posterior)
-
-  self.set('MAP_posterior', posterior)
-  self.set('MAP_ln_posterior', ln_posterior)
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def _set_evidence(self):
-  """
-  Refer to the documentation below the max_a_posteriori() method for further details
-  """
-  prior    = self.get('MAP_prior')      # == P(h)
-  # chi_2    = self.get('MAP_chi_square') # == ln(P(D|h))
-  ln_L     = self.get('MAP_ln_likelihood')
-  P_D_h    = np.exp(ln_L)               # P(D|h)
-  P_D      = np.sum(P_D_h * prior)      # P(D)
-
-  self.set('MAP_evidence', P_D)
-  self.set('MAP_ln_evidence', np.log(P_D))
-
+  self.set('MAP_work_features', self.get('learning_x'))
+  self.set('MAP_work_frequencies', self.get('learning_y'))
+  
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_priors(self):
   """
@@ -408,8 +428,8 @@ def _set_priors(self):
     logger.error('_set_priors: set only one of "MAP_uniform_prior" or "MAP_use_log_Teff_log_g_prior" to True:')
     sys.exit(1)
 
-  learning_y = self.get('learning_y')
-  m, K       = learning_y.shape
+  work_y     = self.get('MAP_work_frequencies')
+  m, K       = work_y.shape
 
   if self.MAP_uniform_prior:
     prior    = old_div(np.ones(m), float(m))
@@ -436,6 +456,11 @@ def _set_priors(self):
 
     prior     = prior_log_Teff * prior_log_g
 
+  if utils.has_nan(prior):
+    logger.error('_set_priors: NaN detected')
+    sys.exit(1)
+
+  prior       = utils.substitute_inf(prior)
   ln_prior    = np.log(prior)
 
   self.set('MAP_prior', prior)
@@ -449,13 +474,11 @@ def _chi_square(self):
   modes  = self.modes
   freqs  = np.array([ mode.freq for mode in modes ])
   sigma  = np.array([ mode.freq_err for mode in modes ])
-  print(sigma / freqs)
-  sys.exit()
   sigma  *= self.frequency_sigma_factor
-  n_freq = len(freqs)                    # (1, K)
+  n_freq = len(freqs)                  
 
-  learning_y = self.get('learning_y')  # (m, K)
-  m, K   = learning_y.shape
+  work_y = self.get('MAP_work_frequencies')  # (m, K)
+  m, K   = work_y.shape
   try:
     assert n_freq == K
   except AssertionError:
@@ -467,8 +490,15 @@ def _chi_square(self):
   sigma_matrix = np.tile(sigma, m).reshape(m, K) # (m, K)
 
   # calculate the chi^2 in a vectorized form, i.e. element-by-element operation in abstract form
-  chi_2_matrix = old_div(np.power(old_div((freqs_matrix - learning_y),sigma_matrix), 2.0), 2.0)
+  chi_2_matrix = old_div(np.power(old_div((freqs_matrix - work_y),sigma_matrix), 2.0), 2.0)
+  if utils.has_nan(chi_2_matrix):
+    logger.error('_chi_square: NaN detected in chi_2_matrix')
+    sys.exit(1)
+
   chi_2        = np.sum(chi_2_matrix, axis=1) 
+  if utils.has_nan(chi_2):
+    logger.error('_chi_square: NaN detected in chi_2')
+    sys.exit(1)
 
   # save the above two chi squares as attributes of the class
   self.set('MAP_chi_square_matrix', chi_2_matrix)
@@ -479,51 +509,191 @@ def _set_likelihood(self):
   """
   For the full documentation refer to the max_a_posteriori() method
   """
-  # star  = self.get('sampling').get('star')
   modes = self.get('modes')
   errs  = np.array([ mode.freq_err for mode in modes ])
   chi_2 = self.get('MAP_chi_square')
-  ln_L  = old_div(-np.log(2*np.pi),2) - np.sum(np.log(errs)) - chi_2
+  K     = len(chi_2)
+  ln_L  = -K/2.0 * np.log(2.0*np.pi) - np.sum(np.log(errs)) - chi_2 
 
-  # Rescale the chi square values to bring them to a smaller range, and "improve" numerical overflow/underflow
-  if self.rescale_ln_likelihood:
-    ln_scale   = np.max(ln_L)
-    ln_L       -= ln_scale
-    logger.info('_set_likelihood: rescaling ln(likelihood) with ln_scale={0:.2f}'.format(ln_scale))
+  if utils.has_nan(ln_L):
+    logger.error('_set_likelihood: NaN detected in ln_L')
+    sys.exit(1)
+
+  L     = utils.substitute_inf(np.exp(ln_L))
 
   self.set('MAP_ln_likelihood', ln_L)
-  self.set('MAP_likelihood', np.exp(ln_L))
+  self.set('MAP_likelihood', L)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _rescale_ln_probabilities(self):
+  """
+  Rescale the product of the ln(likelihood) x ln(prior), to avoid numerical underflow when evaluating
+  the evidence. Note that one cannot rescale, e.g. only the ln_likelihood, else the weighting of the 
+  rescaled ln(likelihood) with unscaled ln(prior) will render the problem as wrong.
+
+  The scaling factor is in natural logarithm. The value of ln_scale is chosen so that the sum of 
+  unscaled ln(likelihood) + lin(prior) adds up to zero, after rescaling. Once ln_scale is found, then
+  ln(likelihood) and ln(prior) are each rescaled by 0.5 x ln_scale. Subsequently, ln(likelihood), 
+  likelihood, ln(prior) and prior are all updated.
+  """
+  if not self.rescale_ln_probabilities: return 
+
+  ln_P_h       = self.get('MAP_ln_prior')
+  ln_P_D_h     = self.get('MAP_ln_likelihood')
+  ln_prod      = ln_P_D_h + ln_P_h
+
+  # ln_scale     = np.max(ln_prod) / 2.0
+  ln_scale     = np.max(ln_P_D_h)
+  ln_P_D_h     -= ln_scale
+  # ln_P_h       -= ln_scale
+
+  P_D_h        = utils.substitute_inf(np.exp(ln_P_D_h))
+  # P_h          = utils.substitute_inf(np.exp(ln_P_h))
+
+  self.set('MAP_ln_likelihood', ln_P_D_h)
+  self.set('MAP_likelihood', P_D_h)
+  # self.set('MAP_ln_prior', ln_P_h)
+  # self.set('MAP_prior', P_h)
+
+  logger.info('_set_likelihood: rescaling ln(likelihood) x ln(prior) with ln_scale={0:.2f}'.format(ln_scale))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _set_evidence(self):
+  """
+  Refer to the documentation below the max_a_posteriori() method for further details
+  """
+  P_h      = self.get('MAP_prior')      # == P(h)
+  P_D_h    = self.get('MAP_likelihood') # P(D|h)
+  print(P_h.min(), P_h.max())
+  print(P_D_h.min(), P_D_h.max())
+  P_D      = np.dot(P_D_h, P_h)
+  if np.isinf(P_D):
+    logger.error('_set_evidence: The evidence has diverged!')
+    sys.exit(1)
+
+  self.set('MAP_evidence', P_D)
+  self.set('MAP_ln_evidence', np.log(P_D))
+
+  print(self.MAP_evidence, self.MAP_ln_evidence)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _set_posterior(self):
+  """
+  Refer to the documentation below the max_a_posteriori() method for further details
+  """
+  ln_prior      = self.get('MAP_ln_prior')
+  ln_likelihood = self.get('MAP_ln_likelihood') 
+  ln_evidence   = self.get('MAP_ln_evidence')
+
+  ln_posterior  = ln_likelihood + ln_prior - ln_evidence
+  posterior     = utils.substitute_inf(np.exp(ln_posterior))
+
+  self.set('MAP_posterior', posterior)
+  self.set('MAP_ln_posterior', ln_posterior)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # M A R G I N A L I Z A T I O N   R O U T I N E S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _marginalize_wrt_x_y(self, wrt_x, wrt_y):
+  """
+  For the full documentation refer to the marginalize_wrt_x_y() method
+  """
+  _names  = self.get('feature_names')
+  if wrt_x not in _names:
+    logger.error('_marginalize_wrt_x_y: The column "{0}" is not among the available features'.format(wrt_x))
+    sys.exit(1)
+  if wrt_y not in _names:
+    logger.error('_marginalize_wrt_x_y: The column "{0}" is not among the available features'.format(wrt_y))
+    sys.exit(1)
+  
+  _work   = self.get('MAP_work_features')
+  dtypes  = [(name, 'f4') for name in _names]
+  rec     = utils.ndarray_to_recarray(_work, dtypes)
+
+  set_x   = set(list(rec[wrt_x]))
+  set_y   = set(list(rec[wrt_y]))
+  nx      = len(set_x)
+  ny      = len(set_y)
+  arr_x   = np.array(list(set_x))
+  arr_x.sort()
+  arr_y   = np.array(list(set_y))
+  arr_y.sort()
+  _grix_xy= np.meshgrid(arr_x, arr_y, indexing='ij')
+  all_x   = _grix_xy[0].reshape(-1).astype(np.float32, casting='same_kind')
+  all_y   = _grix_xy[1].reshape(-1).astype(np.float32, casting='same_kind')
+  tup_xy  = list(zip(all_x, all_y))
+
+  post    = self.get('MAP_posterior')
+
+  tol     = 1e-4
+  p_vals  = np.zeros(nx * ny)
+  outcome = []
+  for i_wrt, _tup in enumerate(tup_xy):
+    xval  = _tup[0]
+    yval  = _tup[1]
+
+    ind   = np.where((np.abs(rec[wrt_x] - xval) <= tol) & 
+                     (np.abs(rec[wrt_y] - yval) <= tol))[0]
+    n_ind = len(ind)
+    if n_ind == 0: continue
+
+    p_val = np.sum(post[ind])
+    tup   = ( xval, yval, p_val )
+    outcome.extend([ tup ])
+    p_vals[i_wrt] = p_val
+
+  try:
+    assert np.abs(1.0 - np.sum(p_vals)) < 1e-8
+  except:
+    logger.error('_marginalize_wrt_x_y: p-values do not sum up to 1 (+/- 1e-8)')
+    sys.exit(1)
+
+  nout    = len(outcome)
+  logger.info('_marginalize_wrt_x_y: Returning "{0}" points for x:"{1}" and y:"{2}"'.format(nout, wrt_x, wrt_y))
+  
+  return outcome 
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _marginalize_wrt(self, wrt):
   """
   For the full documentation refer to the marginalize_wrt() method.
   """
-  # sample  = self.get('sampling')
   x_names = self.get('feature_names')
   if wrt not in x_names:
     logger.error('_marginalize_wrt: The column "{0}" is not among the available features'.format(wrt))
     sys.exit(1)
   
-  learning_x = self.get('learning_x')
+  work_x  = self.get('MAP_work_features')
   dtypes  = [(name, 'f4') for name in x_names]
-  rec     = utils.ndarray_to_recarray(learning_x, dtypes)
+  rec     = utils.ndarray_to_recarray(work_x, dtypes)
 
   set_wrt = set(list(rec[wrt]))
   n_wrt   = len(set_wrt)
   arr_wrt = np.array(list(set_wrt))
   arr_wrt = np.sort(arr_wrt)
-  post_wrt= np.zeros(n_wrt)            # to store the marginalized posterior probabilities
+  p_vals  = np.zeros(n_wrt)
+  post_wrt= []
 
   post    = self.get('MAP_posterior')
 
   for i_wrt, val_wrt in enumerate(arr_wrt):
-    ind_wrt  = np.where(rec[wrt] == val_wrt)[0]
-    post_wrt[i_wrt] = np.sum(post[ind_wrt])
+    k_wrt = np.where(rec[wrt] == val_wrt)[0]
+    p_val = np.sum(post[k_wrt])
+    tup   = (val_wrt, p_val)
 
-  return (arr_wrt, post_wrt)
+    p_vals[i_wrt] = p_val
+    post_wrt.extend([ tup ])
+
+  try:
+    assert np.abs(1.0 - np.sum(p_vals)) < 1e-8
+  except:
+    logger.error('_marginalize_wrt: p-values do not sum up to 1 (+/- 1e-8)')
+    sys.exit(1)
+
+  n_post  = len(post_wrt)
+  logger.info('_marginalize_wrt: Returning "{0}" points for wrt:"{1}"'.format(n_post, wrt))
+
+  return post_wrt
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _marginalize(self):
@@ -536,14 +706,36 @@ def _marginalize(self):
   vals   = np.zeros(n_names)
 
   for i, name in enumerate(names):
-    tup  = self.marginalize_wrt(wrt=name)
-    result.append(tup)
+    res  = self.marginalize_wrt(wrt=name)
+    result.append(res)
 
-    vals[i] = tup[0][ np.argmax(tup[1]) ]
+    par  = np.array([_tup[0] for _tup in res])
+    marg = np.array([_tup[1] for _tup in res])
+    ind  = np.argmax(marg)
+    vals[i] = par[ind] # res[0][ np.argmax(res[1]) ]
 
   self.set('marginal_results', result)
   self.set('marginal_features', vals)
+  self.set('marginalize_done', True)
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _sort_by_posterior(self):
+  """
+  For detailed documentation, please refer to the docs below the method sort_by_posterior().
+  """
+  ln_posterior = self.get('MAP_ln_posterior')
+  ind          = np.argsort(ln_posterior)[::-1]
+  self.set('MAP_prior', self.MAP_prior[ind])
+  self.set('MAP_ln_prior', self.MAP_ln_prior[ind])
+  self.set('MAP_likelihood', self.MAP_likelihood[ind])
+  self.set('MAP_ln_likelihood', self.MAP_ln_likelihood[ind])
+  self.set('MAP_posterior', self.MAP_posterior[ind])
+  self.set('MAP_ln_posterior', self.MAP_ln_posterior[ind])
+
+  logger.info('_sort_by_posterior: all arrays sorted by ln_posterior (in decreasing order)')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

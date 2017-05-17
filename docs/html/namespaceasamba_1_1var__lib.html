@@ -9,13 +9,6 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="resize.js"></script>
-<script type="text/javascript" src="navtreedata.js"></script>
-<script type="text/javascript" src="navtree.js"></script>
-<script type="text/javascript">
-  $(document).ready(initResizable);
-</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -24,7 +17,7 @@
     extensions: ["tex2jax.js"],
     jax: ["input/TeX","output/HTML-CSS"],
 });
-</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML/MathJax.js"></script>
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -55,21 +48,6 @@ $(function() {
 });
 </script>
 <div id="main-nav"></div>
-</div><!-- top -->
-<div id="side-nav" class="ui-resizable side-nav-resizable">
-  <div id="nav-tree">
-    <div id="nav-tree-contents">
-      <div id="nav-sync" class="sync"></div>
-    </div>
-  </div>
-  <div id="splitbar" style="-moz-user-select:none;" 
-       class="ui-resizable-handle">
-  </div>
-</div>
-<script type="text/javascript">
-$(document).ready(function(){initNavTree('namespaceasamba_1_1var__lib.html','');});
-</script>
-<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -84,6 +62,11 @@ $(document).ready(function(){initNavTree('namespaceasamba_1_1var__lib.html','');
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1var__lib.html">var_lib</a></li>  </ul>
+</div>
+</div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#func-members">Functions</a> &#124;
@@ -154,12 +137,6 @@ steps:
 3. append '.hist' at the end of the file
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00385">385</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a1d691c904bf7b6452533eb7649170747_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a1d691c904bf7b6452533eb7649170747_icgraph" alt=""/></div>
-<!-- MAP 0 -->
-</div>
 
 </div>
 </div>
@@ -202,12 +179,6 @@ hist suffix e.g. ".hist" with "*".
 @rtype: string
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00357">357</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a6872a059696addcf6898489c86fb9458_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a6872a059696addcf6898489c86fb9458_icgraph" alt=""/></div>
-<!-- MAP 1 -->
-</div>
 
 </div>
 </div>
@@ -230,12 +201,6 @@ Here is the caller graph for this function:</div>
 MESA history file.
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00108">108</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a31c9bde7f3cc889b6f3bd873d002dbf1_cgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a31c9bde7f3cc889b6f3bd873d002dbf1_cgraph" alt=""/></div>
-<!-- MAP 2 -->
-</div>
 
 </div>
 </div>
@@ -264,12 +229,6 @@ lists:
 @rtype: list of strings
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00031">31</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a0c87523dbf5108a45ba622f3a931ea61_cgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a0c87523dbf5108a45ba622f3a931ea61_cgraph" alt=""/></div>
-<!-- MAP 3 -->
-</div>
 
 </div>
 </div>
@@ -294,18 +253,6 @@ model from another.
 @rtype: list of strings
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00047">47</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a300a7811388375b1f7a3267412235a28_cgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a300a7811388375b1f7a3267412235a28_cgraph" alt=""/></div>
-<!-- MAP 4 -->
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a300a7811388375b1f7a3267412235a28_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a300a7811388375b1f7a3267412235a28_icgraph" alt=""/></div>
-<!-- MAP 5 -->
-</div>
 
 </div>
 </div>
@@ -385,12 +332,6 @@ important.
 @rtype: list of strings
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00058">58</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_adc463e39504e5cd7acb15d499dec2880_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_adc463e39504e5cd7acb15d499dec2880_icgraph" alt=""/></div>
-<!-- MAP 6 -->
-</div>
 
 </div>
 </div>
@@ -427,12 +368,6 @@ whic corresponds to the following parameters:
 @rtype: tuple
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00304">304</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a48d70ad01935d09c3c0bb434bc82a5e6_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a48d70ad01935d09c3c0bb434bc82a5e6_icgraph" alt=""/></div>
-<!-- MAP 7 -->
-</div>
 
 </div>
 </div>
@@ -493,12 +428,6 @@ define/distinguish an evolutionary track in MESA.
 @rtype: list of strings
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00491">491</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_af9d74851b62f321dbf694bd2ef8fa3ed_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_af9d74851b62f321dbf694bd2ef8fa3ed_icgraph" alt=""/></div>
-<!-- MAP 8 -->
-</div>
 
 </div>
 </div>
@@ -532,12 +461,6 @@ whic corresponds to the following parameters:
 @rtype: tuple
 </pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00276">276</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_a0aceded8224b425f6576bad342e05069_icgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_a0aceded8224b425f6576bad342e05069_icgraph" alt=""/></div>
-<!-- MAP 9 -->
-</div>
 
 </div>
 </div>
@@ -570,25 +493,15 @@ var_lib.get_hist_and_gyre_in_data().
 @param self_models: an instance of the "var_def.models" class 
 @type self_models: models object</pre> 
 <p class="definition">Definition at line <a class="el" href="var__lib_8py_source.html#l00402">402</a> of file <a class="el" href="var__lib_8py_source.html">var_lib.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceasamba_1_1var__lib_ac3a34f468d31f54f0d29486fbd1d3ab5_cgraph.png" border="0" usemap="#namespaceasamba_1_1var__lib_ac3a34f468d31f54f0d29486fbd1d3ab5_cgraph" alt=""/></div>
-<!-- MAP 10 -->
-</div>
 
 </div>
 </div>
 </div><!-- contents -->
-</div><!-- doc-content -->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1var__lib.html">var_lib</a></li>
-    <li class="footer">Generated by
-    <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
-  </ul>
-</div>
+<hr class="footer"/><address class="footer"><small>
+Generated by &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.13
+</small></address>
 </body>
 </html>

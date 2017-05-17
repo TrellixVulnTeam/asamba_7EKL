@@ -18,7 +18,39 @@ logger  = logging.getLogger(__name__)
 is_py3x = sys.version_info[0] >= 3
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def has_nan(arr):
+  """
+  This routine tries to find a NaN in any of the elements of the passed array. If no NaN is found, 
+  then it returns True, but if at least one NaN value is found, then it returns False
+  """
 
+  return np.sum(np.isnan(arr) * 1) > 0
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def substitute_inf(arr):
+  """
+  The sys.float_info.max = 1.7976931348623157e+308 (hereafter max_float) is the maximum double precision 
+  floating point number that Python handles. If the absolute value of any number exceeds this limit, 
+  then it is assigned as inf.
+  This routine substitutes the +inf elements with the max_float, the -inf with -max_float.
+
+  @param arr: any n-dimensional array of numbers
+  @type arr: numpy.ndarray
+  @return: the same array with the +/- inf values and NaN values substituted as explained above.
+  @rtype: numpy.ndarray 
+  """
+  inf       = float('inf')
+  max_float = sys.float_info.max / 2
+  
+  i_inf_pos = np.where(arr == inf)[0]
+  arr[i_inf_pos] = max_float
+
+  i_inf_neg = np.where(arr == -inf)[0]
+  arr[i_inf_neg] = -max_float
+
+  return arr
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def list_to_recarray(list_input, dtype):
   """
   Convert a list of tuples to a numpy recordarray. Each tuple is one retrieved row of data from calling

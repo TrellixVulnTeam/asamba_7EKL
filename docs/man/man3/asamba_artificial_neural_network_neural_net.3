@@ -223,7 +223,7 @@ is a list of tuples.
 .PP
  
 .PP
-Definition at line 265 of file artificial_neural_network\&.py\&.
+Definition at line 266 of file artificial_neural_network\&.py\&.
 .SS "def asamba\&.artificial_neural_network\&.neural_net\&.marginalize_wrt ( self,  wrt)"
 
 .PP
@@ -246,7 +246,7 @@ are available as self.sampling.feature_names)
 .PP
  
 .PP
-Definition at line 246 of file artificial_neural_network\&.py\&.
+Definition at line 247 of file artificial_neural_network\&.py\&.
 .SS "def asamba\&.artificial_neural_network\&.neural_net\&.max_a_posteriori ( self)"
 
 .PP
@@ -257,8 +257,9 @@ It consists of the following steps:
 1. Priors: Either set uniformly, or are set based on a comparison between log_Teff and log_g of the model and
    the star. For each hypothesis \f$h\f$, we return the prior information \f$P(h)\f$, and \f$\ln P(h)\f$.
 
-2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data given the hypothesis, 
-   i.e. \f$\chi^2=\ln P(D|h) = K^{-1}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
+2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data 
+   given the hypothesis, i.e. 
+   \f$\chi^2=\ln P(D|h) = \frac{1}{2K}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
    A recommended option here is to "rescale" the chi-square values to avoid numerical overflow.
 
 3. Evidence, which is basically an inner dot product between the prior vector and the likelihood vector:

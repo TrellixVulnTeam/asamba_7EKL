@@ -9,13 +9,6 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="resize.js"></script>
-<script type="text/javascript" src="navtreedata.js"></script>
-<script type="text/javascript" src="navtree.js"></script>
-<script type="text/javascript">
-  $(document).ready(initResizable);
-</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -24,7 +17,7 @@
     extensions: ["tex2jax.js"],
     jax: ["input/TeX","output/HTML-CSS"],
 });
-</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML/MathJax.js"></script>
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -55,21 +48,6 @@ $(function() {
 });
 </script>
 <div id="main-nav"></div>
-</div><!-- top -->
-<div id="side-nav" class="ui-resizable side-nav-resizable">
-  <div id="nav-tree">
-    <div id="nav-tree-contents">
-      <div id="nav-sync" class="sync"></div>
-    </div>
-  </div>
-  <div id="splitbar" style="-moz-user-select:none;" 
-       class="ui-resizable-handle">
-  </div>
-</div>
-<script type="text/javascript">
-$(document).ready(function(){initNavTree('classasamba_1_1artificial__neural__network_1_1neural__net.html','');});
-</script>
-<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -84,6 +62,11 @@ $(document).ready(function(){initNavTree('classasamba_1_1artificial__neural__net
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1artificial__neural__network.html">artificial_neural_network</a></li><li class="navelem"><a class="el" href="classasamba_1_1artificial__neural__network_1_1neural__net.html">neural_net</a></li>  </ul>
+</div>
+</div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
@@ -106,17 +89,15 @@ $(document).ready(function(){initNavTree('classasamba_1_1artificial__neural__net
 <div class="dynheader">
 Inheritance diagram for asamba.artificial_neural_network.neural_net:</div>
 <div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net__inherit__graph.png" border="0" usemap="#asamba_8artificial__neural__network_8neural__net_inherit__map" alt="Inheritance graph"/></div>
-<map name="asamba_8artificial__neural__network_8neural__net_inherit__map" id="asamba_8artificial__neural__network_8neural__net_inherit__map">
+ <div class="center">
+  <img src="classasamba_1_1artificial__neural__network_1_1neural__net.png" usemap="#asamba.artificial_5Fneural_5Fnetwork.neural_5Fnet_map" alt=""/>
+  <map id="asamba.artificial_5Fneural_5Fnetwork.neural_5Fnet_map" name="asamba.artificial_5Fneural_5Fnetwork.neural_5Fnet_map">
+<area href="classasamba_1_1sampler_1_1sampling.html" alt="asamba.sampler.sampling" shape="rect" coords="0,224,262,248"/>
+<area href="classasamba_1_1star_1_1star.html" alt="asamba.star.star" shape="rect" coords="0,168,262,192"/>
+<area href="classasamba_1_1star_1_1modes.html" alt="asamba.star.modes" shape="rect" coords="0,112,262,136"/>
+<area href="classasamba_1_1star_1_1mode.html" alt="asamba.star.mode" shape="rect" coords="0,56,262,80"/>
 </map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for asamba.artificial_neural_network.neural_net:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net__coll__graph.png" border="0" usemap="#asamba_8artificial__neural__network_8neural__net_coll__map" alt="Collaboration graph"/></div>
-<map name="asamba_8artificial__neural__network_8neural__net_coll__map" id="asamba_8artificial__neural__network_8neural__net_coll__map">
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -711,13 +692,6 @@ around each observed frequency.
 @rtype: None
 </pre> 
 <p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00194">194</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net_ac976779fd464470353ebe1f247314b8a_cgraph.png" border="0" usemap="#classasamba_1_1artificial__neural__network_1_1neural__net_ac976779fd464470353ebe1f247314b8a_cgraph" alt=""/></div>
-<map name="classasamba_1_1artificial__neural__network_1_1neural__net_ac976779fd464470353ebe1f247314b8a_cgraph" id="classasamba_1_1artificial__neural__network_1_1neural__net_ac976779fd464470353ebe1f247314b8a_cgraph">
-</map>
-</div>
 
 </div>
 </div>
@@ -749,14 +723,7 @@ The return structure of "self.marginal_results" is noteworthy. Because we iterat
 marginalize_wrt() method and collect its results (tuple with two ndarrays), the "self.marginal_results"
 is a list of tuples.
 </pre> 
-<p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00265">265</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net_aa5832df25488526021198613fc2f6ce6_cgraph.png" border="0" usemap="#classasamba_1_1artificial__neural__network_1_1neural__net_aa5832df25488526021198613fc2f6ce6_cgraph" alt=""/></div>
-<map name="classasamba_1_1artificial__neural__network_1_1neural__net_aa5832df25488526021198613fc2f6ce6_cgraph" id="classasamba_1_1artificial__neural__network_1_1neural__net_aa5832df25488526021198613fc2f6ce6_cgraph">
-</map>
-</div>
+<p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00266">266</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
 
 </div>
 </div>
@@ -799,14 +766,7 @@ are available as self.sampling.feature_names)
    first element of the tuple
 @rtype: tuple
 </pre> 
-<p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00246">246</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net_a6c9272cb29ab3220ad19ffd3d35495a7_icgraph.png" border="0" usemap="#classasamba_1_1artificial__neural__network_1_1neural__net_a6c9272cb29ab3220ad19ffd3d35495a7_icgraph" alt=""/></div>
-<map name="classasamba_1_1artificial__neural__network_1_1neural__net_a6c9272cb29ab3220ad19ffd3d35495a7_icgraph" id="classasamba_1_1artificial__neural__network_1_1neural__net_a6c9272cb29ab3220ad19ffd3d35495a7_icgraph">
-</map>
-</div>
+<p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00247">247</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
 
 </div>
 </div>
@@ -831,8 +791,9 @@ It consists of the following steps:
 1. Priors: Either set uniformly, or are set based on a comparison between log_Teff and log_g of the model and
    the star. For each hypothesis \f$h\f$, we return the prior information \f$P(h)\f$, and \f$\ln P(h)\f$.
 
-2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data given the hypothesis, 
-   i.e. \f$\chi^2=\ln P(D|h) = K^{-1}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
+2. LogLikelihood, or chi square \f$\chi^2\f$: the natural logarithm of the probability density of the data 
+   given the hypothesis, i.e. 
+   \f$\chi^2=\ln P(D|h) = \frac{1}{2K}\sum_{i=1}^{K} \left((f_i^{\rm (obs)} - f_i^{\rm (mod)})/sigma_i \right)^2 \f$.
    A recommended option here is to "rescale" the chi-square values to avoid numerical overflow.
 
 3. Evidence, which is basically an inner dot product between the prior vector and the likelihood vector:
@@ -912,13 +873,6 @@ Notes:
 @type self: object
 </pre> 
 <p class="definition">Definition at line <a class="el" href="artificial__neural__network_8py_source.html#l00149">149</a> of file <a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1artificial__neural__network_1_1neural__net_a623b5424543944cb88d5a3a8889e6bbe_cgraph.png" border="0" usemap="#classasamba_1_1artificial__neural__network_1_1neural__net_a623b5424543944cb88d5a3a8889e6bbe_cgraph" alt=""/></div>
-<map name="classasamba_1_1artificial__neural__network_1_1neural__net_a623b5424543944cb88d5a3a8889e6bbe_cgraph" id="classasamba_1_1artificial__neural__network_1_1neural__net_a623b5424543944cb88d5a3a8889e6bbe_cgraph">
-</map>
-</div>
 
 </div>
 </div>
@@ -926,15 +880,11 @@ Here is the call graph for this function:</div>
 <li><a class="el" href="artificial__neural__network_8py_source.html">artificial_neural_network.py</a></li>
 </ul>
 </div><!-- contents -->
-</div><!-- doc-content -->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1artificial__neural__network.html">artificial_neural_network</a></li><li class="navelem"><a class="el" href="classasamba_1_1artificial__neural__network_1_1neural__net.html">neural_net</a></li>
-    <li class="footer">Generated by
-    <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
-  </ul>
-</div>
+<hr class="footer"/><address class="footer"><small>
+Generated by &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.13
+</small></address>
 </body>
 </html>

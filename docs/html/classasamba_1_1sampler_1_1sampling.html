@@ -9,13 +9,6 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="resize.js"></script>
-<script type="text/javascript" src="navtreedata.js"></script>
-<script type="text/javascript" src="navtree.js"></script>
-<script type="text/javascript">
-  $(document).ready(initResizable);
-</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -24,7 +17,7 @@
     extensions: ["tex2jax.js"],
     jax: ["input/TeX","output/HTML-CSS"],
 });
-</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML/MathJax.js"></script>
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -55,21 +48,6 @@ $(function() {
 });
 </script>
 <div id="main-nav"></div>
-</div><!-- top -->
-<div id="side-nav" class="ui-resizable side-nav-resizable">
-  <div id="nav-tree">
-    <div id="nav-tree-contents">
-      <div id="nav-sync" class="sync"></div>
-    </div>
-  </div>
-  <div id="splitbar" style="-moz-user-select:none;" 
-       class="ui-resizable-handle">
-  </div>
-</div>
-<script type="text/javascript">
-$(document).ready(function(){initNavTree('classasamba_1_1sampler_1_1sampling.html','');});
-</script>
-<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -84,6 +62,11 @@ $(document).ready(function(){initNavTree('classasamba_1_1sampler_1_1sampling.htm
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1sampler.html">sampler</a></li><li class="navelem"><a class="el" href="classasamba_1_1sampler_1_1sampling.html">sampling</a></li>  </ul>
+</div>
+</div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
@@ -106,15 +89,16 @@ $(document).ready(function(){initNavTree('classasamba_1_1sampler_1_1sampling.htm
 <div class="dynheader">
 Inheritance diagram for asamba.sampler.sampling:</div>
 <div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling__inherit__graph.png" border="0" usemap="#asamba_8sampler_8sampling_inherit__map" alt="Inheritance graph"/></div>
-<!-- MAP 0 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for asamba.sampler.sampling:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling__coll__graph.png" border="0" usemap="#asamba_8sampler_8sampling_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 1 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+ <div class="center">
+  <img src="classasamba_1_1sampler_1_1sampling.png" usemap="#asamba.sampler.sampling_map" alt=""/>
+  <map id="asamba.sampler.sampling_map" name="asamba.sampler.sampling_map">
+<area href="classasamba_1_1star_1_1star.html" alt="asamba.star.star" shape="rect" coords="136,168,398,192"/>
+<area href="classasamba_1_1star_1_1modes.html" alt="asamba.star.modes" shape="rect" coords="136,112,398,136"/>
+<area href="classasamba_1_1star_1_1mode.html" alt="asamba.star.mode" shape="rect" coords="136,56,398,80"/>
+<area href="classasamba_1_1artificial__neural__network_1_1neural__net.html" alt="asamba.artificial_neural_network.neural_net" shape="rect" coords="0,280,262,304"/>
+<area href="classasamba_1_1interpolator_1_1interpolation.html" alt="asamba.interpolator.interpolation" shape="rect" coords="272,280,534,304"/>
+</map>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -613,12 +597,6 @@ sets by random slicing.
 @rtype: None
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00280">280</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_abb689acce45526b082697abe45e2cb56_cgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_abb689acce45526b082697abe45e2cb56_cgraph" alt=""/></div>
-<!-- MAP 2 -->
-</div>
 
 </div>
 </div>
@@ -725,12 +703,6 @@ E.g.
 @rtype: float
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00257">257</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a9e11f6bf4371b3dbe372dcc75c47ad3a_icgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a9e11f6bf4371b3dbe372dcc75c47ad3a_icgraph" alt=""/></div>
-<!-- MAP 3 -->
-</div>
 
 </div>
 </div>
@@ -840,12 +812,6 @@ valid input variable and its input value, the set method is called iteratively.
 @return: None
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00237">237</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a55ebddb5056b66524d34341cccae5d05_cgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a55ebddb5056b66524d34341cccae5d05_cgraph" alt=""/></div>
-<!-- MAP 4 -->
-</div>
 
 </div>
 </div>
@@ -895,18 +861,6 @@ Here is the call graph for this function:</div>
 @type val: int, float, bool, list, etc.
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00181">181</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a682af8a360751e2fb6dd215fe571ea43_cgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a682af8a360751e2fb6dd215fe571ea43_cgraph" alt=""/></div>
-<!-- MAP 5 -->
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a682af8a360751e2fb6dd215fe571ea43_icgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a682af8a360751e2fb6dd215fe571ea43_icgraph" alt=""/></div>
-<!-- MAP 6 -->
-</div>
 
 </div>
 </div>
@@ -954,12 +908,6 @@ Note: once the training/cross-validation/test sets (i.e. *_x and *_y) are prepar
 @rtype: None
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00315">315</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_ae0e3548d71adf58b309904e65b0e6e8c_cgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_ae0e3548d71adf58b309904e65b0e6e8c_cgraph" alt=""/></div>
-<!-- MAP 7 -->
-</div>
 
 </div>
 </div>
@@ -1004,12 +952,6 @@ Here is the call graph for this function:</div>
 <p>Trimming Functions Note: The signatures of the following three functions must be identical, because they are tossed into self.search_function, and can be called from external (inherited) modules. </p>
 <pre class="fragment">Not developed yet </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00408">408</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a75e186291813796d1114ccf2e1f3b2c3_icgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a75e186291813796d1114ccf2e1f3b2c3_icgraph" alt=""/></div>
-<!-- MAP 8 -->
-</div>
 
 </div>
 </div>
@@ -1079,12 +1021,6 @@ Note: The return value from this routine is identical to the return from the fol
 @rtype: np.recarray or bool
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00445">445</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_ad67c8918488194428f7733918a55a4a0_cgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_ad67c8918488194428f7733918a55a4a0_cgraph" alt=""/></div>
-<!-- MAP 9 -->
-</div>
 
 </div>
 </div>
@@ -1127,12 +1063,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">Not developed yet </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00440">440</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a0fe5ca163f5e1c07a017783818535579_icgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a0fe5ca163f5e1c07a017783818535579_icgraph" alt=""/></div>
-<!-- MAP 10 -->
-</div>
 
 </div>
 </div>
@@ -1196,12 +1126,6 @@ the modes based on their period spacing pattern
 @rtype: np.recarray or bool
 </pre> 
 <p class="definition">Definition at line <a class="el" href="sampler_8py_source.html#l00413">413</a> of file <a class="el" href="sampler_8py_source.html">sampler.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1sampler_1_1sampling_a8058c0e4f2aa8642f7b19daeb016d73a_icgraph.png" border="0" usemap="#classasamba_1_1sampler_1_1sampling_a8058c0e4f2aa8642f7b19daeb016d73a_icgraph" alt=""/></div>
-<!-- MAP 11 -->
-</div>
 
 </div>
 </div>
@@ -1209,15 +1133,11 @@ Here is the caller graph for this function:</div>
 <li><a class="el" href="sampler_8py_source.html">sampler.py</a></li>
 </ul>
 </div><!-- contents -->
-</div><!-- doc-content -->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1sampler.html">sampler</a></li><li class="navelem"><a class="el" href="classasamba_1_1sampler_1_1sampling.html">sampling</a></li>
-    <li class="footer">Generated by
-    <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
-  </ul>
-</div>
+<hr class="footer"/><address class="footer"><small>
+Generated by &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.13
+</small></address>
 </body>
 </html>

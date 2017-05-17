@@ -9,13 +9,6 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="resize.js"></script>
-<script type="text/javascript" src="navtreedata.js"></script>
-<script type="text/javascript" src="navtree.js"></script>
-<script type="text/javascript">
-  $(document).ready(initResizable);
-</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -24,7 +17,7 @@
     extensions: ["tex2jax.js"],
     jax: ["input/TeX","output/HTML-CSS"],
 });
-</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML/MathJax.js"></script>
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -55,21 +48,6 @@ $(function() {
 });
 </script>
 <div id="main-nav"></div>
-</div><!-- top -->
-<div id="side-nav" class="ui-resizable side-nav-resizable">
-  <div id="nav-tree">
-    <div id="nav-tree-contents">
-      <div id="nav-sync" class="sync"></div>
-    </div>
-  </div>
-  <div id="splitbar" style="-moz-user-select:none;" 
-       class="ui-resizable-handle">
-  </div>
-</div>
-<script type="text/javascript">
-$(document).ready(function(){initNavTree('classasamba_1_1frontend__orig_1_1_g_u_i.html','');});
-</script>
-<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -84,6 +62,11 @@ $(document).ready(function(){initNavTree('classasamba_1_1frontend__orig_1_1_g_u_
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1frontend__orig.html">frontend_orig</a></li><li class="navelem"><a class="el" href="classasamba_1_1frontend__orig_1_1_g_u_i.html">GUI</a></li>  </ul>
+</div>
+</div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
@@ -96,15 +79,11 @@ $(document).ready(function(){initNavTree('classasamba_1_1frontend__orig_1_1_g_u_
 <div class="dynheader">
 Inheritance diagram for asamba.frontend_orig.GUI:</div>
 <div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i__inherit__graph.png" border="0" usemap="#asamba_8frontend__orig_8_g_u_i_inherit__map" alt="Inheritance graph"/></div>
-<!-- MAP 0 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for asamba.frontend_orig.GUI:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i__coll__graph.png" border="0" usemap="#asamba_8frontend__orig_8_g_u_i_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 1 -->
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+ <div class="center">
+  <img src="classasamba_1_1frontend__orig_1_1_g_u_i.png" usemap="#asamba.frontend_5Forig.GUI_map" alt=""/>
+  <map id="asamba.frontend_5Forig.GUI_map" name="asamba.frontend_5Forig.GUI_map">
+</map>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -327,12 +306,6 @@ Public Attributes</h2></td></tr>
 <p>File Inputs. </p>
 <pre class="fragment">Browse the local disk for an ASCII file </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00349">349</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a5160be30a39afd49a2dd9ac4aba34d1d_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a5160be30a39afd49a2dd9ac4aba34d1d_cgraph" alt=""/></div>
-<!-- MAP 2 -->
-</div>
 
 </div>
 </div>
@@ -353,18 +326,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">Try connecting to the database based on the user's choice </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00315">315</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_ae71ecf0efcb575059e181ccd33f75178_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_ae71ecf0efcb575059e181ccd33f75178_cgraph" alt=""/></div>
-<!-- MAP 3 -->
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_ae71ecf0efcb575059e181ccd33f75178_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_ae71ecf0efcb575059e181ccd33f75178_icgraph" alt=""/></div>
-<!-- MAP 4 -->
-</div>
 
 </div>
 </div>
@@ -387,18 +348,6 @@ Here is the caller graph for this function:</div>
 <p>M E T H O D S. </p>
 <p>Connection </p><pre class="fragment">Receive the 3 possible connection choices in int format </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00306">306</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_af3fdec98d1b3657658a5f489b2246c34_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_af3fdec98d1b3657658a5f489b2246c34_cgraph" alt=""/></div>
-<!-- MAP 5 -->
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_af3fdec98d1b3657658a5f489b2246c34_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_af3fdec98d1b3657658a5f489b2246c34_icgraph" alt=""/></div>
-<!-- MAP 6 -->
-</div>
 
 </div>
 </div>
@@ -419,12 +368,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">The backend will connect based on the user's connecton choice </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00328">328</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a68a716eaa1fb6d82a7b004c77a5ab270_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a68a716eaa1fb6d82a7b004c77a5ab270_icgraph" alt=""/></div>
-<!-- MAP 7 -->
-</div>
 
 </div>
 </div>
@@ -445,12 +388,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">Show a static window with an example of how the input frequency file is structured </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00365">365</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a6bb5f142abc9b56ccc0d7f9f7b3b99f1_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a6bb5f142abc9b56ccc0d7f9f7b3b99f1_cgraph" alt=""/></div>
-<!-- MAP 8 -->
-</div>
 
 </div>
 </div>
@@ -471,12 +408,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">The front GUI window </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00100">100</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a0fd564268af273f977bc8065e26e110b_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a0fd564268af273f977bc8065e26e110b_cgraph" alt=""/></div>
-<!-- MAP 9 -->
-</div>
 
 </div>
 </div>
@@ -497,12 +428,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">Get all the observed values which are set in Entry boxes </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00423">423</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a2115a025361cf5282c72baef51ec0004_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a2115a025361cf5282c72baef51ec0004_cgraph" alt=""/></div>
-<!-- MAP 10 -->
-</div>
 
 </div>
 </div>
@@ -523,12 +448,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">If reading in put frequencies is successfull, the modes will be plotted, as a reward! </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00377">377</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_abb9e1670526f7bf28a6f2317e14546c0_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_abb9e1670526f7bf28a6f2317e14546c0_icgraph" alt=""/></div>
-<!-- MAP 11 -->
-</div>
 
 </div>
 </div>
@@ -591,18 +510,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 <pre class="fragment">Update the label in the connection frame based on the connection test </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00332">332</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a4a594242291c4ab10089f279073ae8a7_cgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a4a594242291c4ab10089f279073ae8a7_cgraph" alt=""/></div>
-<!-- MAP 12 -->
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a4a594242291c4ab10089f279073ae8a7_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a4a594242291c4ab10089f279073ae8a7_icgraph" alt=""/></div>
-<!-- MAP 13 -->
-</div>
 
 </div>
 </div>
@@ -635,12 +542,6 @@ Here is the caller graph for this function:</div>
 <p>Status Bar. </p>
 <pre class="fragment">Concurrently update the status printed on the StatusBar. Very handly method here! </pre> 
 <p class="definition">Definition at line <a class="el" href="frontend__orig_8py_source.html#l00493">493</a> of file <a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classasamba_1_1frontend__orig_1_1_g_u_i_a630301b7e934776f232fcb4562974ae9_icgraph.png" border="0" usemap="#classasamba_1_1frontend__orig_1_1_g_u_i_a630301b7e934776f232fcb4562974ae9_icgraph" alt=""/></div>
-<!-- MAP 14 -->
-</div>
 
 </div>
 </div>
@@ -706,15 +607,11 @@ Here is the caller graph for this function:</div>
 <li><a class="el" href="frontend__orig_8py_source.html">frontend_orig.py</a></li>
 </ul>
 </div><!-- contents -->
-</div><!-- doc-content -->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><b>asamba</b></li><li class="navelem"><a class="el" href="namespaceasamba_1_1frontend__orig.html">frontend_orig</a></li><li class="navelem"><a class="el" href="classasamba_1_1frontend__orig_1_1_g_u_i.html">GUI</a></li>
-    <li class="footer">Generated by
-    <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
-  </ul>
-</div>
+<hr class="footer"/><address class="footer"><small>
+Generated by &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.13
+</small></address>
 </body>
 </html>
