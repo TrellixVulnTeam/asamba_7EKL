@@ -20,7 +20,7 @@ import time
 import itertools
 import numpy as np 
 
-from asamba import utils, read, db_def, db_lib, query, star
+from asamba import utils, read, write, db_def, db_lib, query, star
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -479,6 +479,32 @@ class sampling(star.star):
     @rtype: np.recarray or bool
     """
     _trim_modes(self, rec_gyre, dic_mode_types)
+
+  ##########################
+  def write_sample_to_h5(self, filename, include_periods=False):
+    """
+    This function saves the sampling features together with the frequenices per each row (optionally including
+    the mode periods). This routine calls write.write_sampling_to_h5() function.
+
+    @param self: an instance of the "sampler.sampling" class
+    @type self: object
+    @param filename: full path to the destination where the file will be stored
+    @type filename: str
+    @param include_periods: flag to include period list after the frequency list per each row (default False)
+    @type include_periods: boolean
+    @return: True if exits gracefully, or False if anything blows up
+    @rtype: boolean
+    """
+    return write.write_sampling_to_h5(self, filename, include_periods=include_periods) 
+
+  ##########################
+  def read_sample_from_hdf5(self, filename):
+    """
+    This function reads the training data from an HDF5 file, and returnes an ndarray matrix with 
+    """
+    return read.read_sampling_from_h5(self, filename)
+    
+  ##########################
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

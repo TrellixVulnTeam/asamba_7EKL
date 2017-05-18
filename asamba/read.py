@@ -331,4 +331,43 @@ def read_tracks_parameters_from_ascii(ascii_in):
   return list_tracks
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def sampling_from_h5(filename):
+  """
+  This function reads the learning set from an HDF5 file. It is called by sampler.read_sample_from_hdf5()
+  method, too. Example of use:
 
+  >>>from asamba import read
+  >>>h5_file = '/home/user/asamba_project/my_star_sampling.h5'
+  >>>(dataset, datatype) = read.sampling_from_h5(filename = h5_file)
+  >>>print(dataset.shape)
+
+  Notes:
+  - To write the sampling data in HDF5 format, one may call the function write.write_samplint_to_h5().
+  - The dataset has a fixed name, *learning_set*, which is used internally to access it.
+  - Depending on the choice made during the writing of this file, the number of returned columns 
+    is not fixed, depending on whether or not the periods were also stored to the file.
+
+  @param filename: full path to an already-available HDF5 file
+  @type filename: str
+  @return: a tuple with the following two elements:
+      - dataset: a numpy.ndarray with two dimensions (matrix) of shape m x (n+K), containing m rows 
+        of examples, and n+K columns, where n=6 is the number of features (e.g. M_ini, fov, ...), and 
+        K is the number of observed frequencies. If (K) periods were also saved along, then n+2K 
+        columns will be returned.
+      - datatype: a list of tuples specifying the numpy.dtype for all columns
+  @rtype: tuple  
+  """
+  if not os.path.exists(filename):
+    logger.error('sampling_from_h5: The input file {0} does not exist'.format(filename))
+    sys.exit(1)
+
+  _name  = 'learning_set'
+  with h5py.File(filename, 'r') as h5: dset = h5[_name].value
+  m, n   = dset.shape
+  dtype  = dset.dtype
+
+  logger.info('sampling_from_h5: Done. Data shape is: {0} x {1} = {2}'.format(m, n, dset.size))
+
+  return (dset, dtype)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

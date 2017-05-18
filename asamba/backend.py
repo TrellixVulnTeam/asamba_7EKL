@@ -265,6 +265,13 @@ def get_samp_results():
 def do_split_sample():
   """ a wrapper around the sampler method split_learning_sets() """
   BackEndSession.split_learning_sets()
+
+####################################################################################
+def save_sampling_h5(self, filename, include_periods):
+  """ a wrapper around sampler method write_sample_to_hdf5() """
+
+  BackEndSession.write_sample_to_h5(filename=filename, include_periods=include_periods)
+
 ####################################################################################
 def do_normal_eq():
   """ A wrapper around ann.solve_normal_equation() method """

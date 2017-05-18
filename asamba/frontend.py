@@ -32,7 +32,7 @@ import numpy as np
 from tkinter import *
 from tkinter import ttk
 import tkinter.filedialog 
-import tkinter.messagebox
+import tkinter.messagebox as tkMessageBox
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -248,6 +248,9 @@ class GUI(object):
 
     self.but_samp_slit  = ttk.Button(self.frame_sample, text='Training, CV, Test Sets', command=self.split_samp)
     self.but_samp_slit.grid(row=2, column=0, sticky=(W, E))
+
+    self.but_samp_save  = ttk.Button(self.frame_sample, text='Save as', command=self.save_sampling)
+    self.but_samp_save.grid(row=2, column=1, sticky=(W, E))
 
     ##########################################
     # The Maximum a Posteriori Frame
@@ -560,6 +563,27 @@ class GUI(object):
       self.update_status_bar('Splitted the learning set into training, cross-validation and test sets')
     except:
       self.update_status_bar('Failed to split the learning set!')
+
+  # ##########################################
+  def save_sampling(self):
+    """ Save the the sampling data into the disk """
+    if not self.build_learning_set_done.get():
+      self.update_status_bar('The learning set is not sampled yet! Try building the learning set first')
+      return False 
+
+    save_name = tkinter.filedialog.asksaveasfilename(title='Save Learning Set in HDF5 Format', 
+                        defaultextension='h5')
+    message   = 'Would you like to include the mode periods too at a cost of '
+    message   += 'increasing file size, thouth not recommended?'
+    answer    = tkMessageBox.askquestion(title='Choice of Output Columns', 
+                         message=message, icon=tkMessageBox.QUESTION, type=tkMessageBox.YESNO)
+    inc_per   = answer == 'yes'
+
+    try:
+      bk.save_sampling_h5(self, filename=save_name, include_periods=inc_per)
+      self.update_status_bar('The HDF5 file {0} saved'.format(save_name))
+    except:
+      self.update_status_bar('Failed to save the HDF5 file')
 
   # ##########################################
   def norm_eq(self):

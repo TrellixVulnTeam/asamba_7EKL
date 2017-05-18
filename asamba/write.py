@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import sys, os, glob
 import logging
 import numpy as np 
+import h5py
 
 from asamba import var_lib, read
 
@@ -13,6 +14,89 @@ import time
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
+  """
+  This routine writes the learing_x and learning_y sets compiled from the sampler module as an 
+  HDF5 file. This file is useful to export to other users, or save for a specific purpose. The format
+  of the output file is the following: each row corresponds to one learning/training example. 
+
+  - Then the first 6 columns correspond to initial mass ('M_ini'), exponential overshooting parameter ('fov'), 
+    metallicity ('Z'), logarithm of the extra diffusive mixing ('logD'), age (measured as the core hydrogen
+    mass fraction, 'Xc'), and rotation rate w.r.t. the critical break up rotation frequency ('eta').
+
+  - The next K columns correspond to the K frequencies that are selected based on the K modes that the 
+    star exhibits. These columns are labelled as 'f_1', 'f_2', ..., 'f_K'
+
+  - Optionally, the periods can also be included, which is not a very novel inclusion (but good for 
+    lazy people). If selected, another K columns will be included corresponding to periods of the modes
+    1 to K. These columns are labelled as 'per_1', 'per_2', ..., 'per_K'
+
+  Notes: 
+  - The dataset which sits at the root group is named *learning_set*, which can be used to retrieve/read the data.
+  - To read the file back, and recover the learning set, you can call the function read.read_from
+
+  @param self_sampling: an instance of the sampler.sampling() class
+  @type self_sampling: object
+  @param h5_out: The output path to store the HDF5 file
+  @type h5_out: str
+  @param include_periods: flag to include the mode periods per each row, or not.
+  @type include_periods: boolean
+  @return: True if all went well, or False otherwise
+  @rtype: boolean
+  """
+  ss = self_sampling
+  if not ss.get('learning_done'):
+    logger.warning('write_sampling_to_hdf5: The learning is not done yet! Skipping')
+    return False
+
+  # retrieve the necessary data
+  x     = ss.get('learning_x')
+  y     = ss.get('learning_y')
+  names = ss.get('feature_names')
+  flag  = ss.get('exclude_eta_column')
+  if flag: names.extend(['eta'])
+
+  # sizes of the data
+  mx, n = x.shape
+  if flag: n += 1
+  my, K = y.shape
+  try: 
+    assert mx == my
+  except:
+    logger.error('write_sampling_to_hdf5: The X and Y matrixes have different number of rows!')
+    return False
+
+  f_names = ['f_{0}'.format(k) for k in range(K)]
+  p_names = ['per_{0}'.format(k) for k in range(K)] if include_periods else []
+  _names  = names + f_names + p_names
+  dtype   = [(_name, 'f4') for _name in _names]
+
+  # create the empty (fat) matrix to store the data
+  if include_periods:
+    sz  = (mx, n+2*K)
+    data= np.empty(sz, dtype=dtype, order='F')
+  else:
+    sz  = (mx, n+K)
+    data= np.empty(sz, dtype=dtype, order='F')
+
+  # load the data matrix with the correct columns
+  if flag: # then, leave column n-1 zero
+    data[:, 0:n-1] = x[:,:]
+  else:
+    data[:, 0:n] = x[:,:]
+  data[:, n:n+K] = y[:,:]
+  if include_periods:
+    data[:, n+K:n+2*K] = 1.0/y[:,:]
+
+  # dump the data down now as a HDF5 file
+  with h5py.File(h5_out, 'w') as h5:
+    dset = h5.create_dataset('learning_set', data=data, dtype=dtype, shape=sz,
+                            compression='gzip', compression_opts=9)
+
+  return True
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_model_parameters_to_ascii(self_models, ascii_out):
   """
   Note: The old ascii_out file will be overwritten, if it already exists.

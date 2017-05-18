@@ -32,8 +32,10 @@ def marginal_2D(self, wrt_x, wrt_y, figure_name):
   xi  = np.linspace(x.min(), x.max(), nx)
   yi  = np.linspace(y.min(), y.max(), ny)
   zi  = mlab.griddata(x, y, z, xi, yi, interp='linear')
-  ax[1].contourf(xi, yi, zi, 15, cmap=plt.get_cmap('Greys'),
-               norm=plt.Normalize(vmin=0, vmax=abs(zi).max()))  
+  cf  = ax[1].contourf(xi, yi, zi, 15, cmap=plt.get_cmap('Greys'),
+                       norm=plt.Normalize(vmin=0, vmax=abs(zi).max())) 
+  cax = plt.axes([0.9, 0.7, 0.08, 0.25])
+  cb  = fig.colorbar(cf, ax=cax, shrink=0.9)
 
   plt.savefig(figure_name)
   print('marginal_2D: saved {0}'.format(figure_name))
