@@ -366,7 +366,8 @@ def sampling_from_h5(filename):
   m, n   = dset.shape
   dtype  = dset.dtype
 
-  logger.info('sampling_from_h5: Done. Data shape is: {0} x {1} = {2}'.format(m, n, dset.size))
+  logger.info('sampling_from_h5: Done. Dataset has {0} rows, {1} columns, and {2} elements'.format(
+              m, n, dset.size))
 
   return (dset, dtype)
 

@@ -43,7 +43,7 @@ def main():
   TheSample.set('dbname', 'grid')
   # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
   TheSample.set('use_constrained_sampling', True)
-  TheSample.set('max_sample_size', 1000)
+  TheSample.set('max_sample_size', 500000)
   TheSample.set('range_log_Teff', [3.95, 4.11])
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])
@@ -62,9 +62,6 @@ def main():
   # Now, build the learning sets
   TheSample.build_learning_set()
 
-  TheSample.write_sample_to_hdf5(filename='/Users/ehsan/Desktop/delete.h5', include_periods=True)
-  sys.exit(1)
-
   # Get the sample
   learning_x  = TheSample.get('learning_x')
   print('   Size of the retrieved sample is: "{0}"'.format(TheSample.sample_size))
@@ -74,6 +71,9 @@ def main():
   learning_y = TheSample.get('learning_y')
   print('   Shape of the synthetic frequencies is: ', learning_y.shape) 
   print('   ')
+
+  TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set.h5', include_periods=True)
+  sys.exit(1)
 
   # Plot the histogram of the learning Y sample
   if False:
