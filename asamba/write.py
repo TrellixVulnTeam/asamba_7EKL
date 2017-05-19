@@ -47,7 +47,7 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   """
   ss = self_sampling
   if not ss.get('learning_done'):
-    logger.warning('write_sampling_to_hdf5: The learning is not done yet! Skipping')
+    logger.warning('write_sampling_to_h5: The learning is not done yet! Skipping')
     return False
 
   # retrieve the necessary data
@@ -64,35 +64,30 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   try: 
     assert mx == my
   except:
-    logger.error('write_sampling_to_hdf5: The X and Y matrixes have different number of rows!')
+    logger.error('write_sampling_to_h5: The X and Y matrixes have different number of rows!')
     return False
 
   f_names = ['f_{0}'.format(k) for k in range(K)]
   p_names = ['per_{0}'.format(k) for k in range(K)] if include_periods else []
   _names  = names + f_names + p_names
-  dtype   = [(_name, 'f4') for _name in _names]
-
-  # create the empty (fat) matrix to store the data
-  if include_periods:
-    sz  = (mx, n+2*K)
-    data= np.empty(sz, dtype=dtype, order='F')
-  else:
-    sz  = (mx, n+K)
-    data= np.empty(sz, dtype=dtype, order='F')
+  types   = np.dtype( [(_name, 'f4') for _name in _names] )
 
   # load the data matrix with the correct columns
-  if flag: # then, leave column n-1 zero
-    data[:, 0:n-1] = x[:,:]
-  else:
-    data[:, 0:n] = x[:,:]
-  data[:, n:n+K] = y[:,:]
+  arrs     = [x]
+  if flag:  # eta column is not in x, so we put a column of zeros instead
+    arrs.append(np.zeros((mx, 1)))
+  arrs.append(y)
   if include_periods:
-    data[:, n+K:n+2*K] = 1.0/y[:,:]
+    arrs.append(1.0/y)
+  data = np.concatenate(arrs, axis=1)
 
   # dump the data down now as a HDF5 file
   with h5py.File(h5_out, 'w') as h5:
-    dset = h5.create_dataset('learning_set', data=data, dtype=dtype, shape=sz,
-                            compression='gzip', compression_opts=9)
+    name = 'learning_set'
+    dset = h5.create_dataset(name, data=data.astype(types), shape=data.shape, 
+                             compression='gzip', compression_opts=9)
+
+  logger.info('write_sampling_to_h5: saved {0}'.format(h5_out))
 
   return True
 

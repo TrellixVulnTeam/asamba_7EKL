@@ -10,28 +10,17 @@ from __future__ import unicode_literals
 from setuptools import setup
 import glob
 
-description = '"A"stero"S"eismic "A"pproach in "M"odelling "B"lue st"A"rs (ASAMBA) is a Marie Curie project \
-              that tries to infer deep physical understanding of the internal structure and evolution of massive \
-              stars in the light of recent very high precision space observations of pulsating massive stars.\n \
-              Under this umbrella, a large grid of stellar models (using MESA) are computed, and the theoretical \
-              pulsation frequencies of each model (after iterating over various rotation rates) are also computed\
-              using the (GYRE) code. From this rich dataset (~3.8 million stellar models, and 42 million frequency\
-              lists), a PostgreSQL database is built, and is made openly accessible.\n \
-              The present Python package provides a convenient user interface that offers all available functionalities \
-              to the users, and allows them to interact with the database, and conduct their own research of interest. \
-              Needless to say that the user must have a full understanding of the meaning of the parameters he/she uses \
-              which steer the analysis. We strongly recommend reading the source code, the documentation around most of \
-              the code blocks, and the compiled documentation pages that ships in with this package.'
+import asamba
 
-setup(name='asamba',
-      version='1.0.7',
-      author='Ehsan Moravveji',
-      description=description,
+setup(name=asamba.__title__,
+      version=asamba.__version__,
+      author=asamba.__author__,
+      description=asamba.__summary__,
+      long_description=asamba.__scope__,
       keywords='Asteroseismology, Pulsating Massive Stars, Modelling',
-      author_email='Ehsan.Moravveji@kuleuven.be',
-      # url='git@github.com:moravveji/asamba.git',
-      url='https://fys.kuleuven.be/ster/Projects/ASAMBA',
-      license='GPL',
+      author_email=asamba.__email__,
+      url=asamba.__url__,
+      license=asamba.__license__,
       packages=['asamba', 'test_suite'],
       py_modules=['star', 'utils', 'read', 'write', 
                   'var_def', 'var_lib', 'db_def', 'db_lib', 

@@ -9,6 +9,7 @@ asamba/frontend_orig.py
 asamba/insert_def.py
 asamba/insert_lib.py
 asamba/interpolator.py
+asamba/plot_ann.py
 asamba/plot_interpolator.py
 asamba/plot_sampler.py
 asamba/query.py
