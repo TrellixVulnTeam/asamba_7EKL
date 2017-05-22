@@ -1,3 +1,18 @@
+
+"""
+This module encapsulates a collection of useful interactions with different tables within the 
+database, and provides a collection of routines which useful look-up dictionaries or tagging
+dictionaries. Functions are grouped based on which table they query from.
+
+In many places across this module, the use of numpy arrays are prohibited (though they provide 
+a significant speed up compared to the brute-force Pythonic manipulation with lists and tuples).
+There reason for that is a mismatch between the single-precision floating point as returned from
+PostgreSQL (through psycopg2), compared to the numpy's pre-built floating precision. E.g. the value
+a=0.1234 returned from psycopg2 is represented at a=0.12340000001, which absulutely screws up the
+whole taging concept. For that reason, we stick to the slow Pythonic list/tuple comprehension, 
+sorting, indexing, etc. But the gain is, the tags come out right!
+"""
+
 from __future__ import unicode_literals
 
 from builtins import zip
@@ -7,11 +22,95 @@ import logging
 import numpy as np 
 import psycopg2
 
-from asamba import db_def, query
+from asamba import db_def, query, utils
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#  R O U T I N E S  T H A T   C O M B I N E   S E V E R A L   T A B L E S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_tag_Xc(dbname):
+  """
+  The models in the database start from ZAMS (Xc~0.7), and are evolved up to TAMS (Xc~0.002). However,
+  the timesteps in MESA are dynamically determined, and are non-uniform. Therefore, no two tracks 
+  ncesserily have identical Xc values for their models. As a result of that, it is difficult for some 
+  other applications (e.g. interpolation between models, or marginalization of probabilities, etc) to 
+  find/provide a logical connection between various models along various tracks. For that, we employ
+  the *tagging* concept. See also get_dic_tag_track_attributes() for another case.
+
+  The tagging is carried out simply as the following:
+  - First, the unique tracks are found, and for each track, all Xc values are retrieved from the 
+    "models" table.
+  - All Xc values are sorted in decreasing order, so that the ZAMS model is the first in the row, and
+    the TAMS model is the last, the same way as MESA stores the models
+  - For an internal loop over all Xc values per one track, a tuple is created with the following order
+    in order to use it as a key of the returned dictinary: (M_ini, fov, Z, logD, Xc)
+  - Finally, for each model (equivalent to a key) a tag between 0 and N-1 is assigned to, where N is 
+    the number of models stored per that specific track. Note that N is not necessarily fixed from one 
+    track to another (because MESA timesteps depend on a collection of variables, among which the 
+    convergence criteria and the timestep criteria).
+
+  Notes:
+  - This operation depends on fetching all Xcs in the models table (over 3.8 million entries), and takes
+    roughly 30 sec. So, please be patient.
+  - There might be two different tracks with an identical Xc value, e.g. 0.1234. The current tagging 
+    scheme may give these two models an identical or different tag. But, we do not care if a single Xc
+    value maybe or not tagged differently. The important point to bear in mind is that each Xc has a 
+    unique tag along its own specific track
+
+  To access the Xc tag for a model in the grid, one can do the following:
+  >>>from asamba import db_lib
+  >>>dic_tag_Xc  = db_lib.get_dic_tag_Xc('grid')
+  >>>tup_model   = (12.099, 0.035, 0.014, 1.29, 0.2314)
+  >>>this_Xc_tag = dic_tag_Xc[tup_model]
+
+  @param dbname: The name of the database to connect to, and fetch data from
+  @type dbname: str
+  @return: the tagging dictionary, where the tuple of the attributes of each model (as a dictionary 
+      key) is mapped to a unique Xc integer-valued tag (see example above).
+  @rtype: dict
+  """
+  # Get the contents of the tracks table as a record array
+  tracks_vals = get_tracks(dbname=dbname)
+  tracks_ids  = [tup[0] for tup in tracks_vals]
+  arr_ids     = np.array(tracks_ids)  # only for fast indexing
+
+  # Get all Xc values and their corresponding track_id from the models table
+  dic_Xc      = get_dic_look_up_Xc(dbname_or_dbobj=dbname)
+  Xc_keys     = list(dic_Xc.keys())
+  Xc_ids      = np.array([tup[0] for tup in Xc_keys])
+  Xc_vals     = [tup[1] for tup in Xc_keys]
+  dtype       = [('id_track', np.int32), ('Xc', np.float32)]
+  Xc_arr      = utils.list_to_recarray(Xc_keys, dtype)
+
+  dic_tag     = dict()
+  for k, track_id in enumerate(tracks_ids):
+    tup_attrs = tracks_vals[k][1:]
+    # Get all Xcs corresponding to this specific track, using track_id
+    ind       = np.where(Xc_ids == track_id)[0]
+    if len(ind) == 0:
+      logger.error('get_dic_tag_Xc: Found no Xc for this track: ', tup_attrs)
+      sys.exit(1)
+
+    track_Xcs = [ Xc_vals[j] for j in ind ]
+    track_Xcs.sort()
+    track_Xcs = track_Xcs[::-1] # from ZAMS to TAMS
+    for tag_Xc, this_Xc in enumerate(track_Xcs):
+      tup_key = tup_attrs + (this_Xc, )
+      dic_tag[tup_key] = tag_Xc     # {(M_ini, fov, Z, logD, Xc): tag}
+
+  logger.info('get_dic_tag_Xc: Returning all tagging dictionaries')
+
+  return dic_tag
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E _ T Y P E S   T A B L E
@@ -305,6 +404,62 @@ def get_dic_look_up_models_id(dbname_or_dbobj):
   return dic
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dic_look_up_Xc(dbname_or_dbobj):
+  """
+  Retrieve the id, id_track and Xc (core hydrogen mass fraction) from the entire "models" table, and 
+  construct a look up dictionary with the keys as the (id_track, Xc) tuple, and the values as the id. 
+
+  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+        is that Python does not really support function overloading. Instead, it is careless about the
+        type of the input argument, which we benefit from here. The reason behind this choice of 
+        development is to avoid creating/closing a connection/cursor to the database everytime one 
+        freaking model ID needs be fetched. This avoids connection overheads when thousands to 
+        millions of track IDs need be retrieved.
+        The two possible inputs are:
+        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(dbname) object. 
+        - dbobj:  An instance of the db_def.grid_db class. 
+  @type dbname_or_dbobj: string or db_def.grid_db object
+  @return: look up dictinary with keys as a tuple with the two elements "(id_track, Xc)" and the value
+        as the "models.id"
+  @rtype: dict
+  """
+  cmnd = 'select id, id_track, Xc from models'
+
+  if isinstance(dbname_or_dbobj, str):
+    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+      the_db.execute_one(cmnd, None)
+      result = the_db.fetch_all()
+  #
+  elif isinstance(dbname_or_dbobj, db_def.grid_db):
+    dbname_or_dbobj.execute_one(cmnd, None)
+    result   = dbname_or_dbobj.fetch_all()
+  #
+  else:
+    logger.error('get_dic_look_up_Xc: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    sys.exit(1)
+
+  if not isinstance(result, list):
+    logger.error('get_dic_look_up_Xc: failed')
+    sys.exit(1)
+
+  n   = len(result)
+  if n == 0:
+    logger.error('get_dic_look_up_Xc: the result list is empty')
+    sys.exit(1)
+
+  # list_id  = np.array([ result[k][0] for k in range(n) ])
+  list_id  = [tup[0] for tup in result]
+  # list_tup = [ (result[k][1], result[k][2]) for k in range(n) ]
+  list_tup = [ tup[1:] for tup in result ]
+  dic = dict()
+  for key, val in zip(list_tup, list_id): dic[key] = val
+
+  logger.info('get_dic_look_up_Xc: Successfully returning "{0}" records'.format(n))
+
+  return dic
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model_number):
   """
   @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
@@ -377,26 +532,83 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
   return id
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_models_log_Teff_log_g_by_id(dbname, list_ids):
-  """
-  TBD ...
-  """
-  result = []
-  n_ids  = len(list_ids)
-  if n_ids == 0:
-    logger.error('get_models_log_Teff_log_g_by_id: The input "list_ids" is empty')
-    sys.exit(1)
-  
-  with db_def.grid_db(dbname=dbname) as the_db:
-    q_id  = query
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   T R A C K S   T A B L E 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_dics_tag_track_attributes(dbname):
+  """
+  This routine returns four tagging dictionaries, each for one of the key attributes from the "tracks"
+  table in the grid. Each of these dictionaries map a value into a unique integer tag. This allows to 
+  track attributes using their tags, rather than their absolute values. Furthermore, the required tags
+  are small integers, and are pretty lightweighted. Using these tags also facilitate carrying out 
+  derivatives between model properties, and also interpolate in between them. This comes very handy 
+  when carrying out integrations over posterior probabilities in order to marginalize w.r.t. to few
+  parameters, where instead of values, we now use their tags for integration. For instance
+
+  >>>from asamba import db_lib
+  >>>dics_for_tags = db_lib.get_dics_tag_track_attributes('grid')
+  >>>dic_tag_fov   = dics_for_tags[1]
+  >>>key           = (0.025, )
+  >>>tag_fov_025   = dic_tag_fov[key]
+
+  @param dbname: the name of the database to connect to, and fetch information from
+  @type dbname: str
+  @return: four dictionaries, each providing a tagging facility to tag:
+      - M_ini
+      - fov
+      - Z
+      - logD
+      The key in each dictionary is a tuple of one of the values of that quantity, and the returned 
+      value is a uniqu integer-valued tag
+  @type: tuple of dics
+  """
+  # Get the contents of the tracks table as a record array
+  tracks_vals = get_tracks_as_recarray(dbname)
+
+  # Find unique values for each column of the tracks table
+  uniq_track_id  = tracks_vals.id
+  uniq_M_ini  = np.unique(tracks_vals.M_ini)
+  uniq_fov    = np.unique(tracks_vals.fov)
+  uniq_Z      = np.unique(tracks_vals.Z)
+  uniq_logD   = np.unique(tracks_vals.logD)
+
+  # Assign a tag to each unique feature (M_ini, fov, Z, logD) and construct a dictionary, where the
+  # key is the unique identify from the feature column, and the value of the dictionary is an integer 
+  # tag. Note that for logD, this is tricky, whose value is mass dependent, and whose tag is always 
+  # between 0 and 4, and requires a correct mapping with initial mass 
+  #.........................
+  def gen_dic(arr):
+    """
+    Returns a dictionary with the key as the tuple of each element "(key,)" and value an index 
+    which starts from 0 and ends with N-1, for an input array of length N.
+    """
+    dic = dict()
+    for k, key in enumerate(np.sort(arr)): dic[ (key, ) ] = k
+    return dic
+  #.........................
+
+  dic_tag_M_ini = gen_dic(uniq_M_ini)
+  dic_tag_fov   = gen_dic(uniq_fov)
+  dic_tag_Z     = gen_dic(uniq_Z)
+  # only instantiate the dic_tag_logD; the values are wrong now, but will be fixed right below
+  dic_tag_logD  = gen_dic(uniq_logD) 
+
+  # Now, fix logD tags (i.e. dictionary values) by walking over the uniq masses, and tracks_vals
+  for k, this_M in enumerate(uniq_M_ini):
+    ind          = np.where(tracks_vals.M_ini == this_M)[0]
+    this_logD    = np.sort(np.unique(tracks_vals.logD[ind]))
+    if not len(this_logD) != 5:
+      logger.error('get_dic_tag_track_attributes: the length of the unique logD array != 5, bus is: {0}'.format(len(this_logD)))
+      sys.exit(1)
+    for tag, logD_key in enumerate(this_logD): dic_tag_logD[ (logD_key, ) ] = tag # Voila
+
+  logger.info('get_dic_tag_track_attributes: Returning tagging dics for (M_ini, fov, Z, logD)')
+
+  return (dic_tag_M_ini, dic_tag_fov, dic_tag_Z, dic_tag_logD)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_dic_look_up_track_id(dbname_or_dbobj):
@@ -444,7 +656,8 @@ def get_dic_look_up_track_id(dbname_or_dbobj):
     sys.exit(1)
 
   list_id  = np.array([ result[k][0] for k in range(n) ])
-  list_tup = [ (result[k][1], result[k][2], result[k][3], result[k][4]) for k in range(n) ]
+  # list_tup = [ (result[k][1], result[k][2], result[k][3], result[k][4]) for k in range(n) ]
+  list_tup = [ result[k][1:] for k in range(n) ]
   dic = dict()
   for key, val in zip(list_tup, list_id): dic[key] = val
 
@@ -530,6 +743,52 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
     return False
   else:
     return result[0]
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_tracks(dbname):
+  """
+  This function retrieves the entire content of the "tracks" table. Each record in that table is an
+  item (tuple) in the returned list.
+
+  @param dbname: name of the database to connect to, and fetch the data from.
+  @type dbname: str
+  @return: list of tuples where each tuple has this form: (id, M_ini, fov, Z, logD)
+  @rtype: list of tuples
+  """
+  # Construct a recarray of the tracks table with: (id, M_ini, fov, Z, logD) as column names
+  tracks_dic  = get_dic_look_up_track_id(dbname_or_dbobj=dbname)
+  tracks_keys = list(tracks_dic.keys())
+  tracks_id   = list(tracks_dic.values())
+  tracks_rows = len(tracks_id)
+  tracks_vals = [(tracks_id[k], ) + tracks_keys[k] for k in range(tracks_rows)]
+
+  return tracks_vals
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_tracks_as_recarray(dbname):
+  """
+  This function retrieves the entire content of the "tracks" table, and returns it back as a numpy
+  record array, with the record names being the tracks attributes, i.e. id, M_ini, fov, Z, and logD.
+  For example, to find the unique initial masses used in the entire grid, you may do the following:
+
+  >>>from asamba import db_lib
+  >>>recarr = db_lib.get_tracks_as_recarray('grid')
+  >>>all_masses = recarr.M_ini
+  >>>uniq_masses = np.unique(all_masses)
+
+  @param dbname: name of the database to connect to, and fetch the data from.
+  @type dbname: str
+  @return: named record array with five columns: id, M_ini, fov, Z, logD. Each row in the returned 
+        array stands for one track in the grid
+  @rtype: np.recarray
+  """
+  tracks_vals = get_tracks(dbname=dbname)
+  tracks_cols = 1 + 4
+  f32         = np.float32
+  dtype       = [('id', np.int16), ('M_ini', f32), ('fov', f32), ('Z', f32), ('logD', f32)]
+  tracks_vals = utils.list_to_recarray(tracks_vals, dtype)
+
+  return tracks_vals
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

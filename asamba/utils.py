@@ -70,7 +70,6 @@ def list_to_recarray(list_input, dtype):
 
   try:
     a = np.core.records.fromarrays(np.array(list_input).T, dtype=dtype)
-    # a = np.core.records.fromarrays(list_to_ndarray(list_input), dtype=dtype)
   except Exception as xpt:
     print('error occured:', xpt)
   else:

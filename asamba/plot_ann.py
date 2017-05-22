@@ -24,18 +24,19 @@ def marginal_2D(self, wrt_x, wrt_y, figure_name):
   arr = utils.list_to_ndarray(res)
   x, y, z = arr[:,0], arr[:,1], arr[:,2]
 
-  fig, ax = plt.subplots(1, 2, figsize=(4,4), dpi=100, tight_layout=True)
-  ax[0].tricontourf(x, y, z, N=101, cmap=plt.get_cmap('Greys'), norm=None,)
-  ax[0].scatter(x, y, marker='o', facecolor='k', edgecolor='k', s=2)
+  fig, ax = plt.subplots(1, figsize=(4,4), dpi=100, tight_layout=True)
+  # ax[0].tricontourf(x, y, z, N=101, cmap=plt.get_cmap('Greys'), norm=None,)
+  # ax[0].scatter(x, y, marker='o', facecolor='k', edgecolor='k', s=2)
 
   nx  = ny = 101
   xi  = np.linspace(x.min(), x.max(), nx)
   yi  = np.linspace(y.min(), y.max(), ny)
   zi  = mlab.griddata(x, y, z, xi, yi, interp='linear')
-  cf  = ax[1].contourf(xi, yi, zi, 15, cmap=plt.get_cmap('Greys'),
+  cf  = ax.contourf(xi, yi, zi, 15, zorder=1, cmap=plt.get_cmap('Greys'),
                        norm=plt.Normalize(vmin=0, vmax=abs(zi).max())) 
-  cax = plt.axes([0.9, 0.7, 0.08, 0.25])
-  cb  = fig.colorbar(cf, ax=cax, shrink=0.9)
+  ax.scatter(x, y, marker='o', facecolor='k', edgecolor='k', s=2, zorder=2)
+  # cax = plt.axes([0.8, 0.7, 0.15, 0.25])
+  cb  = fig.colorbar(cf, ax=ax, shrink=0.9)
 
   plt.savefig(figure_name)
   print('marginal_2D: saved {0}'.format(figure_name))
