@@ -6,7 +6,7 @@ import logging
 import numpy as np 
 import h5py
 
-from asamba import var_lib, read
+from asamba import var_lib, read, utils
 
 import time
 
@@ -288,4 +288,73 @@ def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
 
   return True
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def Xc_tags_to_ascii(dic_tags, ascii_out='data/tags/Xc-tags.txt'):
+  """
+  The db_lib.get_dic_tag_Xc() function returns a dictionary that helps tagging Xc (or equivalently)
+  the MESA models, based on their attributes (M_ini, fov, Z, logD, Xc). The retrieval of the 
+  information needed to construct the dictionary takes at least 3 minutes (and longer if connecting
+  the network, if the data has to be transferred from a cloud/HTTP host). It is then easier
+  to write this data to the disk as an ascii file, and read it each time.
+
+  Note: 
+  - The Xc_tags_to_h5() method has an indentical operation, but stores the data as an HDF5 file, 
+    gaining up to ~10 times better compression (smaller sized file). Consider that, instead.
+  - To read the data, you can call the function read.Xc_tags_from_ascii().
+
+  @param dic_tags: a dictionary that contains the model attributes as keys and Xc tags as values, 
+       returned by calling db_lib.get_dic_tag_Xc().
+  @type dic_tags: dict
+  @param ascii_out: full path to store the tags as an ascii file
+  @type ascii_out: str
+  @return: True if all succeeds, and False otherwise
+  @rtype: boolean
+  """
+  keys  = sorted(list(dic_tags.keys()))
+  tags  = [dic_tags[key] for key in keys]
+  rows  = sorted([key + (tag, ) for key, tag in list(zip(keys, tags))])
+  lines = ['M_ini,fov,Z,logD,Xc,tag\n']
+  lines += [','.join([ str(_) for _ in row ])+'\n' for row in rows]
+  try:
+    with open(ascii_out, 'w') as w: w.writelines(lines)
+    logger.info('Xc_tags_to_ascii: saved the file {0}'.format(ascii_out))
+    return True
+  except:
+    logger.warning('Xc_tags_to_ascii: Failed. Check ascii_out path first!')
+    return False
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def Xc_tags_to_h5(dic_tags, h5_out='data/tags/Xc-tags.h5'):
+  """
+  This function is identical to Xc_tags_to_ascii(), but dumps the output as an HDF5 file. Refer to
+  Xc_tags_to_ascii() for more details.
+  The compression gain here compared to saving an ASCII file is roughly ~10 times! So, we highly 
+  recommend using this, instead of Xc_tags_to_ascii(). To read the data, you can call the function 
+  read.Xc_tags_from_h5().
+
+  In fact, the h5py Python modules has a too friendly relashionship with numpy, and the data are 
+  converted silently to numpy array, even if not explicitly asked through the create_dataset() arguments.
+  For this reason, the attribute formats become screwed again, and I strongly discourage using this 
+  routine. One will be better off with Xc_tags_to_ascii() -- at the cost of speed and file volume.
+  """
+  keys  = sorted(list(dic_tags.keys()))
+  tags  = [dic_tags[key] for key in keys]
+  rows  = [key + (tag, ) for key, tag in list(zip(keys, tags))]
+  n, m  = len(rows), 6
+  # lines = ['M_ini,fov,Z,logD,Xc,tag\n']
+  # lines += [','.join([ str(_) for _ in row ])+'\n' for row in rows]
+  # f32   = np.float32
+  # dtype = [('M_ini', f32), ('fov', f32), ('Z', f32), ('logD', f32), ('Xc', f32), ('tag', np.int16)]
+  # try:
+  #   with h5py.File(h5_out, 'w') as h5:
+  #     dset = h5.create_dataset('Xc_tags', data=arr, shape=(n, m), dtype=dtype,
+  #                              compression='gzip', compression_opts=9)
+  #   logger.info('Xc_tags_to_h5: saved the file {0}'.format(ascii_out))
+  #   return True
+  # except:
+  #   logger.warning('Xc_tags_to_h5: Failed. Check ascii_out path first!')
+  #   return False
+  with h5py.File(h5_out, 'w') as h5:
+    dset = h5.create_dataset('Xc_tags', data=rows, shape=(n, m), 
+                             compression='gzip', compression_opts=9)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

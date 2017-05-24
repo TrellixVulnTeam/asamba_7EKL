@@ -471,3 +471,109 @@ def sampling_from_h5(filename):
   return (dset, dtype)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
+  """
+  This routine reads in the Xc tags from an ASCII file, as provided through the filename, and returns
+  a tuple with a list of model attributes (M_ini, fov, Z, logD, Xc), and the corresponding Xc tag.
+  Note that the user of numpy.ndarrays are prohibited here, because it messes up the limited floating
+  point precision of the attributes, as designed in the grid. To remedy this, we round each attribute
+  to a fixed number of decimal points, using the built-in round() method for floats. The tags are, 
+  indeed, integers. Another possibility was to use the "decimal" class, but we avoid complicating the 
+  datatypes used under the hood further (what we already deal with between Python, pscyopg2 and numpy 
+  is already enough).
+
+  Note:
+   - Using ASCII seems so far the most robust way to retrieve the taggings, but come with a cost of 
+     filesize and being slow.
+   - The input file is roughly 125 MB.
+   - Because every value per each line has to be rounded to a definite decimal point, this reading
+     operation is pretty slow (~ a minute). So, be patient with it.
+
+  @param filename: full path to where the ASCII file is stored.
+  @type filename: str
+  @return: a dictionary with the following key/value design -- identical to the output of the function 
+        db_lib.get_dic_tag_Xc():
+        - Keys: are attribute tuples, in the format (M_ini, fov, Z, logD, Xc). The number of decimals
+          for M_ini is 3, for fov is 3, for Z is 3, for logD is 2 and for Xc is 4.
+        - Values: list of Xc tags, where all values are basically integers.
+  @rtype: tuple
+  """
+  if not os.path.exists(filename):
+    logger.error('Xc_tags_from_ascii: The ASCII file "{0}" does not exist'.format(filename))
+    sys.exit(1)
+
+  with open(filename, 'r') as r: lines = r.readlines()
+  header = lines.pop(0).rstrip('\r\n').split(',')
+  if len(header) != 6:
+    logger.error('Xc_tags_from_ascii: Wrong number of header columns!')
+    sys.exit(1)
+  first  = lines[0].rstrip('\r\n').split(',')
+  if len(first) != 6:
+    logger.error('Xc_tags_from_ascii: Wrong number of data columns!')
+    sys.exit(1)
+
+  dic    = dict()
+  dec_M  = 3
+  dec_fov= 3
+  dec_Z  = 3
+  dec_logD = 2
+  dec_Xc = 4
+  for k, line in enumerate(lines):
+    row  = line.rstrip('\r\n').split(',')
+    M_ini= round(float(row[0]), dec_M)
+    fov  = round(float(row[1]), dec_fov)
+    Z    = round(float(row[2]), dec_Z)
+    logD = round(float(row[3]), dec_logD)
+    Xc   = round(float(row[4]), dec_Xc)
+    tag  = int(row[5])
+    attr = (M_ini, fov, Z, logD, Xc)
+
+    dic[attr] = tag
+
+  return dic 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def Xc_tags_from_h5(filename):
+  """
+  This routine reads in the Xc tags from an HDF5 file, and has a similar functionality as the function
+  Xc_tags_from_ascii(). Please refer to the documentation there for further details.
+  """
+  if not os.path.exists(filename):
+    logger.error('Xc_tags_from_h5: The HDF5 file "{0}" does not exist'.format(filename))
+    sys.exit(1)
+
+  with h5py.File(filename, 'r') as h5: dset = h5['Xc_tags'].value
+  m, n   = dset.shape
+  dtype  = dset.dtype
+
+  logger.info('Xc_tags_from_h5: Done. Dataset has {0} rows, {1} columns, and {2} elements'.format(
+              m, n, dset.size))
+
+  attrs  = []
+  tags   = []
+  dic    = dict()
+  dec_M  = 3
+  dec_fov= 3
+  dec_Z  = 3
+  dec_logD = 2
+  dec_Xc = 4
+
+  M_ini  = np.round(dset[:,0], dec_M)  
+  fov    = np.round(dset[:,1], dec_fov)
+  Z      = np.round(dset[:,2], dec_Z)
+  logD   = np.round(dset[:,3], dec_logD)
+  Xc     = np.round(dset[:,4], dec_Xc)
+  tags   = np.int16(dset[:,5])
+
+  n, m   = dset.shape
+  attrs  = [(M_ini[k], fov[k], Z[k], logD[k], Xc[k]) for k in range(n)]
+  tags   = [tags[k] for k in range(n)]
+
+  for key, val in zip(attrs, tags): dic[key] = val
+
+  return dic
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
