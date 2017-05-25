@@ -43,7 +43,7 @@ def main():
   TheSample.set('dbname', 'grid')
   # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
   TheSample.set('use_constrained_sampling', True)
-  TheSample.set('max_sample_size', 10000)
+  TheSample.set('max_sample_size', 5000)
   TheSample.set('range_log_Teff', [3.95, 4.11])
   TheSample.set('range_log_g', [3.9, 4.3])
   TheSample.set('range_eta', [0, 0])
@@ -90,6 +90,13 @@ def main():
   print('   The Cross-Validation set: X:{0}, Y:{1}'.format(TheSample.cross_valid_x.shape, TheSample.cross_valid_y.shape))
   print('   The Test set: X:{0}, Y:{1}'.format(TheSample.test_x.shape, TheSample.test_y.shape))
   print() 
+
+  # Get the tagged representation of the learning/training/CV/test sets
+  TheSample.set('path_Xc_tags_ascii', '../asamba/data/tags/Xc-tags.txt')
+  TheSample.convert_features_to_tags()
+  learning_tags = TheSample.get('learning_tags')
+  print(learning_x[0])
+  print(learning_tags[0])
 
   return TheSample
 

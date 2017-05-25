@@ -314,7 +314,7 @@ def Xc_tags_to_ascii(dic_tags, ascii_out='data/tags/Xc-tags.txt'):
   tags  = [dic_tags[key] for key in keys]
   rows  = sorted([key + (tag, ) for key, tag in list(zip(keys, tags))])
   lines = ['M_ini,fov,Z,logD,Xc,tag\n']
-  lines += [','.join([ str(_) for _ in row ])+'\n' for row in rows]
+  lines += ['{0:06.3f},{1:05.3f},{2:05.3f},{3:05.2f},{4:06.4f},{5:d}\n'.format(*row) for row in rows]
   try:
     with open(ascii_out, 'w') as w: w.writelines(lines)
     logger.info('Xc_tags_to_ascii: saved the file {0}'.format(ascii_out))
@@ -341,20 +341,13 @@ def Xc_tags_to_h5(dic_tags, h5_out='data/tags/Xc-tags.h5'):
   tags  = [dic_tags[key] for key in keys]
   rows  = [key + (tag, ) for key, tag in list(zip(keys, tags))]
   n, m  = len(rows), 6
-  # lines = ['M_ini,fov,Z,logD,Xc,tag\n']
-  # lines += [','.join([ str(_) for _ in row ])+'\n' for row in rows]
-  # f32   = np.float32
-  # dtype = [('M_ini', f32), ('fov', f32), ('Z', f32), ('logD', f32), ('Xc', f32), ('tag', np.int16)]
-  # try:
-  #   with h5py.File(h5_out, 'w') as h5:
-  #     dset = h5.create_dataset('Xc_tags', data=arr, shape=(n, m), dtype=dtype,
-  #                              compression='gzip', compression_opts=9)
-  #   logger.info('Xc_tags_to_h5: saved the file {0}'.format(ascii_out))
-  #   return True
-  # except:
-  #   logger.warning('Xc_tags_to_h5: Failed. Check ascii_out path first!')
-  #   return False
-  with h5py.File(h5_out, 'w') as h5:
-    dset = h5.create_dataset('Xc_tags', data=rows, shape=(n, m), 
-                             compression='gzip', compression_opts=9)
+  try:
+    with h5py.File(h5_out, 'w') as h5:
+      dset = h5.create_dataset('Xc_tags', data=rows, shape=(n, m), 
+                               compression='gzip', compression_opts=9)
+    logger.info('Xc_tags_to_h5: saved the file {0}'.format(ascii_out))
+    return True
+  except:
+    logger.warning('Xc_tags_to_h5: Failed. Check ascii_out path first!')
+    return False
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -106,6 +106,8 @@ class sampling(star.star):
     self.learning_x = None
     # Corresponding 2D frequency matrix for all features (type numpy.ndarray)
     self.learning_y = None
+    # Tagged representation of the learning set
+    self.learning_tags = None 
     # The sample size 
     self.sample_size = 0
     # log_Teff for the learning set
@@ -152,28 +154,43 @@ class sampling(star.star):
     # Training, cross-validation and test samples
     self.training_percentage = -1
     self.training_size = -1
+    self.training_ind = -1
     self.training_x = -1
     self.training_y = -1
+    self.training_tags = -1
     self.training_log_Teff = []
     self.training_log_g = []
     self.training_set_done = False
 
     self.cross_valid_percentage = -1
     self.cross_valid_size = -1
+    self.cross_valid_ind = -1
     self.cross_valid_x = -1
     self.cross_valid_y = -1
+    self.cross_valid_tags = -1
     self.cross_valid_log_Teff = []
     self.cross_valid_log_g = []
     self.cross_valid_set_done = False
 
     self.test_percentage = -1
     self.test_size = -1
+    self.test_ind = -1
     self.test_x = -1
     self.test_y = -1
+    self.test_tags = -1
     self.test_log_Teff = []
     self.test_log_g = []
     self.test_set_done = False
 
+    #.............................
+    # Tagging
+    #.............................
+    # Is tagging already done, or not?
+    self.tagging_done      = False
+    # Read Xc tags from ASCII file (faster)
+    self.load_Xc_tags_form_ascii = True 
+    # Provide the path to the ASCII Xc tag file
+    self.path_Xc_tags_ascii = ''
 
   ##########################
   # Setter
@@ -505,6 +522,34 @@ class sampling(star.star):
     return read.read_sampling_from_h5(self, filename)
     
   ##########################
+  def convert_features_to_tags(self):
+    """
+    This method converts all rows in the learning_x set into the corresponding tags. E.g. the following
+    (M_ini, fov, Z, logD, Xc, eta) row is converted to (M_tag, fov_tag, Z_tag, logD_tag, Xc_tag, eta_tag).
+    All tags are basically short-integers. The tags for the track attributes (M_ini, fov, Z, logD) are 
+    fetched from db_lib.get_dics_tag_track_attributes(), that of Xc is fetched from db_lib.get_dic_tag_Xc(), 
+    and eta_tag comes from the look up dictionary db_lib.get_dic_look_up_rotation_rates_id().
+
+    The use of tags facilitates easier, faster and more robust way to integrate frequencies between model
+    attributes (e.g. d_freq/d_Z), to interpolate between the frequencies over neighbouring points, or to 
+    marginaliz the posterior probabilities over various model attributes. As a result, instead of using the
+    floating point values of the model attributes, we use the tags! The power of this approach stems from 
+    the fact that the assigned tag for each attribute is a unique and integer-valued.
+
+    Notes:
+    - During tagging, if even one of the tags are not found, an exception will be raised, without exiting.
+    - If the training/cross-validation/test sets are available, their tags will be retireved based on their
+      indexes.
+
+    @param self: an instance of the "sampler.sampling" class
+    @type self: object
+    @return: setting several relevant class attributes related to tagging
+    @rtype: None
+    """
+    _convert_features_to_tags(self)
+
+  ##########################
+  ##########################
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -568,13 +613,16 @@ def _split_learning_sets(self):
   learn_y     = np.empty_like(self.learning_y)
   learn_x[:]  = self.learning_x
   learn_y[:]  = self.learning_y
-
+ 
+  self.set('training_ind', ind_train)
   self.set('training_x', learn_x[ind_train])
   self.set('training_y', learn_y[ind_train])
 
+  self.set('cross_valid_ind', ind_cv)
   self.set('cross_valid_x', learn_x[ind_cv])
   self.set('cross_valid_y', learn_y[ind_cv])
 
+  self.set('test_ind', ind_test)
   self.set('test_x', learn_x[ind_test])
   self.set('test_y', learn_y[ind_test])
 
@@ -1121,3 +1169,114 @@ def randomly_pick_models_and_rotation_ids(self):
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# T A G G I N G
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _convert_features_to_tags(self):
+  """
+  For more details refer to the documentation below the method convert_features_to_tags()
+  """
+  if self.tagging_done: return
+  logger.info('_convert_features_to_tags: Starting ...')
+
+  # Fetch the tagging dictionaries; this will be pretty slow for Xc
+  dbname    = self.get('dbname')
+  dics_tags = db_lib.get_dics_tag_track_attributes(dbname=dbname)
+  dic_M_ini = dics_tags[0]
+  dic_fov   = dics_tags[1]
+  dic_Z     = dics_tags[2]
+  dic_logD  = dics_tags[3]
+
+  if self.load_Xc_tags_form_ascii:
+    Xc_file = self.get('path_Xc_tags_ascii')
+    if Xc_file == '':
+      logger.error('_convert_features_to_tags: You must specify self.path_Xc_tags_ascii')
+      sys.exit(1)
+
+    logger.info('_convert_features_to_tags: Loading the Xc tags from ASCII file')
+    dic_Xc  = read.Xc_tags_from_ascii(filename=Xc_file)
+  else:
+    logger.info('_convert_features_to_tags: Fetching Xc tags from db_lib (slow)')
+    dic_Xc  = db_lib.get_dic_tag_Xc(dbname=dbname)
+  logger.info('_convert_features_to_tags: Fetching Xc tags done ')
+  
+  dic_eta   = db_lib.get_dic_look_up_rotation_rates_id(dbname_or_dbobj=dbname)
+
+  # Retrieve the learning feature set
+  x         = self.get('learning_x')
+  n         = len(x)
+  dec_M     = 3
+  dec_fov   = 3
+  dec_Z     = 3
+  dec_logD  = 2
+  dec_Xc    = 4
+  dec_eta   = 2
+
+  col_M_ini = np.round(x[:,0], dec_M)
+  col_fov   = np.round(x[:,1], dec_fov)
+  col_Z     = np.round(x[:,2], dec_Z)
+  col_logD  = np.round(x[:,3], dec_logD)
+  col_Xc    = np.round(x[:,4], dec_Xc)
+  if not self.exclude_eta_column:
+    col_eta = np.round(x[:,5], dec_eta)
+
+  tags      = []
+  for k in range(n):
+    str_M_ini   = '{0:06.3f}'.format(col_M_ini[k])
+    str_fov     = '{0:05.3f}'.format(col_fov[k])
+    str_Z       = '{0:05.3f}'.format(col_Z[k])
+    str_logD    = '{0:05.2f}'.format(col_logD[k])
+    str_Xc      = '{0:06.4f}'.format(col_Xc[k])
+
+    key_M_ini   = (str_M_ini, ) 
+    key_fov     = (str_fov, )   
+    key_Z       = (str_Z, )     
+    key_logD    = (str_logD, )  
+    tup_Xc      = (str_Xc, )
+    key_Xc      = ','.join([str_M_ini, str_fov, str_Z, str_logD, str_Xc])
+
+    # try:
+    tag_M_ini = dic_M_ini[key_M_ini]
+    tag_fov   = dic_fov[key_fov]
+    tag_Z     = dic_Z[key_Z]
+    tag_logD  = dic_logD[key_logD]
+    tag_Xc    = dic_Xc[key_Xc]
+
+    tup_tags  = (tag_M_ini, tag_fov, tag_Z, tag_logD, tag_Xc)
+
+    if not self.exclude_eta_column: 
+      eta     = col_eta[k]
+      key_eta = (eta, )
+      tag_eta = dic_eta[key_eta]
+      tup_tags+= (tag_eta, )
+    # except:
+    #   logger.error('_convert_features_to_tags: tagging failed. k={0}, key={1}'.format(k, key_Xc))
+    #   return False
+
+    tags.append(tup_tags)
+
+  tags      = utils.list_to_ndarray(tags)
+  self.set('learning_tags', tags)
+
+  # provide the tags for training/cross-validation/test sets, if they are already done
+  if self.training_set_done:
+    tr_tags = tags[self.training_ind]
+    self.set('training_tags', tr_tags)
+
+  if self.cross_valid_set_done:
+    cv_tags = tags[self.cross_valid_ind]
+    self.set('cross_valid_tags', cv_tags)
+
+  if self.test_set_done:
+    ts_tags = tags[self.test_ind]
+    self.set('test_tags', ts_tags)
+
+  logger.info('_convert_features_to_tags: Done \n')
+
+  self.set('tagging_done', True)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

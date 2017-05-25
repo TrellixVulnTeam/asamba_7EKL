@@ -57,18 +57,21 @@ def get_dic_tag_Xc(dbname):
     convergence criteria and the timestep criteria).
 
   Notes:
+  - An alternative to calling this function is to load the Xc tags from e.g. an ASCII file. For example
+    of this, see the write.Xc_tags_to_ascii() and read.Xc_tags_from_ascii() functions
   - This operation depends on fetching all Xcs in the models table (over 3.8 million entries), and takes
     roughly 30 sec. So, please be patient.
   - There might be two different tracks with an identical Xc value, e.g. 0.1234. The current tagging 
     scheme may give these two models an identical or different tag. But, we do not care if a single Xc
     value maybe or not tagged differently. The important point to bear in mind is that each Xc has a 
     unique tag along its own specific track
+  - The format of the key is fixed, is zero-padded, and can be found in write.Xc_tags_to_ascii()
 
   To access the Xc tag for a model in the grid, one can do the following:
   >>>from asamba import db_lib
   >>>dic_tag_Xc  = db_lib.get_dic_tag_Xc('grid')
-  >>>tup_model   = (12.099, 0.035, 0.014, 1.29, 0.2314)
-  >>>this_Xc_tag = dic_tag_Xc[tup_model]
+  >>>key_model   = '12.099,0.035,0.014,01.29,0.2314'
+  >>>this_Xc_tag = dic_tag_Xc[key_model]
 
   @param dbname: The name of the database to connect to, and fetch data from
   @type dbname: str
@@ -87,11 +90,15 @@ def get_dic_tag_Xc(dbname):
   Xc_ids      = np.array([tup[0] for tup in Xc_keys])
   Xc_vals     = [tup[1] for tup in Xc_keys]
   dtype       = [('id_track', np.int32), ('Xc', np.float32)]
-  Xc_arr      = utils.list_to_recarray(Xc_keys, dtype)
 
-  dic_tag     = dict()
+  dic_tag       = dict()
   for k, track_id in enumerate(tracks_ids):
-    tup_attrs = tracks_vals[k][1:]
+    this_track  = tracks_vals[k][1:]
+    str_M_ini   = '{0:06.3f}'.format(this_track[0])
+    str_fov     = '{0:05.3f}'.format(this_track[1])
+    str_Z       = '{0:05.3f}'.format(this_track[2])
+    str_logD    = '{0:05.2f}'.format(this_track[3])
+
     # Get all Xcs corresponding to this specific track, using track_id
     ind       = np.where(Xc_ids == track_id)[0]
     if len(ind) == 0:
@@ -102,8 +109,9 @@ def get_dic_tag_Xc(dbname):
     track_Xcs.sort()
     track_Xcs = track_Xcs[::-1] # from ZAMS to TAMS
     for tag_Xc, this_Xc in enumerate(track_Xcs):
-      tup_key = tup_attrs + (this_Xc, )
-      dic_tag[tup_key] = tag_Xc     # {(M_ini, fov, Z, logD, Xc): tag}
+      str_Xc  = '{0:06.4f}'.format(this_Xc)
+      key     = ','.join([str_M_ini, str_fov, str_Z, str_logD, str_Xc])
+      dic_tag[key] = tag_Xc     # 'M_ini,fov,Z,logD,Xc': tag
 
   logger.info('get_dic_tag_Xc: Returning all tagging dictionaries')
 
@@ -549,10 +557,13 @@ def get_dics_tag_track_attributes(dbname):
   when carrying out integrations over posterior probabilities in order to marginalize w.r.t. to few
   parameters, where instead of values, we now use their tags for integration. For instance
 
+  An important point to keep in mind is that the keys are strings, by rounding off the attribute values
+  to a proper number of decimal points which also complies with the design of the grid table attributes.
+
   >>>from asamba import db_lib
   >>>dics_for_tags = db_lib.get_dics_tag_track_attributes('grid')
   >>>dic_tag_fov   = dics_for_tags[1]
-  >>>key           = (0.025, )
+  >>>key           = ('0.025', )
   >>>tag_fov_025   = dic_tag_fov[key]
 
   @param dbname: the name of the database to connect to, and fetch information from
@@ -581,32 +592,43 @@ def get_dics_tag_track_attributes(dbname):
   # tag. Note that for logD, this is tricky, whose value is mass dependent, and whose tag is always 
   # between 0 and 4, and requires a correct mapping with initial mass 
   #.........................
-  def gen_dic(arr):
+  def gen_dic(arr, code):
     """
     Returns a dictionary with the key as the tuple of each element "(key,)" and value an index 
     which starts from 0 and ends with N-1, for an input array of length N.
     """
     dic = dict()
-    for k, key in enumerate(np.sort(arr)): dic[ (key, ) ] = k
+    for k, key in enumerate(np.sort(arr)): 
+      if code == 1:   # M_ini
+        _key = '{0:06.3f}'.format(key) 
+      elif code == 2 or code == 3: # fov and Z
+        _key = '{0:05.3f}'.format(key) 
+      elif code == 4: # logD 
+        _key = '{0:05.2f}'.format(key)
+      else:
+        logger.error('get_dics_tag_track_attributes: gen_dic: Wrong code passed')
+        sys.exit(1)
+      dic[ (_key, ) ] = k
     return dic
   #.........................
 
-  dic_tag_M_ini = gen_dic(uniq_M_ini)
-  dic_tag_fov   = gen_dic(uniq_fov)
-  dic_tag_Z     = gen_dic(uniq_Z)
-  # only instantiate the dic_tag_logD; the values are wrong now, but will be fixed right below
-  dic_tag_logD  = gen_dic(uniq_logD) 
+  dic_tag_M_ini = gen_dic(arr=uniq_M_ini, code=1)
+  dic_tag_fov   = gen_dic(arr=uniq_fov, code=2)
+  dic_tag_Z     = gen_dic(arr=uniq_Z, code=2)
 
   # Now, fix logD tags (i.e. dictionary values) by walking over the uniq masses, and tracks_vals
+  dic_tag_logD  = dict()
   for k, this_M in enumerate(uniq_M_ini):
     ind          = np.where(tracks_vals.M_ini == this_M)[0]
     this_logD    = np.sort(np.unique(tracks_vals.logD[ind]))
-    if not len(this_logD) != 5:
-      logger.error('get_dic_tag_track_attributes: the length of the unique logD array != 5, bus is: {0}'.format(len(this_logD)))
+    if len(this_logD) != 5:
+      logger.error('get_dics_tag_track_attributes: the length of the unique logD array != 5, bus is: {0}'.format(len(this_logD)))
       sys.exit(1)
-    for tag, logD_key in enumerate(this_logD): dic_tag_logD[ (logD_key, ) ] = tag # Voila
+    for tag, logD_key in enumerate(this_logD): 
+      _key       = '{0:05.2f}'.format(logD_key)
+      dic_tag_logD[ (_key, ) ] = tag # Voila
 
-  logger.info('get_dic_tag_track_attributes: Returning tagging dics for (M_ini, fov, Z, logD)')
+  logger.info('get_dics_tag_track_attributes: Returning tagging dics for (M_ini, fov, Z, logD)')
 
   return (dic_tag_M_ini, dic_tag_fov, dic_tag_Z, dic_tag_logD)
 

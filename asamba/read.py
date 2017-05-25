@@ -488,6 +488,9 @@ def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
    - The input file is roughly 125 MB.
    - Because every value per each line has to be rounded to a definite decimal point, this reading
      operation is pretty slow (~ a minute). So, be patient with it.
+   - The keys are comma-separated values, rounded up to a certain number of decimals which complies 
+     with the design/schema of the database in PostgreSQL. E.g. a key looks like the following:
+     "12.345,0.015,0.018,0.00,0.5683" 
 
   @param filename: full path to where the ASCII file is stored.
   @type filename: str
@@ -495,6 +498,7 @@ def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
         db_lib.get_dic_tag_Xc():
         - Keys: are attribute tuples, in the format (M_ini, fov, Z, logD, Xc). The number of decimals
           for M_ini is 3, for fov is 3, for Z is 3, for logD is 2 and for Xc is 4.
+          Note again: the keys are comma-separated strings
         - Values: list of Xc tags, where all values are basically integers.
   @rtype: tuple
   """
@@ -507,28 +511,18 @@ def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
   if len(header) != 6:
     logger.error('Xc_tags_from_ascii: Wrong number of header columns!')
     sys.exit(1)
-  first  = lines[0].rstrip('\r\n').split(',')
+  first  = lines[0]
+  comma  = first.rfind(',')
+  first  = first.rstrip('\r\n').split(',')
   if len(first) != 6:
     logger.error('Xc_tags_from_ascii: Wrong number of data columns!')
     sys.exit(1)
 
   dic    = dict()
-  dec_M  = 3
-  dec_fov= 3
-  dec_Z  = 3
-  dec_logD = 2
-  dec_Xc = 4
   for k, line in enumerate(lines):
-    row  = line.rstrip('\r\n').split(',')
-    M_ini= round(float(row[0]), dec_M)
-    fov  = round(float(row[1]), dec_fov)
-    Z    = round(float(row[2]), dec_Z)
-    logD = round(float(row[3]), dec_logD)
-    Xc   = round(float(row[4]), dec_Xc)
-    tag  = int(row[5])
-    attr = (M_ini, fov, Z, logD, Xc)
-
-    dic[attr] = tag
+    str_attr  = line[:comma]
+    tag       = int(line[comma+1:])
+    dic[str_attr] = tag
 
   return dic 
 
@@ -566,7 +560,8 @@ def Xc_tags_from_h5(filename):
   tags   = np.int16(dset[:,5])
 
   n, m   = dset.shape
-  attrs  = [(M_ini[k], fov[k], Z[k], logD[k], Xc[k]) for k in range(n)]
+  attrs  = ['{0:0.3f},{1:0.3f},{2:0.3f},{3:0.2f},{4:0.4f}'.format(
+             M_ini[k], fov[k], Z[k], logD[k], Xc[k]) for k in range(n)]
   tags   = [tags[k] for k in range(n)]
 
   for key, val in zip(attrs, tags): dic[key] = val

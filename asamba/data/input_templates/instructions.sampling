@@ -65,3 +65,13 @@ trim_delta_freq_factor = 0.25
 training_percentage = -1
 cross_valid_percentage = -1
 test_percentage = -1
+
+#.............................
+# Tagging
+#.............................
+# Is tagging already done, or not?
+tagging_done      = False
+# Read Xc tags from ASCII file (faster)
+load_Xc_tags_form_ascii = True 
+# Provide the path to the ASCII Xc tag file
+path_Xc_tags_ascii = ''
