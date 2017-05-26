@@ -18,25 +18,35 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def marginal_2D(self, wrt_x, wrt_y, figure_name):
   """
-  ...
+  This function provides a 2D filled-contour plot of the marginalized posterior probability with 
+  respect to two features, passed as wrt_x and wrt_y. 
   """
   res = self.marginalize_wrt_x_y(wrt_x, wrt_y)
-  arr = utils.list_to_ndarray(res)
-  x, y, z = arr[:,0], arr[:,1], arr[:,2]
+  # arr = utils.list_to_ndarray(res).astype(np.int16)
+  tagx= np.array([tup[0] for tup in res], dtype=np.int16)
+  tagy= np.array([tup[1] for tup in res], dtype=np.int16)
+  z   = np.array([tup[2] for tup in res], dtype=np.float32)
+  # tagx, tagy, z = arr[:,0], arr[:,1], arr[:,2]
+  x   = self.convert_tags_to_features(tagx, wrt_x)
+  y   = self.convert_tags_to_features(tagy, wrt_y)
+  x   = np.array(x)
+  y   = np.array(y)
 
   fig, ax = plt.subplots(1, figsize=(4,4), dpi=100, tight_layout=True)
   # ax[0].tricontourf(x, y, z, N=101, cmap=plt.get_cmap('Greys'), norm=None,)
   # ax[0].scatter(x, y, marker='o', facecolor='k', edgecolor='k', s=2)
 
   nx  = ny = 101
-  xi  = np.linspace(x.min(), x.max(), nx)
-  yi  = np.linspace(y.min(), y.max(), ny)
+  xi  = np.linspace(min(x), max(x), nx)
+  yi  = np.linspace(min(y), max(y), ny)
   zi  = mlab.griddata(x, y, z, xi, yi, interp='linear')
   cf  = ax.contourf(xi, yi, zi, 15, zorder=1, cmap=plt.get_cmap('Greys'),
                        norm=plt.Normalize(vmin=0, vmax=abs(zi).max())) 
   ax.scatter(x, y, marker='o', facecolor='k', edgecolor='k', s=2, zorder=2)
-  # cax = plt.axes([0.8, 0.7, 0.15, 0.25])
-  cb  = fig.colorbar(cf, ax=ax, shrink=0.9)
+  cb  = fig.colorbar(cf, ax=ax, shrink=0.95)
+
+  ax.set_xlabel(utils.feature_name_in_latex(wrt_x))
+  ax.set_ylabel(utils.feature_name_in_latex(wrt_y))
 
   plt.savefig(figure_name)
   print('marginal_2D: saved {0}'.format(figure_name))

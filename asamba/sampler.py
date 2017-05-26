@@ -191,6 +191,14 @@ class sampling(star.star):
     self.load_Xc_tags_form_ascii = True 
     # Provide the path to the ASCII Xc tag file
     self.path_Xc_tags_ascii = ''
+    # Keeping all tagging dictionaries for all 
+    # further reference/use in other modules
+    self.dic_tag_M_ini      = dict()
+    self.dic_tag_fov        = dict()
+    self.dic_tag_Z          = dict()
+    self.dic_tag_logD       = dict()
+    self.dic_tag_Xc         = dict()
+    self.dic_tag_eta        = dict()
 
   ##########################
   # Setter
@@ -547,6 +555,49 @@ class sampling(star.star):
     @rtype: None
     """
     _convert_features_to_tags(self)
+
+  ##########################
+  def convert_tags_to_features(self, tags, feature):
+    """
+    This routine converts the list of tags for a specific feature back into a list of floats. Therefore, it
+    complements the operations done by the method convert_features_to_tags().
+
+    @param self: An instance of the "sampler.sampling" class
+    @type self: object
+    @param tags: List of tag values (integers) to find the corresponding value
+    @type tags: list of integers
+    @param feature: The name of the feature for which we want to retrieve the values. The name must be one of 
+          self.feature_names
+    @type feature: str
+    @return: list of floats, corresponding to each tag value in the passed list "tags".
+    @rtype: list
+    """
+    return _convert_tags_to_features(self, tags, feature)
+  ##########################
+  def get_tagging_dictionary(self, name):
+    """
+    This method returns the correct tagging dictinary, corresponding to the name passed as the argument.
+    E.g. to get the tagging dictionary for the initial mass, you may do the following:
+    >>>from asamba import sampler
+    >>>SampObj = sampler.sampling().build_learning_set()
+    >>>SampObj.convert_features_to_tags()
+    >>>dic_tag_M_ini = SampObj.get_tagging_dictionary('M_ini')
+
+    @param name: The name of the feature tagging dictionary to retrieve. Only the names which exist in
+        the self.feature_names are accepted
+    @type name: str
+    @return: a tagging dictionary
+    @rtype: dict
+    """
+    if not name in self.get('feature_names'):
+      logging.error('get_tagging_dictionary: The name:"{0}" is not valid'.format(name))
+      return None
+    if name == 'M_ini': return self.get('dic_tag_M_ini')
+    if name == 'fov':   return self.get('dic_tag_fov')
+    if name == 'Z':     return self.get('dic_tag_Z')
+    if name == 'logD':  return self.get('dic_tag_logD')
+    if name == 'Xc':    return self.get('dic_tag_Xc')
+    if name == 'eta':   return self.get('dic_tag_eta')
 
   ##########################
   ##########################
@@ -1205,6 +1256,14 @@ def _convert_features_to_tags(self):
   
   dic_eta   = db_lib.get_dic_look_up_rotation_rates_id(dbname_or_dbobj=dbname)
 
+  # Bookkeeping of all tagging dictinaries for all other future reference/use
+  self.set('dic_tag_M_ini', dic_M_ini)
+  self.set('dic_tag_fov', dic_fov)
+  self.set('dic_tag_Z', dic_Z)
+  self.set('dic_tag_logD', dic_logD)
+  self.set('dic_tag_Xc', dic_Xc)
+  self.set('dic_tag_eta', dic_eta)
+
   # Retrieve the learning feature set
   x         = self.get('learning_x')
   n         = len(x)
@@ -1225,36 +1284,30 @@ def _convert_features_to_tags(self):
 
   tags      = []
   for k in range(n):
-    str_M_ini   = '{0:06.3f}'.format(col_M_ini[k])
-    str_fov     = '{0:05.3f}'.format(col_fov[k])
-    str_Z       = '{0:05.3f}'.format(col_Z[k])
-    str_logD    = '{0:05.2f}'.format(col_logD[k])
+    key_M_ini   = '{0:06.3f}'.format(col_M_ini[k])
+    key_fov     = '{0:05.3f}'.format(col_fov[k])
+    key_Z       = '{0:05.3f}'.format(col_Z[k])
+    key_logD    = '{0:05.2f}'.format(col_logD[k])
     str_Xc      = '{0:06.4f}'.format(col_Xc[k])
+    key_Xc      = ','.join([key_M_ini, key_fov, key_Z, key_logD, str_Xc])
 
-    key_M_ini   = (str_M_ini, ) 
-    key_fov     = (str_fov, )   
-    key_Z       = (str_Z, )     
-    key_logD    = (str_logD, )  
-    tup_Xc      = (str_Xc, )
-    key_Xc      = ','.join([str_M_ini, str_fov, str_Z, str_logD, str_Xc])
+    try:
+      tag_M_ini = dic_M_ini[key_M_ini]
+      tag_fov   = dic_fov[key_fov]
+      tag_Z     = dic_Z[key_Z]
+      tag_logD  = dic_logD[key_logD]
+      tag_Xc    = dic_Xc[key_Xc]
 
-    # try:
-    tag_M_ini = dic_M_ini[key_M_ini]
-    tag_fov   = dic_fov[key_fov]
-    tag_Z     = dic_Z[key_Z]
-    tag_logD  = dic_logD[key_logD]
-    tag_Xc    = dic_Xc[key_Xc]
+      tup_tags  = (tag_M_ini, tag_fov, tag_Z, tag_logD, tag_Xc)
 
-    tup_tags  = (tag_M_ini, tag_fov, tag_Z, tag_logD, tag_Xc)
-
-    if not self.exclude_eta_column: 
-      eta     = col_eta[k]
-      key_eta = (eta, )
-      tag_eta = dic_eta[key_eta]
-      tup_tags+= (tag_eta, )
-    # except:
-    #   logger.error('_convert_features_to_tags: tagging failed. k={0}, key={1}'.format(k, key_Xc))
-    #   return False
+      if not self.exclude_eta_column: 
+        eta     = col_eta[k]
+        key_eta = (eta, )
+        tag_eta = dic_eta[key_eta]
+        tup_tags+= (tag_eta, )
+    except:
+      logger.error('_convert_features_to_tags: tagging failed. k={0}, key={1}'.format(k, key_Xc))
+      return False
 
     tags.append(tup_tags)
 
@@ -1274,9 +1327,30 @@ def _convert_features_to_tags(self):
     ts_tags = tags[self.test_ind]
     self.set('test_tags', ts_tags)
 
-  logger.info('_convert_features_to_tags: Done \n')
+  logger.info('_convert_features_to_tags: Done. \n')
 
   self.set('tagging_done', True)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _convert_tags_to_features(self, tags, feature):
+  """
+  For details refer to the method convert_tags_to_features()
+  """
+  if feature not in self.get('feature_names'):
+    logger.error('_convert_tags_to_features: The feature:"{0}" is not among valid feature names'.format(feature))
+    sys.exit(1)
+
+  if isinstance(tags, np.ndarray): tags = tags.tolist()
+
+  # Get the corresponding dictinary for this feature
+  dic  = self.get_tagging_dictionary(feature)
+  dinv = utils.intert_dic_key_value(dic)
+  keys = [(tag, ) for tag in tags]
+  vals = [float(dinv[key]) for key in keys]
+
+  return vals 
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

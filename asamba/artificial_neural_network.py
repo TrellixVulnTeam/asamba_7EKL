@@ -3,6 +3,11 @@
 This module provides various functionalities for carrying out Artificial Neural Network (ANN)
 analysis (modelling) using the asteroseismic database, and a given set of observations. This
 module builds heavily on the "sampler" module.
+
+One of the nice features is that the marginalization of posterior probabilities are carried 
+out over attribute tags, rather than their own values. This facilitates a unique representation
+of different states of an attribute; e.g. logD can have only 5 states (0.0 to max(logD)), and 
+the tag captures the attribute state, rather than its absolute value!
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -410,11 +415,12 @@ def _max_a_posteriori(self):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_work_matrixes(self):
   """
-  This routine copies the learning_x and learning_y matrixes into self.MAP_work_features and 
+  This routine copies the learning_tags and learning_y matrixes into self.MAP_work_features and 
   self.MAP_work_frequencies, and the rest of the routines only use the MAP_work_* matrixes for 
   the posterior calculations
   """
-  self.set('MAP_work_features', self.get('learning_x'))
+  if not self.tagging_done: self.convert_features_to_tags()
+  self.set('MAP_work_features', self.get('learning_tags'))
   self.set('MAP_work_frequencies', self.get('learning_y'))
   
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -485,7 +491,8 @@ def _chi_square(self):
     logger.error('_chi_square: The number of observed frequencies ({0}) not equal to the number of columns of learning_y ({1})'.format(n_freq, K))
     sys.exit(1)
 
-  # duplicate/reapeat the frequency vector m times to form identical matrix to learning_y
+  # duplicate/reapeat the frequency vector m times to form identical matrix to learning_y for a 
+  # vectorized calculation of chi square
   freqs_matrix = np.tile(freqs, m).reshape(m, K) # (m, K)
   sigma_matrix = np.tile(sigma, m).reshape(m, K) # (m, K)
 
@@ -512,7 +519,7 @@ def _set_likelihood(self):
   modes = self.get('modes')
   errs  = np.array([ mode.freq_err for mode in modes ])
   chi_2 = self.get('MAP_chi_square')
-  K     = len(chi_2)
+  K     = len(modes)
   ln_L  = -K/2.0 * np.log(2.0*np.pi) - np.sum(np.log(errs)) - chi_2 
 
   if utils.has_nan(ln_L):
@@ -542,18 +549,13 @@ def _rescale_ln_probabilities(self):
   ln_P_D_h     = self.get('MAP_ln_likelihood')
   ln_prod      = ln_P_D_h + ln_P_h
 
-  # ln_scale     = np.max(ln_prod) / 2.0
   ln_scale     = np.max(ln_P_D_h)
   ln_P_D_h     -= ln_scale
-  # ln_P_h       -= ln_scale
 
   P_D_h        = utils.substitute_inf(np.exp(ln_P_D_h))
-  # P_h          = utils.substitute_inf(np.exp(ln_P_h))
 
   self.set('MAP_ln_likelihood', ln_P_D_h)
   self.set('MAP_likelihood', P_D_h)
-  # self.set('MAP_ln_prior', ln_P_h)
-  # self.set('MAP_prior', P_h)
 
   logger.info('_set_likelihood: rescaling ln(likelihood) x ln(prior) with ln_scale={0:.2f}'.format(ln_scale))
 
@@ -564,8 +566,6 @@ def _set_evidence(self):
   """
   P_h      = self.get('MAP_prior')      # == P(h)
   P_D_h    = self.get('MAP_likelihood') # P(D|h)
-  print(P_h.min(), P_h.max())
-  print(P_D_h.min(), P_D_h.max())
   P_D      = np.dot(P_D_h, P_h)
   if np.isinf(P_D):
     logger.error('_set_evidence: The evidence has diverged!')
@@ -573,8 +573,6 @@ def _set_evidence(self):
 
   self.set('MAP_evidence', P_D)
   self.set('MAP_ln_evidence', np.log(P_D))
-
-  print(self.MAP_evidence, self.MAP_ln_evidence)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _set_posterior(self):
@@ -606,8 +604,9 @@ def _marginalize_wrt_x_y(self, wrt_x, wrt_y):
     logger.error('_marginalize_wrt_x_y: The column "{0}" is not among the available features'.format(wrt_y))
     sys.exit(1)
   
+  # ndarray of feature tags (not their absolute values)
   _work   = self.get('MAP_work_features')
-  dtypes  = [(name, 'f4') for name in _names]
+  dtypes  = [(name, np.int16) for name in _names]
   rec     = utils.ndarray_to_recarray(_work, dtypes)
 
   set_x   = set(list(rec[wrt_x]))
@@ -618,9 +617,9 @@ def _marginalize_wrt_x_y(self, wrt_x, wrt_y):
   arr_x.sort()
   arr_y   = np.array(list(set_y))
   arr_y.sort()
-  _grix_xy= np.meshgrid(arr_x, arr_y, indexing='ij')
-  all_x   = _grix_xy[0].reshape(-1).astype(np.float32, casting='same_kind')
-  all_y   = _grix_xy[1].reshape(-1).astype(np.float32, casting='same_kind')
+  _grid_xy= np.meshgrid(arr_x, arr_y, indexing='ij')
+  all_x   = _grid_xy[0].reshape(-1).astype(np.int16, casting='same_kind')
+  all_y   = _grid_xy[1].reshape(-1).astype(np.int16, casting='same_kind')
   tup_xy  = list(zip(all_x, all_y))
 
   post    = self.get('MAP_posterior')
@@ -629,16 +628,17 @@ def _marginalize_wrt_x_y(self, wrt_x, wrt_y):
   p_vals  = np.zeros(nx * ny)
   outcome = []
   for i_wrt, _tup in enumerate(tup_xy):
-    xval  = _tup[0]
-    yval  = _tup[1]
+    xtag  = _tup[0]
+    ytag  = _tup[1]
 
-    ind   = np.where((np.abs(rec[wrt_x] - xval) <= tol) & 
-                     (np.abs(rec[wrt_y] - yval) <= tol))[0]
+    ind   = np.where((rec[wrt_x] == xtag) & (rec[wrt_y] == ytag))[0]
+    # ind   = np.where((np.abs(rec[wrt_x] - xval) <= tol) & 
+    #                  (np.abs(rec[wrt_y] - yval) <= tol))[0]
     n_ind = len(ind)
     if n_ind == 0: continue
 
     p_val = np.sum(post[ind])
-    tup   = ( xval, yval, p_val )
+    tup   = ( xtag, ytag, p_val )
     outcome.extend([ tup ])
     p_vals[i_wrt] = p_val
 
@@ -663,8 +663,8 @@ def _marginalize_wrt(self, wrt):
     logger.error('_marginalize_wrt: The column "{0}" is not among the available features'.format(wrt))
     sys.exit(1)
   
-  work_x  = self.get('MAP_work_features')
-  dtypes  = [(name, 'f4') for name in x_names]
+  work_x  = self.get('MAP_work_features')   # ndarray of feature tags (not their absolute values)
+  dtypes  = [(name, np.int16) for name in x_names]
   rec     = utils.ndarray_to_recarray(work_x, dtypes)
 
   set_wrt = set(list(rec[wrt]))
@@ -676,10 +676,10 @@ def _marginalize_wrt(self, wrt):
 
   post    = self.get('MAP_posterior')
 
-  for i_wrt, val_wrt in enumerate(arr_wrt):
-    k_wrt = np.where(rec[wrt] == val_wrt)[0]
+  for i_wrt, tag_wrt in enumerate(arr_wrt):
+    k_wrt = np.where(rec[wrt] == tag_wrt)[0]
     p_val = np.sum(post[k_wrt])
-    tup   = (val_wrt, p_val)
+    tup   = (tag_wrt, p_val)
 
     p_vals[i_wrt] = p_val
     post_wrt.extend([ tup ])

@@ -563,7 +563,7 @@ def get_dics_tag_track_attributes(dbname):
   >>>from asamba import db_lib
   >>>dics_for_tags = db_lib.get_dics_tag_track_attributes('grid')
   >>>dic_tag_fov   = dics_for_tags[1]
-  >>>key           = ('0.025', )
+  >>>key           = '0.025'
   >>>tag_fov_025   = dic_tag_fov[key]
 
   @param dbname: the name of the database to connect to, and fetch information from
@@ -608,7 +608,7 @@ def get_dics_tag_track_attributes(dbname):
       else:
         logger.error('get_dics_tag_track_attributes: gen_dic: Wrong code passed')
         sys.exit(1)
-      dic[ (_key, ) ] = k
+      dic[_key] = k
     return dic
   #.........................
 
@@ -626,7 +626,7 @@ def get_dics_tag_track_attributes(dbname):
       sys.exit(1)
     for tag, logD_key in enumerate(this_logD): 
       _key       = '{0:05.2f}'.format(logD_key)
-      dic_tag_logD[ (_key, ) ] = tag # Voila
+      dic_tag_logD[_key] = tag # Voila
 
   logger.info('get_dics_tag_track_attributes: Returning tagging dics for (M_ini, fov, Z, logD)')
 

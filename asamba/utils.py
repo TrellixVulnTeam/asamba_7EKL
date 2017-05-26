@@ -18,6 +18,59 @@ logger  = logging.getLogger(__name__)
 is_py3x = sys.version_info[0] >= 3
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def feature_name_in_latex(name):
+  """
+  Return the LaTeX representation of the feature names. This is majorly used for setting the axis 
+  names in plotting routines.
+  
+  @param name: one of the names from self.feature_names
+  @type name: str
+  @return: raw string in LaTeX format, e.g. r'$Z$' if name=='Z'
+  @rtype: str
+  """
+  if name == 'M_ini':
+    latex = r'$M_{\rm ini}$ [M$_\odot$]'
+  elif name == 'fov':
+    latex = r'$f_{\rm ov}$'
+  elif name == 'Z':
+    latex = r'$Z$'
+  elif name == 'logD':
+    latex = r'$\log D_{\rm mix}$ (cm$^2$ sec$^{-1}$)'
+  elif name == 'Xc':
+    latex = r'$X_{\rm c}$'
+  elif name == 'eta':
+    latex = r'$\eta_{\rm rot}$ [$\%$]'
+  else:
+    logger.warning('feature_name_in_latex: name:"{0}" is invalid'.format(name))
+    latex = None 
+
+  return latex
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def intert_dic_key_value(dic):
+  """
+  Invert the key/value order of the dictionary, so that {'kye':value} becomes {'(value, )':key}.
+  If the value in the original dictionary is a single integer/float, then the associated key in the
+  inverted dictionary will be a single-element tuple made from that, i.e. (value, ).
+  @param dic: The dictinary whose key/value pairs to be inverted
+  @type dic: dict 
+  @return: The inverted dictionary with the key/value pairs swapped. Note that for single value 
+        dictionaries, the new keys will be basically the single-element tuples of the former values
+  @rtype: dict
+  """
+  keys     = list(dic.keys())
+  vals     = list(dic.values())
+  int_vals = isinstance(vals[0], int)
+  flt_vals = isinstance(vals[0], float)
+  inv      = dict()
+  if int_vals or flt_vals:
+    _keys  = [(key, ) for key in vals]
+    _vals  = [val for val in keys]
+  for key, val in zip(_keys, _vals): inv[key] = val 
+
+  return inv
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def has_nan(arr):
   """
   This routine tries to find a NaN in any of the elements of the passed array. If no NaN is found, 
