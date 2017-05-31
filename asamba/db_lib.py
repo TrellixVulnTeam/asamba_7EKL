@@ -565,14 +565,19 @@ def get_dics_tag_track_attributes(dbname):
   >>>dic_tag_fov   = dics_for_tags[1]
   >>>key           = '0.025'
   >>>tag_fov_025   = dic_tag_fov[key]
+  
+  >>>dic_tag_logD  = dics_for_tags[3]
+  >>>key           = '03.130,02.63'
+  >>>tag_logD_2p63 = dic_tag_logD[key]
 
   @param dbname: the name of the database to connect to, and fetch information from
   @type dbname: str
-  @return: four dictionaries, each providing a tagging facility to tag:
-      - M_ini
-      - fov
-      - Z
-      - logD
+  @return: four dictionaries, each providing a tagging facility to tag the features. Below, we provide
+      the key: value example to retrieve data from each dictionary for each feature
+      - '{0:06.3f}'.format(M_ini) --> tag
+      - '{0:05.3f}'.format(fov)   --> tag
+      - '{0:05.3f}'.format(Z)     --> tag
+      - '{0:06.3f},{1:05.2f}'.format(M_ini, logD) --> tag
       The key in each dictionary is a tuple of one of the values of that quantity, and the returned 
       value is a uniqu integer-valued tag
   @type: tuple of dics
@@ -625,7 +630,7 @@ def get_dics_tag_track_attributes(dbname):
       logger.error('get_dics_tag_track_attributes: the length of the unique logD array != 5, bus is: {0}'.format(len(this_logD)))
       sys.exit(1)
     for tag, logD_key in enumerate(this_logD): 
-      _key       = '{0:05.2f}'.format(logD_key)
+      _key       = '{0:06.3f},{1:05.2f}'.format(this_M, logD_key)
       dic_tag_logD[_key] = tag # Voila
 
   logger.info('get_dics_tag_track_attributes: Returning tagging dics for (M_ini, fov, Z, logD)')

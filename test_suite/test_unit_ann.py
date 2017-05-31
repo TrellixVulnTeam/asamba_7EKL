@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from builtins import range
 
-import sys, os, glob
+import sys, os, glob, time
 import logging
 import numpy as np 
 
@@ -15,6 +15,7 @@ from asamba import plot_ann
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,8 +67,8 @@ def main():
       print('   mode {0}: Obs:{1}, modeled:{2}'.format(j+1, obs_freqs[j], h_theta[j]))
 
   # Maximum a posteriori analysis
-  TheANN.set('MAP_use_log_Teff_log_g_prior', True)
-  # TheANN.set('MAP_uniform_prior', True)
+  # TheANN.set('MAP_use_log_Teff_log_g_prior', True)
+  TheANN.set('MAP_uniform_prior', True)
   TheANN.set('frequency_sigma_factor', 1000.)
   TheANN.set('rescale_ln_probabilities', True)
   MAP       = TheANN.max_a_posteriori()
@@ -104,18 +105,35 @@ def main():
   features  = TheANN.get('feature_names')
   marg_vals = TheANN.get('marginal_features')
   for i, name in enumerate(features):
-    print('   {0} = {1:.4f}'.format(name, marg_vals[i]))
+    dic_tag       = TheANN.get_tagging_dictionary(name)
+    tag           = int(marg_vals[i])
+    val           = TheANN.convert_tags_to_features([tag], name)[0]
+    # print(name, tag, val)
+    print('   Feature: {0}, tag: {1}, value = {2:.4f}'.format(name, tag, val))
   print()
 
   if True:
-    plot_ann.all_marginal_1D(TheANN, 'plots/KIC-10526294-marg1D-Mini_.png')
-    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='fov', figure_name='plots/KIC-10526294-marg2D-Mini-fov_.png')
+    plot_ann.corner(TheANN, 'plots/KIC-10526294-corner.png')
+
+  if True:
+    plot_ann.all_marginal_1D(TheANN, 'plots/KIC-10526294-marg1D.png')
+
+  if False:
+    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='fov', figure_name='plots/KIC-10526294-marg2D-Mini-fov.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='logD', figure_name='plots/KIC-10526294-marg2D-Mini-logD.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='Xc', figure_name='plots/KIC-10526294-marg2D-Mini-Xc.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='Z', figure_name='plots/KIC-10526294-marg2D-Mini-Z.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='fov', wrt_y='logD', figure_name='plots/KIC-10526294-marg2D-fov-logD.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='Xc', wrt_y='fov', figure_name='plots/KIC-10526294-marg2D-Xc-fov.png')
+    plot_ann.marginal_2D(TheANN, wrt_x='Xc', wrt_y='logD', figure_name='plots/KIC-10526294-marg2D-Xc-logD.png')
 
   return TheANN
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if __name__ == '__main__':
+  logger.info('Start time: {0}'.format(time.strftime("%a, %d %b %Y, %H:%M:%S", time.gmtime())))
   stat = main()
+  logger.info('End time:   {0}'.format(time.strftime("%a, %d %b %Y, %H:%M:%S", time.gmtime())))
   sys.exit(stat)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

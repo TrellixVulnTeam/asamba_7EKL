@@ -569,10 +569,37 @@ class sampling(star.star):
     @param feature: The name of the feature for which we want to retrieve the values. The name must be one of 
           self.feature_names
     @type feature: str
-    @return: list of floats, corresponding to each tag value in the passed list "tags".
+    @return: list of floats, corresponding to each tag value in the passed list tags.
     @rtype: list
     """
     return _convert_tags_to_features(self, tags, feature)
+
+  ##########################
+  def convert_Xc_tags_to_mean_Xc(self, tags):
+    """
+    This routine returns the **mean** Xc value (i.e. core hydrogen mass fraction), w.r.t. to the input 
+    Xc tags. The reason that a mean Xc value is returned per each tag is the following: Along every evolutionary
+    track, MESA stores >300 models, each with tags starting from 0, and Xc~0.705 corresponding to ZAMS. This means
+    that, e.g. the tag value 123 corresponds to a lot of models, along all tracks, whose Xc is somewhere in the range
+    0.5051 to 0.5054. The reason for this slight tolerance is that the timesteps taking along each track is different
+    from another track. For this reason, we take a mean of all Xc values corresponding to a single Xc_tag.
+
+    @param self: An instance of the "sampler.sampling" class
+    @type self: object
+    @param tags: List of Xc tags (integers) to find the corresponding average Xc value
+    @type tags: list of integers
+    @return: list of Xc floats, corresponding to each tag value in the passed list tags.
+    @rtype: list
+    """
+    return _convert_Xc_tags_to_mean_Xc(self, tags)
+
+  ##########################
+  def convert_logD_tags_to_logD(self, tags):
+    """
+
+    """
+    return _convert_logD_tags_to_logD(self, tags)
+
   ##########################
   def get_tagging_dictionary(self, name):
     """
@@ -708,6 +735,8 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: The "modes" attribute of the "star" object of "sampling" not set yet!')
     sys.exit(1)
 
+  logger.info('\n_build_learning_sets: Starting ...')
+  
   # Get the list of tuples for the (id_model, id_rot) to fetch model attributes
   if self.use_constrained_sampling:
 
@@ -719,7 +748,7 @@ def _build_learning_sets(self):
     tups_ids = constrained_pick_models_and_rotation_ids(self) 
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
-  elif use_random_sampling:
+  elif self.use_random_sampling:
     self.set('sampling_func_name', 'randomly_pick_models_and_rotation_ids')
     tups_ids = randomly_pick_models_and_rotation_ids(self)
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
@@ -906,12 +935,15 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
       try:
         rec_this = utils.list_to_recarray(this, modes_dtype)
       except terr:
-        # print(sys.exc_info()[0])
-        # print(type(this))
         sys.exit()
 
       # convert GYRE frequencies from "Hz" to "cd" for several benefits!
-      rec_this['freq'] *= star.Hz_to_cd 
+      try:
+        rec_this['freq'] *= star.Hz_to_cd 
+      except:
+        print(k, row, tup_exec)
+        # print(type(rec_this), len(rec_this), type(star), dir(star))
+        sys.exit(1)
 
       # Trim off the GYRE list to match the observations
       rec_trim = _trim_modes(self, rec_this, dic_mode_types)
@@ -1079,8 +1111,6 @@ def _trim_modes_by_df(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def constrained_pick_models_and_rotation_ids(self): 
-               # (dbname, n, 
-               # range_log_Teff=[3.5, 5], range_log_g=[0, 5], range_eta=[0, 51])
   """
   Return a combination of "models" id and "rotation_rate" id by applying constraints on log_Teff,
   log_g and rotation rates. For a totally random (unconstrained) 
@@ -1182,9 +1212,9 @@ def randomly_pick_models_and_rotation_ids(self):
   dbname = self.get('dbname')
   n      = self.get('max_sample_size')
 
-  if n < 1:
-    logger.error('randomly_pick_models_and_rotation_ids: Specify n > 1')
-    sys.exit(1)
+  # if n < 1:
+  #   logger.error('randomly_pick_models_and_rotation_ids: Specify n > 1')
+  #   sys.exit(1)
 
   # Retrieve two look up dictionaries for the models table and the rotation table
   t1         = time.time()
@@ -1194,12 +1224,25 @@ def randomly_pick_models_and_rotation_ids(self):
   print('Fetching two look up dictionaries took {0:.2f} sec'.format(t2-t1))
 
   ids_models = np.array([dic_models[key] for key in list(dic_models.keys())], dtype=np.int32)
-  ids_rot    = np.array([dic_rot[key] for key in list(dic_rot.keys())], dtype=np.int16)
+  
+
+
+
+  # Fix the following line, after all rotating models are put into the database
+
+  # ids_rot    = np.array([dic_rot[key] for key in list(dic_rot.keys())], dtype=np.int16)
+  # ids_rot    = np.array(dic_rot.values(), dtype=np.int16) # the correct one, for all rotations
+  ids_rot    = np.array([1], dtype=np.int16)  # a hack to limit to non-rotaitng models
+
+
+
+
+
   t3         = time.time()
   print('List comprehensions took {0:.2f} sec'.format(t3-t2))
 
   n_mod      = len(ids_models)
-  n_eta      = len(id_rot)
+  n_eta      = len(ids_rot)
 
   t4         = time.time()
   print('Shuffling took {0:.2f} sec'.format(t4-t3))
@@ -1215,8 +1258,11 @@ def randomly_pick_models_and_rotation_ids(self):
 
   print('Total time spent is {0:.2f} sec'.format(t5-t1))
   logger.info('randomly_pick_models_and_rotation_ids: Total time spent is {0:.2f} sec'.format(t5-t1))
-
-  return combo[:n]
+ 
+  if n > 0:
+    return combo[:n]
+  else:
+    return combo
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1287,9 +1333,10 @@ def _convert_features_to_tags(self):
     key_M_ini   = '{0:06.3f}'.format(col_M_ini[k])
     key_fov     = '{0:05.3f}'.format(col_fov[k])
     key_Z       = '{0:05.3f}'.format(col_Z[k])
-    key_logD    = '{0:05.2f}'.format(col_logD[k])
+    key_logD    = '{0:06.3f},{1:05.2f}'.format(col_M_ini[k], col_logD[k])
+    str_logD    = '{0:05.2f}'.format(col_logD[k])
     str_Xc      = '{0:06.4f}'.format(col_Xc[k])
-    key_Xc      = ','.join([key_M_ini, key_fov, key_Z, key_logD, str_Xc])
+    key_Xc      = ','.join([key_M_ini, key_fov, key_Z, str_logD, str_Xc])
 
     try:
       tag_M_ini = dic_M_ini[key_M_ini]
@@ -1340,9 +1387,12 @@ def _convert_tags_to_features(self, tags, feature):
     logger.error('_convert_tags_to_features: The feature:"{0}" is not among valid feature names'.format(feature))
     sys.exit(1)
 
+  if feature == 'Xc':   return self.convert_Xc_tags_to_mean_Xc(tags)
+  if feature == 'logD': return self.convert_logD_tags_to_logD(tags)
+
   if isinstance(tags, np.ndarray): tags = tags.tolist()
 
-  # Get the corresponding dictinary for this feature
+  # Get the corresponding dictinary for M_ini, fov, Z and eta (whose values are iterated independently)
   dic  = self.get_tagging_dictionary(feature)
   dinv = utils.intert_dic_key_value(dic)
   keys = [(tag, ) for tag in tags]
@@ -1351,6 +1401,57 @@ def _convert_tags_to_features(self, tags, feature):
   return vals 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _convert_Xc_tags_to_mean_Xc(self, tags):
+  """
+  For details refer to the method convert_Xc_tags_to_mean_Xc()
+  """
+  # tags = np.array(tags, np.int16)
+  dic  = self.get_tagging_dictionary('Xc')
+  keys = list(dic.keys())  # e.g. '12.345,0.015,0.014,03.27,0.5678'
+  vals = np.array(list(dic.values()))
+  comma= keys[0].rfind(',') + 1
+  Xcs  = np.array([float(key[comma : ]) for key in keys])
+  _tags= np.unique(tags)
+
+  # Get all Xcs for one tag, and find the median of all possible Xcs
+  _dic    = dict()
+  for tag in _tags:
+    ind   = np.where(vals == tag)[0]
+    _Xcs  = Xcs[ind]
+    mean  = np.mean(_Xcs)
+    _dic[(tag, )] = mean
+
+  vals = [_dic[(tag, )] for tag in tags]
+
+  return vals
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _convert_logD_tags_to_logD(self, tags):
+  """
+  
+  """
+  return tags
+  # 
+  # vals = ['None', 'Low', 'Medium', 'High', 'Max']
+  # keys = [(k, ) for k in range(5)]
+  # _dic = dict()
+  # for key, val in zip(keys, vals): _dic[key] = val
 
+  # # Construct a dictionary with 'M_ini,tag_logD' string keys, and logD as values
+  # dic  = self.get_tagging_dictionary('logD')
+  # keys = list(dic.keys())                         # 'M_ini,logD' strings
+  # vals = list(dic.values())
+  # n    = len(vals)
+  # comma= keys[0].rfind(',')
+  # all_M_ini = [key[:comma] for key in keys]       # list of strings
+  # all_logD  = [key[comma + 1 : ] for key in keys] # list of strings
+  # new_keys  = ['{0},{1}'.format(all_M_ini[k], vals[k]) for k in range(n)]
+  # new_vals  = [float(all_logD[k]) for k in range(n)]
+  # _dic      = dict()
+  # for key, val in zip(new_keys, new_vals): _dic[key] = val
+
+
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

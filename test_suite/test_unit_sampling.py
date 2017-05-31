@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 from __future__ import unicode_literals
-import sys, os, glob
+import sys, os, glob, time
 import logging
 import numpy as np 
 
@@ -20,14 +20,13 @@ console.setLevel(logging.INFO)
 
 def main():
 
-  print(' - Load the mode list from a file')
+  logger.info('Start time: {0}'.format(time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())))
+  logger.info('Load the mode list from a file')
   mode_file = '../asamba/stars/KIC_10526294.freq'
 
-  print(' - Get an instance of the "sampling" class.')
+  logger.info('Get an instance of the "sampling" class.')
   TheSample = sampler.sampling()
 
-  print(' - Attach the modes to a star object')
-  # TheStar   = star.star()
   TheSample.set('name', 'KIC_10526294')
 
   TheSample.set('Teff', 11550.)
@@ -43,9 +42,10 @@ def main():
   TheSample.set('dbname', 'grid')
   # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
   TheSample.set('use_constrained_sampling', True)
-  TheSample.set('max_sample_size', 10000)
-  TheSample.set('range_log_Teff', [3.95, 4.11])
-  TheSample.set('range_log_g', [3.9, 4.3])
+  # TheSample.set('use_random_sampling', True)
+  TheSample.set('max_sample_size', 5000)
+  TheSample.set('range_log_Teff', [3.95, 4.11]) # from paper: [3.95, 4.11]
+  TheSample.set('range_log_g', [3.9, 4.3])      # from paper: [3.9, 4.3]
   TheSample.set('range_eta', [0, 0])
 
   # seismic constraints
@@ -64,13 +64,12 @@ def main():
 
   # Get the sample
   learning_x  = TheSample.get('learning_x')
-  print('   Size of the retrieved sample is: "{0}"'.format(TheSample.sample_size))
-  print('   Names of the sampled columns: ', learning_x.dtype.names)
+  logger.info('Size of the retrieved sample is: "{0}"'.format(TheSample.sample_size))
+  logger.info('Names of the sampled columns: ', learning_x.dtype.names)
 
   # Get the corresponding frequencies
   learning_y = TheSample.get('learning_y')
-  print('   Shape of the synthetic frequencies is: ', learning_y.shape) 
-  print()
+  print('Shape of the synthetic frequencies is: ', learning_y.shape, '\n') 
 
   # Plot the histogram of the learning Y sample
   if False:
@@ -86,22 +85,21 @@ def main():
   TheSample.split_learning_sets()
 
   # Print sizes of each learning sets
-  print('   The Training set: X:{0}, Y:{1}'.format(TheSample.training_x.shape, TheSample.training_y.shape))
-  print('   The Cross-Validation set: X:{0}, Y:{1}'.format(TheSample.cross_valid_x.shape, TheSample.cross_valid_y.shape))
-  print('   The Test set: X:{0}, Y:{1}'.format(TheSample.test_x.shape, TheSample.test_y.shape))
-  print() 
+  logger.info('The Training set: X:{0}, Y:{1}'.format(TheSample.training_x.shape, TheSample.training_y.shape))
+  logger.info('The Cross-Validation set: X:{0}, Y:{1}'.format(TheSample.cross_valid_x.shape, TheSample.cross_valid_y.shape))
+  logger.info('The Test set: X:{0}, Y:{1}\n'.format(TheSample.test_x.shape, TheSample.test_y.shape))
 
   # Get the tagged representation of the learning/training/CV/test sets
   TheSample.set('path_Xc_tags_ascii', '../asamba/data/tags/Xc-tags.txt')
   TheSample.convert_features_to_tags()
   learning_tags = TheSample.get('learning_tags')
-  print(learning_x[0])
-  print(learning_tags[0])
 
   return TheSample
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if __name__ == '__main__':
+  logger.info('Start time: {0}'.format(time.strftime("%a, %d %b %Y, %H:%M:%S", time.gmtime())))
   status = main()
+  logger.info('End time:   {0}'.format(time.strftime("%a, %d %b %Y, %H:%M:%S", time.gmtime())))
   sys.exit(status)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -35,7 +35,9 @@ def feature_name_in_latex(name):
   elif name == 'Z':
     latex = r'$Z$'
   elif name == 'logD':
-    latex = r'$\log D_{\rm mix}$ (cm$^2$ sec$^{-1}$)'
+    # latex = r'$\log D_{\rm mix}$ (cm$^2$ sec$^{-1}$)'
+    # latex = r'$\log D_{\rm mix}$'
+    latex = r'Extra Mixing'
   elif name == 'Xc':
     latex = r'$X_{\rm c}$'
   elif name == 'eta':

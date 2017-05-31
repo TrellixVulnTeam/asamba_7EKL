@@ -502,9 +502,25 @@ def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
         - Values: list of Xc tags, where all values are basically integers.
   @rtype: tuple
   """
-  if not os.path.exists(filename):
-    logger.error('Xc_tags_from_ascii: The ASCII file "{0}" does not exist'.format(filename))
+  targz        = filename.replace('.txt', '.tar.gz')
+  txt_exists   = os.path.exists(filename)
+  targz_exists = os.path.exists(targz)
+  extract      = (not txt_exists) and targz_exists
+  stop         = (not txt_exists) and (not targz_exists)
+  if txt_exists:
+    pass
+  elif stop:
+    logger.error('Xc_tags_from_ascii: Neither the .txt or .tar.gz file "{0}" exist'.format(filename))
     sys.exit(1)
+  elif extract:
+    import tarfile
+    with tarfile.open(targz) as this_tar:
+      logger.info('\nXc_tags_from_ascii: Extracting the file: {0}'.format(targz))
+      this_tar.extractall(path=os.path.dirname(filename))
+  else:
+    logger.error('Xc_tags_from_ascii: Unexpected situation occured')
+    sys.exit(1)
+
 
   with open(filename, 'r') as r: lines = r.readlines()
   header = lines.pop(0).rstrip('\r\n').split(',')
@@ -523,6 +539,8 @@ def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):
     str_attr  = line[:comma]
     tag       = int(line[comma+1:])
     dic[str_attr] = tag
+
+  logger.info('Xc_tags_from_ascii: Finished reading the file {0}\n'.format(filename))
 
   return dic 
 
