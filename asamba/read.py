@@ -429,15 +429,15 @@ def read_tracks_parameters_from_ascii(ascii_in):
   return list_tracks
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def sampling_from_h5(filename):
+def sampling_from_h5(filename, dset_name):
   """
   This function reads the learning set from an HDF5 file. It is called by sampler.read_sample_from_hdf5()
-  method, too. Example of use:
+  and sampler.load_sample_from_hdf5() methods, too. Example of use:
 
   >>>from asamba import read
   >>>h5_file = '/home/user/asamba_project/my_star_sampling.h5'
-  >>>(dataset, datatype) = read.sampling_from_h5(filename = h5_file)
-  >>>print(dataset.shape)
+  >>>(learning_x, datatype) = read.sampling_from_h5(filename=h5_file, dset_name='learning_x')
+  >>>print(learning_x.shape)
 
   Notes:
   - To write the sampling data in HDF5 format, one may call the function write.write_samplint_to_h5().
@@ -447,6 +447,8 @@ def sampling_from_h5(filename):
 
   @param filename: full path to an already-available HDF5 file
   @type filename: str
+  @param dset_name: name of the target dataset to be read from the HDF5 file. 
+  @type dset_name: str
   @return: a tuple with the following two elements:
       - dataset: a numpy.ndarray with two dimensions (matrix) of shape m x (n+K), containing m rows 
         of examples, and n+K columns, where n=6 is the number of features (e.g. M_ini, fov, ...), and 
@@ -459,26 +461,24 @@ def sampling_from_h5(filename):
     logger.error('sampling_from_h5: The input file {0} does not exist'.format(filename))
     sys.exit(1)
 
-  _name  = 'learning_set'
   with h5py.File(filename, 'r') as h5: 
-    dset   = h5[_name]
-    data   = h5[_name].value
-    m, n   = data.shape
+    dset_names = h5.keys()
+    if dset_name not in dset_names:
+      logger.error('sampling_from_h5: Dataset name: {0} is unavailable in the HDF5 file'.format(dset_name))
+      sys.exit(1)
+
+    dset   = h5[dset_name]
+    data   = h5[dset_name].value
     dtp    = dset.dtype
     nrows  = dset.attrs['num_rows']
     ncols  = dset.attrs['num_columns']
     cols   = dset.attrs['column_names']
-  try:
-    assert nrows == m 
-    assert ncols == n 
-  except AssertionError:
-    logger.error('sampling_from_h5: The number of rows/columns in dataset are incompatible')
-    sys.exit(1) 
+    if not isinstance(cols, list): cols = list(cols) # for those datasets with only one column
 
   dtype  = [(col, dtp) for col in cols]
 
   logger.info('sampling_from_h5: Done. Dataset has {0} rows, {1} columns, and {2} elements'.format(
-              m, n, data.size))
+              nrows, ncols, data.size))
 
   return (data, dtype)
 

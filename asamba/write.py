@@ -15,22 +15,36 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   """
-  This routine writes the learing_x and learning_y sets compiled from the sampler module as an 
+  This routine writes the sampling datasets compiled from the sampler module as an 
   HDF5 file. This file is useful to export to other users, or save for a specific purpose. The format
-  of the output file is the following: each row corresponds to one learning/training example. 
+  of the output file is the following: each row corresponds to one learning/training example, and the data is 
+  structured as several HDF5 datasets. Using this HDF5 format, the sampling data are very portable,
+  independent of the platform used.
 
-  - Then the first 6 columns correspond to initial mass ('M_ini'), exponential overshooting parameter ('fov'), 
+  The available datasets are the following:
+  - learning_ids_models: has only one column and stores the models.id for each record
+
+  - learning_ids_rot: has only one column and stores the rotation_rate.id for each record
+
+  - learning_x: has 6 columns corresponding to initial mass ('M_ini'), exponential overshooting parameter ('fov'), 
     metallicity ('Z'), logarithm of the extra diffusive mixing ('logD'), age (measured as the core hydrogen
     mass fraction, 'Xc'), and rotation rate w.r.t. the critical break up rotation frequency ('eta').
 
-  - The next K columns correspond to the K frequencies that are selected based on the K modes that the 
-    star exhibits. These columns are labelled as 'f_1', 'f_2', ..., 'f_K'
+  - learning_y: has K columns corresponding to the K frequencies that are selected based on the K modes that the 
+    star exhibits. These columns are labelled as 'f_0', 'f_1', ..., 'f_{K-1}'
+
+  - learning_radial_orders: has K columns corresponding to K frequencies, and takes care of the bookkeeping of the
+    radial order (n_pg) for each mode per each record. These columns are labelled as 'n_0', ..., 'n_{K-1}'
+  
+  - learning_mode_types: has K columns corresponding to K frequencies, and carries the mode type label per each mode
+    per each record. These columns are labelled as 't_0', ..., 't_{K-1}'
 
   - Optionally, the periods can also be included, which is not a very novel inclusion (but good for 
     lazy people). If selected, another K columns will be included corresponding to periods of the modes
-    1 to K. These columns are labelled as 'per_1', 'per_2', ..., 'per_K'
+    1 to K. These columns are labelled as 'per_0', 'per_1', ..., 'per_{K-1}'
 
   Notes: 
   - The dataset which sits at the root group is named *learning_set*, which can be used to retrieve/read the data.
@@ -51,11 +65,17 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
     return False
 
   # retrieve the necessary data
+  idmod = ss.get('learning_ids_models')
+  idrot = ss.get('learning_ids_rot')
+
   x     = ss.get('learning_x')
   y     = ss.get('learning_y')
   names = ss.get('feature_names')
   flag  = ss.get('exclude_eta_column')
   if flag: names.extend(['eta'])
+
+  n_pg  = ss.get('learning_radial_orders')
+  lmt   = ss.get('learning_mode_types')
 
   # sizes of the data
   mx, n = x.shape
@@ -67,37 +87,62 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
     logger.error('write_sampling_to_h5: The X and Y matrixes have different number of rows!')
     return False
 
-  f_names = ['f_{0}'.format(k) for k in range(K)]
+  f_names = ['f_{0}'.format(k) for k in range(K)]   # for learning_y
   p_names = ['per_{0}'.format(k) for k in range(K)] if include_periods else []
-  _names  = names + f_names + p_names
-  types   = np.dtype( [(_name, 'f4') for _name in _names] )
-  ncol    = len(_names)
+  n_names = ['n_{0}'.format(k) for k in range(K)]   # for learning_radial_orders
+  t_names = ['t_{0}'.format(k) for k in range(K)]   # for learning_mode_types
 
-  # load the data matrix with the correct columns
-  arrs     = [x]
-  if flag:  # eta column is not in x, so we put a column of zeros instead
-    arrs.append(np.zeros((mx, 1)))
-  arrs.append(y)
-  if include_periods:
-    arrs.append(1.0/y)
-  data = np.concatenate(arrs, axis=1)
-
-  # print(_names)
-  # print(len(_names))
-  # print(type(_names))
-  # print(type(_names[0]))
-  # sys.exit()
-
-  # dump the data down now as a HDF5 file
+  # dump the data down now as a HDF5 file as different datasets
   with h5py.File(h5_out, 'w') as h5:
-    name = 'learning_set'
-    dset = h5.create_dataset(name, data=data, shape=data.shape, dtype='f4', 
+    # learning_ids_models
+    dset_i = h5.create_dataset('learning_ids_models', data=idmod, shape=idmod.shape, dtype=int,
               compression='gzip', compression_opts=9)
+    dset_i.attrs['num_rows']    = idmod.shape[0]
+    dset_i.attrs['num_columns'] = 1
+    dset_i.attrs['column_names']= np.array(['id_model'], 'S6')
 
-    # Attributes
-    dset.attrs['num_rows']     = mx 
-    dset.attrs['num_columns']  = ncol
-    dset.attrs['column_names'] = np.array(_names, 'S6')
+    # learning_ids_rot
+    dset_r = h5.create_dataset('learning_ids_rot', data=idrot, shape=idrot.shape, dtype=np.int16,
+              compression='gzip', compression_opts=9)
+    dset_r.attrs['num_rows']    = idrot.shape[0]
+    dset_r.attrs['num_columns'] = 1
+    dset_r.attrs['column_names']= np.array(['id_rot'], 'S6')
+
+    # learning_radial_orders
+    dset_n = h5.create_dataset('learning_radial_orders', data=n_pg, shape=n_pg.shape, dtype=np.int32,
+              compression='gzip', compression_opts=9)
+    dset_n.attrs['num_rows']    = n_pg.shape[0]
+    dset_n.attrs['num_columns'] = n_pg.shape[1]
+    dset_n.attrs['column_names']= np.array(n_names, 'S6')
+
+    # learning_mode_types
+    dset_t = h5.create_dataset('learning_mode_types', data=lmt, shape=lmt.shape, dtype=np.int16,
+              compression='gzip', compression_opts=9)
+    dset_t.attrs['num_rows']    = lmt.shape[0]
+    dset_t.attrs['num_columns'] = lmt.shape[1]
+    dset_t.attrs['column_names']= np.array(t_names, 'S6')
+
+    # Learning set for features
+    dset_x = h5.create_dataset('learning_x', data=x, shape=x.shape, dtype='f4', 
+              compression='gzip', compression_opts=9)
+    dset_x.attrs['num_rows']     = mx 
+    dset_x.attrs['num_columns']  = len(names)
+    dset_x.attrs['column_names'] = np.array(names, 'S6')
+
+    # Learning set for frequencies
+    dset_y = h5.create_dataset('learning_y', data=y, shape=y.shape, dtype='f4', 
+              compression='gzip', compression_opts=9)
+    dset_y.attrs['num_rows']     = my
+    dset_y.attrs['num_columns']  = K
+    dset_y.attrs['column_names'] = np.array(f_names, 'S6')
+
+    # Learning set for periods
+    if include_periods:
+      dset_p = h5.create_dataset('learning_periods', data=1.0/y, shape=y.shape, dtype='f4', 
+                compression='gzip', compression_opts=9)
+      dset_p.attrs['num_rows']     = my
+      dset_p.attrs['num_columns']  = K
+      dset_p.attrs['column_names'] = np.array(p_names, 'S6')
 
   logger.info('write_sampling_to_h5: saved {0}'.format(h5_out))
 

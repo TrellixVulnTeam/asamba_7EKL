@@ -540,7 +540,16 @@ class sampling(star.star):
     This function reads the training data from an HDF5 file, and returnes an ndarray matrix with 
     """
     return read.sampling_from_h5(self, filename)
-    
+
+  ##########################
+  def load_sample_from_hdf5(self, filename):
+    """
+    This function reads the training data from an HDF5 file (using the read_sample_from_hdf5() method), and 
+    then loads the attribute values and the frequency values as learning_x and learning_y attributes of the 
+    sampling object.
+    """
+    _load_sample_from_hdf5(self, filename)
+
   ##########################
   def convert_features_to_tags(self):
     """
@@ -974,7 +983,7 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
 
     logger.info('_extract_gyre_modes_from_id_model_id_rot: "{0}" models extracted\n'.format(len(rows_keep)))
 
-    return rows_keep, model_keep, rows_keep, rec_keep
+    return rows_keep, model_keep, rot_keep, rec_keep
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes(self, rec_gyre, dic_mode_types):
@@ -1356,7 +1365,41 @@ def randomly_pick_models_and_rotation_ids(self):
     return combo
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def ـload_sample_from_hdf5(self, filename):
+  """
+  For more information, refer to the documentation below the load_sample_from_hdf5() method.
+  """
+  (data, dtype)   = self.read_sample_from_hdf5(filename=filename)
+  nrows, ncols    = data.shape
+  names           = [tup[0] for tup in dtype]
+  freq_names      = [name for name in names if 'f_' in name]
+  per_names       = [name for name in names if 'per_' in name]
+  last_names      = freq_names + per_names
+  feature_names   = [name for name in names if name not in last_names]
+  self.set('feature_names', feature_names)
 
+  include_periods = len(per_names) > 0
+  n_features      = 6
+  num_freqs       = (ncols - n_features)/2 if include_periods else ncols - n_features
+  slice_features  = slice(0, n_features)
+  slice_freq      = slice(n_features, n_features + num_freqs)
+  learning_x      = data[:, slice_features]
+  learning_y      = data[:, slice_freq]
+
+  self.set('learning_x', learning_x)
+  self.set('sample_size', len(learning_x))
+  uniq_eta        = np.unique(learning_x[:, 5])
+  exclude_eta     = len(uniq_eta) > 1
+  self.set('exclude_eta_column', exclude_eta)
+  num_features    = 5 if exclude_eta else 6
+  self.set('num_features', num_features)
+
+  self.set('learning_y', learning_y)
+  # self.set('learning_radial_orders', mtrx_n_pg)
+  # self.set('learning_mode_types', mtrx_types)
+
+  # self.set('learning_ids_models', np.array( model_keep ))
+  # self.set('learning_ids_rot', np.array( rot_keep ))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # T A G G I N G
