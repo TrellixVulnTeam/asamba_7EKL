@@ -40,17 +40,26 @@ def main():
   TheSample.load_modes_from_file(filename=mode_file, delimiter=',')
 
   TheSample.set('dbname', 'grid')
-  # TheSample.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
-  TheSample.set('use_constrained_sampling', True)
+
+  TheSample.set('use_6D_feature_box', True)
+  # TheSample.set('use_constrained_sampling', True)
   # TheSample.set('use_random_sampling', True)
-  TheSample.set('max_sample_size', 5000)
-  TheSample.set('range_log_Teff', [3.95, 4.11]) # from paper: [3.95, 4.11]
-  TheSample.set('range_log_g', [3.9, 4.3])      # from paper: [3.9, 4.3]
+
+  # TheSample.set('range_log_Teff', [3.95, 4.11]) # from paper: [3.95, 4.11]
+  # TheSample.set('range_log_g', [3.9, 4.3])      # from paper: [3.9, 4.3]
+
+  TheSample.set('range_M_ini', [2.5, 5])
+  TheSample.set('range_fov', [0, 0.04])
+  TheSample.set('range_Z', [0.009, 0.02])
+  TheSample.set('range_logD', [0, 7])
+  TheSample.set('range_Xc', [0.3, 0.71])
   TheSample.set('range_eta', [0, 0])
 
   # seismic constraints
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
+  # Set the maximum of returned sample size
+  # TheSample.set('max_sample_size', 500)
   # search plan for matching frequencies
   TheSample.set('sampling_shuffle', True)
   TheSample.set('search_strictly_for_dP', True)
@@ -61,6 +70,8 @@ def main():
 
   # Now, build the learning sets
   TheSample.build_learning_set()
+
+  TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/del.h5', include_periods=True)
 
   # Get the sample
   learning_x  = TheSample.get('learning_x')

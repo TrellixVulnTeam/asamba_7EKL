@@ -18,6 +18,35 @@ logger  = logging.getLogger(__name__)
 is_py3x = sys.version_info[0] >= 3
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def feature_name_in_layman(name, short=True):
+  """
+  Return the layman-term representation of the feature names. This is majorly used for setting the axis 
+  names in plotting routines.
+  
+  @param name: one of the names from self.feature_names
+  @type name: str
+  @return: raw string in LaTeX format, e.g. r'$Z$' if name=='Z'
+  @rtype: str
+  """
+  if name == 'M_ini':
+    latex = r'Mass' if short else r'Initial Mass'
+  elif name == 'fov':
+    latex = r'Overshoot'if short else r'Core Overshooting'
+  elif name == 'Z':
+    latex = 'Metallicity'
+  elif name == 'logD':
+    latex = r'Extra Mixing' if short else r'$\log_{10}$(Extra Mixing)'
+  elif name == 'Xc':
+    latex = r'Core H' if short else r'Core Hydrogen [$\%$]'
+  elif name == 'eta':
+    latex = r'Spin Rate' if short else r'Rotation Rate [$\%$]'
+  else:
+    logger.warning('feature_name_in_layman: name:"{0}" is invalid'.format(name))
+    latex = None 
+
+  return latex
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def feature_name_in_latex(name):
   """
   Return the LaTeX representation of the feature names. This is majorly used for setting the axis 

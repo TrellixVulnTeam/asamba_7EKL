@@ -65,6 +65,8 @@ class neural_net(sampler.sampling):
     #.............................
     # Maximum a posteriori (MAP)
     #.............................
+    # The status of the MAP algorithm
+    self.MAP_done = False
     # Working feature matrix for MAP
     self.MAP_work_features = 0
     # Working frequency matrix for MAP
@@ -255,6 +257,7 @@ class neural_net(sampler.sampling):
     @type self: obj
     """
     _max_a_posteriori(self)
+    self.set('MAP_done', True)
 
   ##########################
   def marginalize_wrt_x_y(self, wrt_x, wrt_y):

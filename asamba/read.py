@@ -134,7 +134,6 @@ def read_inlist(filename):
   return options
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 def modes_from_file(filename, delimiter=''):
   """
   Load a file, and insert all meaningful columns in the file (i.e. those that have the same header name
@@ -461,14 +460,27 @@ def sampling_from_h5(filename):
     sys.exit(1)
 
   _name  = 'learning_set'
-  with h5py.File(filename, 'r') as h5: dset = h5[_name].value
-  m, n   = dset.shape
-  dtype  = dset.dtype
+  with h5py.File(filename, 'r') as h5: 
+    dset   = h5[_name]
+    data   = h5[_name].value
+    m, n   = data.shape
+    dtp    = dset.dtype
+    nrows  = dset.attrs['num_rows']
+    ncols  = dset.attrs['num_columns']
+    cols   = dset.attrs['column_names']
+  try:
+    assert nrows == m 
+    assert ncols == n 
+  except AssertionError:
+    logger.error('sampling_from_h5: The number of rows/columns in dataset are incompatible')
+    sys.exit(1) 
+
+  dtype  = [(col, dtp) for col in cols]
 
   logger.info('sampling_from_h5: Done. Dataset has {0} rows, {1} columns, and {2} elements'.format(
-              m, n, dset.size))
+              m, n, data.size))
 
-  return (dset, dtype)
+  return (data, dtype)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def Xc_tags_from_ascii(filename='data/tags/Xc-tags.txt'):

@@ -57,10 +57,12 @@ class sampling(star.star):
     # The database to retrieve samples from
     self.dbname = ''
     # which sampling function? Two options are:
+    self.use_6D_feature_box       = False
     self.use_constrained_sampling = False
-    self.use_random_sampling = False
+    self.use_random_sampling      = False
+    # 'pick_from_6D_feature_box'
     # 'randomly_pick_models_and_rotation_ids'   OR  
-    # 'constrained_pick_models_and_rotation_ids'
+    # 'constrained_pick_models_and_rotation_ids' 
     self.sampling_func_name = ''
     # Sampling function 
     self.sampling_func = None
@@ -69,11 +71,21 @@ class sampling(star.star):
     # Maximum sample size to slice from all possible combinations
     self.max_sample_size = -1
     # The range in log_Teff to constrain 
-    self.range_log_Teff = [-1, -1]
+    self.range_log_Teff = []
     # The range in log_g to constrain
-    self.range_log_g = [-1, -1]
+    self.range_log_g = []
+    # The range in initial mass
+    self.range_M_ini = []
+    # The range in overshooting
+    self.range_fov   = []
+    # The range in metallicity
+    self.range_Z     = []
+    # The range in log extra diffusive mixing
+    self.range_logD  = []
+    # The range in core hydrogen mass fraction
+    self.range_Xc    = [] 
     # The range in rotation rate (percentage)
-    self.range_eta = [-1, -1]
+    self.range_eta   = []
 
     #.............................
     # Return of the basic search
@@ -527,7 +539,7 @@ class sampling(star.star):
     """
     This function reads the training data from an HDF5 file, and returnes an ndarray matrix with 
     """
-    return read.read_sampling_from_h5(self, filename)
+    return read.sampling_from_h5(self, filename)
     
   ##########################
   def convert_features_to_tags(self):
@@ -725,7 +737,7 @@ def _build_learning_sets(self):
     logger.error('_build_learning_sets: specify "dbname" attribute of the class')
     sys.exit(1)
 
-  choices   = [self.use_constrained_sampling, self.use_random_sampling]
+  choices   = [self.use_6D_feature_box, self.use_constrained_sampling, self.use_random_sampling]
   n_choices = np.sum(np.array(choices)*1)
   if n_choices != 1:
     logger.error('_build_learning_sets: Choose either use_constrained_sampling or use_random_sampling')
@@ -738,17 +750,20 @@ def _build_learning_sets(self):
   logger.info('\n_build_learning_sets: Starting ...')
   
   # Get the list of tuples for the (id_model, id_rot) to fetch model attributes
-  if self.use_constrained_sampling:
+  if self.use_6D_feature_box:
+    #
+    self.set('sampling_func_name', 'pick_from_6D_feature_box')
+    tups_ids = pick_from_6D_feature_box(self)
+    logger.info('_build_learning_sets: pick_from_6D_feature_box() succeeded')
 
-    if not self.range_log_Teff or not self.range_log_g or not self.range_eta:
-      logger.error('_build_learning_sets: specify "ranges" properly')
-      sys.exit(1)
-
+  elif self.use_constrained_sampling:
+    #
     self.set('sampling_func_name', 'constrained_pick_models_and_rotation_ids')
     tups_ids = constrained_pick_models_and_rotation_ids(self) 
     logger.info('_build_learning_sets: constrained_pick_models_and_rotation_ids() succeeded')
 
   elif self.use_random_sampling:
+    #
     self.set('sampling_func_name', 'randomly_pick_models_and_rotation_ids')
     tups_ids = randomly_pick_models_and_rotation_ids(self)
     logger.info('_build_learning_sets: randomly_pick_models_and_rotation_ids succeeded')
@@ -1110,6 +1125,86 @@ def _trim_modes_by_df(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def pick_from_6D_feature_box(self):
+  """
+  Return a combination of "models" id and "rotation_rate" id by applying constraints on initial mass,
+  overshoot parameter fov, metallicity Z, logarithm of diffusive mixing logD, core hydrogen mass 
+  fraction Xc, and the rotation rates eta (in percentage). The input constraints are attributes of the 
+  sampling() class, and are accessed as e.g. range_M_ini, range_fov, ..., range_eta. See the other 
+  sampling functions below.
+
+  Notes:
+  - the constraint ranges are inclusive. 
+  - the results are fetched firectly from executing a SQL query
+  - the combination of the models and rotation rates are shuffled if specified
+
+  @param self: an instance of the sampler.sampling() class 
+  @type self: object
+  @return: None
+  @rtype: None  
+  """
+  dbname      = self.get('dbname')
+  n           = self.get('max_sample_size')
+  range_M_ini = self.get('range_M_ini')
+  range_fov   = self.get('range_fov')
+  range_Z     = self.get('range_Z')
+  range_logD  = self.get('range_logD')
+  range_Xc    = self.get('range_Xc')
+  range_eta   = self.get('range_eta')
+  ranges      = [range_M_ini, range_fov, range_Z, range_logD, range_Xc, range_eta]
+  for k, _range in enumerate(ranges):
+    if not isinstance(_range, list):
+      logger.error('pick_from_6D_feature_box: range for the {0}-th feature is not a list'.format(k+1))
+      sys.exit(1)
+    if len(_range) != 2:
+      logger.error('pick_from_6D_feature_box: range for the {0}-th feature needs 2 elements!'.format(k+1))
+      sys.exit(1)
+  
+  # Prepare the queries to get models.id and rotation_rates.id
+  q_models_id = query.get_models_id_from_M_ini_fov_Z_logD_Xc(
+                      M_ini_range=range_M_ini, 
+                      fov_range=range_fov, Z_range=range_Z, 
+                      logD_range=range_logD, 
+                      Xc_range=range_Xc)
+
+  q_rot_id    = query.with_constraints(dbname=dbname, table='rotation_rates',
+                            returned_columns=['id'], 
+                            constraints_keys=['eta'],
+                            constraints_ranges=[range_eta])
+
+  # Execute the queries and fetch the relevant models
+  with db_def.grid_db(dbname=dbname) as the_db:
+    the_db.execute_one(q_models_id, None)
+    ids_models = [tup[0] for tup in the_db.fetch_all()]
+    n_models   = len(ids_models)
+    if n_models == 0:
+      logger.error('pick_from_6D_feature_box: Found no matching models.')
+      sys.exit(1)
+  
+    # Execute the query for rotation rates
+    the_db.execute_one(q_rot_id, None)
+    ids_rot    = [tup[0] for tup in the_db.fetch_all()]
+    n_rot      = len(ids_rot)
+    if n_rot   == 0:
+      logger.error('pick_from_6D_feature_box: Found no matching rotation rates')
+      sys.exit(1)
+
+  combo      = [] 
+  for id_rot in ids_rot:
+    combo.extend( [(id_model, id_rot) for id_model in ids_models] )
+  nc         = len(combo)
+
+  logger.info('pick_from_6D_feature_box: "{0}" models fulfil the sampling criterion'.format(nc))
+  
+  if self.sampling_shuffle:
+    np.random.shuffle(combo)
+
+  if n > 0:
+    return combo[:n]
+  else:
+    return combo
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def constrained_pick_models_and_rotation_ids(self): 
   """
   Return a combination of "models" id and "rotation_rate" id by applying constraints on log_Teff,
@@ -1119,31 +1214,22 @@ def constrained_pick_models_and_rotation_ids(self):
   Notes:
   - the constraint ranges are inclusive. 
   - the results are fetched firectly from executing a SQL query
-  - the combination of the models and rotation rates are shuffled
-  
-  Example of calling:
-  >>>
+  - the combination of the models and rotation rates are shuffled if specified
 
-  @param dbname: the name of the database
-  @type dbname: str
-  @param n: the *maximum* number of models to retrieve
-  @type n: int
-  @param range_log_Teff: the lower and upper range of log_Teff to scan the database. Default: [3.5, 5]
-  @type range_log_Teff: list/tuple
-  @param range_log_g: the lower and upper range of log_g to scan the database. Default: [0, 5]
-  @type range_log_g: list/tuple
-  @param range_eta: The range of rotation rates (in percentage w.r.t to critical, e.g. 15). 
-         Default: [0, 50]
-  @type range_eta: list/tuple
-  @return: a shuffled list of 2-element tuples, with the first element being the model id, and the
-         second element being the rotation_rate id.
-  @rtype: list of tuples
+  @param self: an instance of the sampler.sampling() class 
+  @type self: object
+  @return: None
+  @rtype: None
   """
   dbname         = self.get('dbname')
   n              = self.get('max_sample_size')
   range_log_Teff = self.get('range_log_Teff')
   range_log_g    = self.get('range_log_g')
   range_eta      = self.get('range_eta')
+
+  if not self.range_log_Teff or not self.range_log_g or not self.range_eta:
+    logger.error('constrained_pick_models_and_rotation_ids: "ranges" must be lists')
+    sys.exit(1)
 
   if not (len(range_log_Teff) == len(range_log_g) == len(range_eta) == 2):
     logger.error('constrained_pick_models_and_rotation_ids: Input "range" lists must have size = 2')
@@ -1168,7 +1254,7 @@ def constrained_pick_models_and_rotation_ids(self):
     n_mod    = len(ids_models)
     if n_mod == 0:
       logger.error('constrained_pick_models_and_rotation_ids: Found no matching models.')
-      sys.exit()
+      sys.exit(1)
 
     # Execute the query for rotation rates
     the_db.execute_one(q_rot, None)
@@ -1181,7 +1267,10 @@ def constrained_pick_models_and_rotation_ids(self):
   combo      = [] 
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
-  
+  nc         = len(combo)
+
+  logger.info('constrained_pick_models_and_rotation_ids: "{0}" models fulfil the sampling criterion'.format(nc))
+
   if self.sampling_shuffle:
     np.random.shuffle(combo)
 
@@ -1221,7 +1310,7 @@ def randomly_pick_models_and_rotation_ids(self):
   dic_models = db_lib.get_dic_look_up_models_id(dbname_or_dbobj=dbname)
   dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(dbname_or_dbobj=dbname)
   t2         = time.time()
-  print('Fetching two look up dictionaries took {0:.2f} sec'.format(t2-t1))
+  # print('Fetching two look up dictionaries took {0:.2f} sec'.format(t2-t1))
 
   ids_models = np.array([dic_models[key] for key in list(dic_models.keys())], dtype=np.int32)
   
@@ -1231,33 +1320,35 @@ def randomly_pick_models_and_rotation_ids(self):
   # Fix the following line, after all rotating models are put into the database
 
   # ids_rot    = np.array([dic_rot[key] for key in list(dic_rot.keys())], dtype=np.int16)
-  # ids_rot    = np.array(dic_rot.values(), dtype=np.int16) # the correct one, for all rotations
-  ids_rot    = np.array([1], dtype=np.int16)  # a hack to limit to non-rotaitng models
+  ids_rot    = np.array(dic_rot.values(), dtype=np.int16) # the correct one, for all rotations
+  # ids_rot    = np.array([1], dtype=np.int16)  # a hack to limit to non-rotaitng models
 
 
 
 
 
   t3         = time.time()
-  print('List comprehensions took {0:.2f} sec'.format(t3-t2))
+  # print('List comprehensions took {0:.2f} sec'.format(t3-t2))
 
   n_mod      = len(ids_models)
   n_eta      = len(ids_rot)
 
   t4         = time.time()
-  print('Shuffling took {0:.2f} sec'.format(t4-t3))
+  # print('Shuffling took {0:.2f} sec'.format(t4-t3))
   combo      = []
   for id_rot in ids_rot:
     combo.extend( [(id_model, id_rot) for id_model in ids_models] )
 
   if self.sampling_shuffle:
     np.random.shuffle(combo)
+  nc         = len(combo)
 
   t5         = time.time()
-  print('The combo list took {0:.2f} sec'.format(t5-t4))
+  # print('The combo list took {0:.2f} sec'.format(t5-t4))
 
-  print('Total time spent is {0:.2f} sec'.format(t5-t1))
-  logger.info('randomly_pick_models_and_rotation_ids: Total time spent is {0:.2f} sec'.format(t5-t1))
+  # print('Total time spent is {0:.2f} sec'.format(t5-t1))
+  # logger.info('randomly_pick_models_and_rotation_ids: Total time spent is {0:.2f} sec'.format(t5-t1))
+  logger.info('randomly_pick_models_and_rotation_ids: "{0}" models fulfil the sampling criterion'.format(nc))
  
   if n > 0:
     return combo[:n]

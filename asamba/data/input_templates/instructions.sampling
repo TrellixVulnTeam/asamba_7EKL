@@ -2,8 +2,9 @@
 # The basic search constraints
 #.............................
 # which sampling function? Choose one    
+use_6D_feature_box       = False
 use_constrained_sampling = False
-use_random_sampling = False
+use_random_sampling      = False
 
 # shuffle the sample
 sampling_shuffle = True
@@ -17,8 +18,23 @@ range_log_Teff = [-1, -1]
 # The range in log_g to constrain
 range_log_g = [-1, -1]
 
+# The range in initial mass
+range_M_ini = []
+
+# The range in overshooting
+range_fov   = []
+
+# The range in metallicity
+range_Z     = []
+
+# The range in log extra diffusive mixing
+range_logD  = []
+
+# The range in core hydrogen mass fraction
+range_Xc    = [] 
+
 # The range in rotation rate (percentage)
-range_eta = [-1, -1]
+range_eta   = []
 
 #.............................
 # The resulting sample of attributes

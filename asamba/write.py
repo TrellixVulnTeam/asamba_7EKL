@@ -71,6 +71,7 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   p_names = ['per_{0}'.format(k) for k in range(K)] if include_periods else []
   _names  = names + f_names + p_names
   types   = np.dtype( [(_name, 'f4') for _name in _names] )
+  ncol    = len(_names)
 
   # load the data matrix with the correct columns
   arrs     = [x]
@@ -81,11 +82,22 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
     arrs.append(1.0/y)
   data = np.concatenate(arrs, axis=1)
 
+  # print(_names)
+  # print(len(_names))
+  # print(type(_names))
+  # print(type(_names[0]))
+  # sys.exit()
+
   # dump the data down now as a HDF5 file
   with h5py.File(h5_out, 'w') as h5:
     name = 'learning_set'
-    dset = h5.create_dataset(name, data=data.astype(types), shape=data.shape, 
-                             compression='gzip', compression_opts=9)
+    dset = h5.create_dataset(name, data=data, shape=data.shape, dtype='f4', 
+              compression='gzip', compression_opts=9)
+
+    # Attributes
+    dset.attrs['num_rows']     = mx 
+    dset.attrs['num_columns']  = ncol
+    dset.attrs['column_names'] = np.array(_names, 'S6')
 
   logger.info('write_sampling_to_h5: saved {0}'.format(h5_out))
 

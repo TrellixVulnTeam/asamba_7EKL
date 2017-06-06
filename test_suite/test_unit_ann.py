@@ -69,7 +69,7 @@ def main():
   # Maximum a posteriori analysis
   # TheANN.set('MAP_use_log_Teff_log_g_prior', True)
   TheANN.set('MAP_uniform_prior', True)
-  TheANN.set('frequency_sigma_factor', 1000.)
+  TheANN.set('frequency_sigma_factor', 10.)
   TheANN.set('rescale_ln_probabilities', True)
   MAP       = TheANN.max_a_posteriori()
   
@@ -88,17 +88,22 @@ def main():
   print(TheANN.get('MAP_radial_orders'), '\n')
 
   if True:
+    n_catch = 0
     all_n_pg= TheANN.get('learning_radial_orders')
     Catch   = False
     for k, row in enumerate(all_n_pg):
       diffs = row[1:] - row[:-1]
       if np.mean(diffs) != 1:
         Catch = True
-        print(k, row)
+        n_catch += 1
+        # print(k, row)
     if Catch:
-      logging.warning('At least one instance found where n_pg are not contiguous \n')
+      logging.warning('"{0}" instances found where n_pg are not contiguous \n'.format(n_catch))
     else:
       logging.info('All radial orders in the learning set are contiguous \n')
+
+  if True:
+    plot_ann.show_MAP_frequencies(TheANN, 'plots/KIC-10526294-MAP-freqs.png')
   
   print('\n - Marginalized features') 
   TheANN.marginalize()
@@ -118,7 +123,7 @@ def main():
   if True:
     plot_ann.all_marginal_1D(TheANN, 'plots/KIC-10526294-marg1D.png')
 
-  if False:
+  if True:
     plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='fov', figure_name='plots/KIC-10526294-marg2D-Mini-fov.png')
     plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='logD', figure_name='plots/KIC-10526294-marg2D-Mini-logD.png')
     plot_ann.marginal_2D(TheANN, wrt_x='M_ini', wrt_y='Xc', figure_name='plots/KIC-10526294-marg2D-Mini-Xc.png')

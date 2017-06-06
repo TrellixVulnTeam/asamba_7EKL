@@ -97,7 +97,7 @@ def corner(self, figure_name):
       if jax == 0:
         if wrt_y == 'fov': ax.yaxis.set_ticks(np.unique(y)[::2])
         if wrt_y == 'Z':   ax.yaxis.set_ticks(np.unique(y)) 
-        if wrt_y == 'Xc':  ax.yaxis.set_ticks(np.linspace(min(y), max(y), 4))
+        if wrt_y == 'Xc':  ax.yaxis.set_ticks(np.linspace(0, 0.71, 5))
         if wrt_y == 'logD':
           ax.yaxis.set_ticks(range(5))
           ax.set_yticklabels(logD_ticks, rotation=45, fontsize='x-small')
@@ -111,7 +111,7 @@ def corner(self, figure_name):
       if iax == n-1: 
         if wrt_x == 'fov': ax.xaxis.set_ticks(np.unique(x)[::2])
         if wrt_x == 'Z':   ax.xaxis.set_ticks(np.unique(x)) 
-        if wrt_x == 'Xc':  ax.xaxis.set_ticks(np.linspace(min(x), max(x), 4))
+        if wrt_x == 'Xc':  ax.xaxis.set_ticks(np.linspace(0, 0.71, 5))
         if wrt_x == 'logD':
           ax.xaxis.set_ticks(range(5))
           ax.set_xticklabels(logD_ticks, rotation=45, fontsize='x-small')
@@ -214,7 +214,8 @@ def all_marginal_1D(self, figure_name):
 
     ax.plot(x_marg, prob, marker='o', linestyle='solid', color='grey', ms=4)
 
-    ax.set_xlabel(utils.feature_name_in_latex(wrt))
+    # ax.set_xlabel(utils.feature_name_in_latex(wrt))
+    ax.set_xlabel(utils.feature_name_in_layman(name=wrt, short=False))
 
     # Cosmetics
     if wrt == 'logD': 
@@ -223,10 +224,51 @@ def all_marginal_1D(self, figure_name):
 
     if wrt == 'fov': ax.xaxis.set_ticks(np.unique(x_marg)[::2])
     if wrt == 'Z':   ax.xaxis.set_ticks(np.unique(x_marg)) 
-    if wrt == 'Xc':  ax.xaxis.set_ticks(np.linspace(min(x_marg), max(x_marg), 4))
+    if wrt == 'Xc':  
+      ax.xaxis.set_ticks(np.linspace(0, 0.71, 5))
+      for item in ax.get_xticklabels(): item.set_rotation(45)
+
+  if self.exclude_eta_column:
+    ax     = arr_ax[-1]
+    ax.set_axis_off()
 
   plt.savefig(figure_name)
   logger.info('all_marginal_1D: saved {0}'.format(figure_name))
+  plt.close()
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def show_MAP_frequencies(self, figure_name):
+  """
+  Compare the frequencies of the maximum a posteriori model with the observations. This will graphically
+  show how well we are able to reproduce the observations given our fixed grid of models.
+  """
+  if not self.get('MAP_done'): return
+
+  modes = self.get('modes')  
+  obs_freq = np.array([mode.freq for mode in modes]) # unit: per day
+  d_freq   = obs_freq[1:] - obs_freq[:-1]
+
+  # MAP_names = self.get('feature_names')
+  # MAP_features = self.get('MAP_feature')
+  MAP_freq  = self.get('MAP_frequencies')
+
+  fig, ax = plt.subplots(1, figsize=(4,3), tight_layout=True)
+
+  for k, freq in enumerate(obs_freq):
+    ax.axvline(x=freq, ymin=0, ymax=1, linestyle='solid', color='r', lw=2)
+    ax.axvline(x=MAP_freq[k], ymin=0, ymax=0.8, linestyle='dashed', color='k', lw=1)
+
+  # Axis cosmetics
+  ax.set_ylim(0, 1.2)
+  ax.set_yticklabels(())
+  ax.set_xlabel(r'Frequency (per day)')
+  # Legend
+  ax.plot([], [], linestyle='solid', lw=4, color='r', label='Observed')
+  ax.plot([], [], linestyle='dashed', lw=2, color='k', label='Model')
+  leg = ax.legend(loc=1)
+
+  plt.savefig(figure_name)
+  logger.info('show_MAP_frequencies: saved {0}'.format(figure_name))
   plt.close()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
