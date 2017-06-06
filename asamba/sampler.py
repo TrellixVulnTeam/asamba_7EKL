@@ -535,11 +535,32 @@ class sampling(star.star):
     return write.write_sampling_to_h5(self, filename, include_periods=include_periods) 
 
   ##########################
-  def read_sample_from_hdf5(self, filename):
+  def read_sample_from_hdf5(self, filename, dset_name):
     """
-    This function reads the training data from an HDF5 file, and returnes an ndarray matrix with 
+    This function reads a specific dataset from the training data in an HDF5 file, and returnes an 
+    ndarray matrix together with the corresponding datatype. In fact, this method is just a wrapper around
+    read.sampling_from_h5().
+
+    @param self: an instance of the "sampler.sampling" class
+    @type self: object
+    @param filename: the full path to the .h5 file that contains the sampling datasets
+    @type filename: str
+    @param dset_name: the name of the dataset to retrieve. Note that currently, the following datasets
+          are valid:
+          - 'learning_ids_models', 
+          - 'learning_ids_rot', 
+          - 'learning_mode_types', 
+          - 'learning_periods', 
+          - 'learning_radial_orders', 
+          - 'learning_x', and 
+          - 'learning_y
+    @type dset_name: str
+    @return: tuple with two elements: 
+          - the dataset as a numpy array (of different types)
+          - dtype object. 
+    @rtype: tuple
     """
-    return read.sampling_from_h5(self, filename)
+    return read.sampling_from_h5(filename, dset_name)
 
   ##########################
   def load_sample_from_hdf5(self, filename):
@@ -676,7 +697,7 @@ def _split_learning_sets(self):
     sys.exit(1)
 
   if not all(0 <= p <= 1 for p in percentages):
-    logger.error('_split_learning_sets: All three self.*_percentage must be set between 0 and 100')
+    logger.error('_split_learning_sets: All three self.*_percentage must be set between 0 and 1')
     sys.exit(1)
 
   if np.abs(1-(p_train + p_cv + p_test)) > 1e-5:
@@ -697,7 +718,7 @@ def _split_learning_sets(self):
 
   # Make randomly shuffled indixes for slicing
   ind_learn   = np.arange(n_learn)
-  np.random.shuffle(ind_learn)
+  # np.random.shuffle(ind_learn)
 
   # reset various arrays according to the new indixes
   self.set('ids_models', self.ids_models[ind_learn])
@@ -1365,41 +1386,54 @@ def randomly_pick_models_and_rotation_ids(self):
     return combo
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def ـload_sample_from_hdf5(self, filename):
+def _load_sample_from_hdf5(self, filename):
   """
   For more information, refer to the documentation below the load_sample_from_hdf5() method.
   """
-  (data, dtype)   = self.read_sample_from_hdf5(filename=filename)
-  nrows, ncols    = data.shape
-  names           = [tup[0] for tup in dtype]
-  freq_names      = [name for name in names if 'f_' in name]
-  per_names       = [name for name in names if 'per_' in name]
-  last_names      = freq_names + per_names
-  feature_names   = [name for name in names if name not in last_names]
-  self.set('feature_names', feature_names)
-
-  include_periods = len(per_names) > 0
-  n_features      = 6
-  num_freqs       = (ncols - n_features)/2 if include_periods else ncols - n_features
-  slice_features  = slice(0, n_features)
-  slice_freq      = slice(n_features, n_features + num_freqs)
-  learning_x      = data[:, slice_features]
-  learning_y      = data[:, slice_freq]
-
-  self.set('learning_x', learning_x)
-  self.set('sample_size', len(learning_x))
-  uniq_eta        = np.unique(learning_x[:, 5])
+  learning_x, dtx = self.read_sample_from_hdf5(filename, 'learning_x')
+  names_x         = [tup[0] for tup in dtx]
+  uniq_eta        = np.unique(learning_x[:,-1])
   exclude_eta     = len(uniq_eta) > 1
-  self.set('exclude_eta_column', exclude_eta)
-  num_features    = 5 if exclude_eta else 6
+  feature_names   = names_x[:-1] if exclude_eta else names_x
+  num_features    = len(feature_names)
+  sample_size     = len(learning_x)
+  self.set('feature_names', feature_names)
   self.set('num_features', num_features)
+  self.set('learning_x', learning_x)
+  self.set('sample_size', sample_size)
 
+  ids_models, dti = self.read_sample_from_hdf5(filename, 'learning_ids_models')
+  self.set('learning_ids_models', ids_models)
+  self.set('ids_models', ids_models)
+
+  ids_rot, dtr    = self.read_sample_from_hdf5(filename, 'learning_ids_rot')
+  self.set('learning_ids_rot', ids_rot)
+  self.set('ids_rot', ids_rot)
+
+  learning_y, idy = self.read_sample_from_hdf5(filename, 'learning_y')
   self.set('learning_y', learning_y)
-  # self.set('learning_radial_orders', mtrx_n_pg)
-  # self.set('learning_mode_types', mtrx_types)
 
-  # self.set('learning_ids_models', np.array( model_keep ))
-  # self.set('learning_ids_rot', np.array( rot_keep ))
+  n_pg, idn       = self.read_sample_from_hdf5(filename, 'learning_radial_orders')
+  self.set('learning_radial_orders', n_pg)
+
+  mode_types, idt = self.read_sample_from_hdf5(filename, 'learning_mode_types')
+  self.set('learning_mode_types', mode_types)
+
+  log_Teff, idteff= self.read_sample_from_hdf5(filename, 'learning_log_Teff')
+  self.set('learning_log_Teff', log_Teff)
+
+  log_g, idg      = self.read_sample_from_hdf5(filename, 'learning_log_g')
+  self.set('learning_log_g', log_g)
+
+  try:
+    assert learning_x.shape[0] == learning_y.shape[0]
+    assert len(ids_models) == len(ids_rot)
+    assert len(ids_models) == n_pg.shape[0] == mode_types.shape[0]
+  except AssertionError:
+    logger.error('_load_sample_from_hdf5: Mismatch in row numbers')
+    sys.exit(1)
+
+  logger.info('_load_sample_from_hdf5: done')
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # T A G G I N G

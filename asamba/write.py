@@ -77,6 +77,9 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   n_pg  = ss.get('learning_radial_orders')
   lmt   = ss.get('learning_mode_types')
 
+  log_Teff = self.get('learning_log_Teff')
+  log_g = self.get('learning_log_g')
+
   # sizes of the data
   mx, n = x.shape
   if flag: n += 1
@@ -143,6 +146,20 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
       dset_p.attrs['num_rows']     = my
       dset_p.attrs['num_columns']  = K
       dset_p.attrs['column_names'] = np.array(p_names, 'S6')
+
+    # Model effective temperatures
+    dset_Tf= h5.create_dataset('learning_log_Teff', data=log_Teff, shape=log_Teff.shape, dtype='f4', 
+              compression='gzip', compression_opts=9)
+    dset_Tf.attrs['num_rows']    = mx 
+    dset_Tf.attrs['num_columns'] = 1
+    dset_Tf.attrs['column_names']= np.array(['log_Teff'], 'S8')
+
+    # Model surface gravity
+    dset_g = h5.create_dataset('learning_log_g', data=log_g, shape=log_g.shape, dtype='f4', 
+              compression='gzip', compression_opts=9)
+    dset_g.attrs['num_rows']     = mx 
+    dset_g.attrs['num_columns']  = 1
+    dset_g.attrs['column_names'] = np.array(['log_g'], 'S6')
 
   logger.info('write_sampling_to_h5: saved {0}'.format(h5_out))
 
