@@ -69,7 +69,7 @@ def main():
   TheSample.set('exclude_eta_column', True)
 
   # Now, build the learning sets
-  if False:
+  if True:
     TheSample.build_learning_set()
     TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set.h5', include_periods=True)
   else:
