@@ -14,7 +14,7 @@ import numpy as np
 
 from asamba import star, db_def 
 from asamba import sampler as smpl
-from asamba import artificial_neural_network as ann
+from asamba import machine_learning as ml
 from asamba import interpolator as interp
 
 logger = logging.getLogger(__name__)
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 # B A C K E N D    O B J E C T S   T H A T   D O   T H E   R E A L   W O R K
 ####################################################################################
 
-class ModellingSession(interp.interpolation, ann.neural_net, smpl.sampling, star.star):
+class ModellingSession(interp.interpolation, ml.learner, smpl.sampling, star.star):
   """
   The ModellingSession is a derived class from the underlying modules in the package. 
   Concretely, the parent classes which are used here are below, in the following "Method
   Resolution Order (MRO)":
 
     - interpolator.interpolation
-    - artificial_neural_network.neural_net
+    - machine_learning.learner
     - sampler.sampling
     - star.star
   
@@ -274,7 +274,7 @@ def save_sampling_h5(self, filename, include_periods):
 
 ####################################################################################
 def do_normal_eq():
-  """ A wrapper around ann.solve_normal_equation() method """
+  """ A wrapper around ml.solve_normal_equation() method """
   if not BackEndSession.learning_done:
     logger.warning('do_normal_eq: You must first build your learning set! Try again')
     return False
@@ -287,7 +287,7 @@ def get_norm_eq_result():
   Parse the results of solving the normal equation. By results, we mean the set of 
   regression parameters \f$\theta\f$ which minimize the cost function (normally the 
   chi square function). For further details, you can refer to the docmunetion below
-  the following method: artificial_neural_network.solve_normal_equation(). 
+  the following method: machine_learning.solve_normal_equation(). 
   """
   if not BackEndSession.normal_equation_done:
     logger.warning('get_norm_eq_result: You must first solve analytically! Try again')

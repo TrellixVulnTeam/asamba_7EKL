@@ -477,8 +477,8 @@ def sampling_from_h5(filename, dset_name):
 
   dtype  = [(col, dtp) for col in cols]
 
-  logger.info('sampling_from_h5: Done. Dataset has {0} rows, {1} columns, and {2} elements'.format(
-              nrows, ncols, data.size))
+  logger.info('sampling_from_h5: Done. "{0}" size: {1} x {2} = {3} elements'.format(
+              dset_name, nrows, ncols, data.size))
 
   return (data, dtype)
 

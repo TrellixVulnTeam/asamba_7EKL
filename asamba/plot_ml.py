@@ -11,7 +11,7 @@ import matplotlib.ticker as ticker
 # import matplotlib.mlab as mlab
 
 from asamba import star, utils
-from asamba import artificial_neural_network as ann
+from asamba import machine_learning as ml
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -187,7 +187,7 @@ def marginal_2D(self, wrt_x, wrt_y, figure_name=None):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def all_marginal_1D(self, figure_name):
   """
-  The method marginalize() of the class ann.neural_net() stores the marginal tuples of all dimensions
+  The method marginalize() of the class ml.neural_net() stores the marginal tuples of all dimensions
   of the problem into self.marginal_results. E.g., if the problem at hand has six dimensions/features
   (like M_ini, fov, ...), then self.marginal_results will contain six tuples for each of the features.
   This routine makes a multi-panel figure showing the feature arrays on the abscissa and their 

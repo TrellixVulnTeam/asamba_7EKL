@@ -1,6 +1,6 @@
 
 """
-This module provides various functionalities for carrying out Artificial Neural Network (ANN)
+This module provides various functionalities for carrying out Machine Learning (ML for short)
 analysis (modelling) using the asteroseismic database, and a given set of observations. This
 module builds heavily on the "sampler" module.
 
@@ -38,17 +38,12 @@ is_py3x = sys.version_info[0] >= 3 # to handle unicode encoding for Python v2.7
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class neural_net(sampler.sampling):
+class learner(sampler.sampling):
   """
-
+  This class extends the sampler.sampling() class
   """
   def __init__(self):
-    super(neural_net, self).__init__()
-
-    # #.............................
-    # # Inheriting from sampler.sampling()
-    # #.............................
-    # self.sampling = None # sampler.sampling()
+    super(learner, self).__init__()
 
     #.............................
     # Normal Equation
@@ -140,9 +135,9 @@ class neural_net(sampler.sampling):
   # Setter
   ##########################
   def set(self, attr, val):
-    super(neural_net, self).set(attr, val)
+    super(learner, self).set(attr, val)
     if not hasattr(self, attr):
-      logger.error('neural_net: set: Attribute "{0}" is unavailable.')
+      logger.error('learner: set: Attribute "{0}" is unavailable.')
       sys.exit(1)
 
     setattr(self, attr, val)
@@ -151,9 +146,9 @@ class neural_net(sampler.sampling):
   # Getter
   ##########################
   def get(self, attr):
-    super(neural_net, self).get(attr)
+    super(learner, self).get(attr)
     if not hasattr(self, attr):
-      logger.error('neural_net: get: Attribute "{0}" is unavailable.')
+      logger.error('learner: get: Attribute "{0}" is unavailable.')
       sys.exit(1)
 
     return getattr(self, attr)
@@ -199,7 +194,7 @@ class neural_net(sampler.sampling):
        is taken for cmplex models that try to learn the specificities of the particular training set (Theodoridis, S.
        2015, Machine Learning book)."
 
-    @param self: instance of the neural_net class
+    @param self: instance of the learner class
     @type self: object
     """
     _solve_normal_equation(self)
@@ -218,7 +213,7 @@ class neural_net(sampler.sampling):
     Here, \f$ K\f$ is the total number of observed modes, and \f$\sigma_i\f$ is the 1-\f$\sigma\f$ uncertainty
     around each observed frequency.
 
-    @param self: An instance of the neural_net() class
+    @param self: An instance of the learner() class
     @type self: obj
     @return: the "MAP_chi_square_matrix" and "MAP_chi_square" attributes of the class will be set
     @rtype: None
@@ -253,7 +248,7 @@ class neural_net(sampler.sampling):
        recovers the Bayes theorem in its original form. This scaling is allowed, since we only make relative 
        comparison between the models.
 
-    @param self: an instance of the neural_net() class    
+    @param self: an instance of the learner() class    
     @type self: obj
     """
     _max_a_posteriori(self)
@@ -266,7 +261,7 @@ class neural_net(sampler.sampling):
     feature columns (whose names are available as self.sampling.feature_names).
     We internally assert that the the sum of all marginal probabilities add sufficiently close to one.
 
-    @param self: an instance of the neural_net() class
+    @param self: an instance of the learner() class
     @type self: obj
     @param wrt_x, wrt_y: marginalize with respect to wrt_x and wrt_y
     @type wrt_x, wrt_y: str
@@ -286,7 +281,7 @@ class neural_net(sampler.sampling):
     feature columns (whose names are available as self.sampling.feature_names)
     We internally assert that the the sum of all marginal probabilities add sufficiently close to one.
 
-    @param self: an instance of the neural_net() class
+    @param self: an instance of the learner() class
     @type self: obj
     @param wrt: marginalize with respect to
     @type wrt: str
@@ -302,7 +297,7 @@ class neural_net(sampler.sampling):
     """
     Iterate over all features in the learning set (whose names are stored in self.sampling.feature_names),
     and marginalize with respect to each of these quantities. The outcome of the marginalization will be stored in
-    two attribute of the neural_net class:
+    two attribute of the learner class:
     
     1. marginal_results: which is a list of tuples; read the documentation of marginalize_wrt() method for more info.
     
@@ -346,7 +341,7 @@ def _solve_normal_equation(self):
   """
   Refer to the documentation of solve_normal_equation() for further details.
   """
-  # Get THE instance of the sampling class already stored in neural_net object 
+  # Get THE instance of the sampling class already stored in learner object 
   # sample = self.get('sampling') 
   # Check if the sampling is already done or not
   if not self.learning_done:
@@ -354,6 +349,7 @@ def _solve_normal_equation(self):
     sys.exit(1)
 
   x = self.learning_x                  # (m, n)
+  if self.exclude_eta_column: x = x[:, :-1]
   x = utils.prepend_with_column_1(x)   # (m, n+1)
   y = self.learning_y                  # (m, K)
 
@@ -668,6 +664,9 @@ def _marginalize_wrt(self, wrt):
   
   work_x  = self.get('MAP_work_features')   # ndarray of feature tags (not their absolute values)
   dtypes  = [(name, np.int16) for name in x_names]
+  # print(work_x.shape, type(work_x))
+  # print(dtypes)
+  # sys.exit()
   rec     = utils.ndarray_to_recarray(work_x, dtypes)
 
   set_wrt = set(list(rec[wrt]))

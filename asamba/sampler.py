@@ -1391,9 +1391,10 @@ def _load_sample_from_hdf5(self, filename):
   For more information, refer to the documentation below the load_sample_from_hdf5() method.
   """
   learning_x, dtx = self.read_sample_from_hdf5(filename, 'learning_x')
-  names_x         = [tup[0] for tup in dtx]
-  uniq_eta        = np.unique(learning_x[:,-1])
-  exclude_eta     = len(uniq_eta) > 1
+  names_x         = [tup[0].decode('utf-8') for tup in dtx]
+  # uniq_eta        = np.unique(learning_x[:,-1])
+  # exclude_eta     = len(uniq_eta) > 1
+  exclude_eta     = self.get('exclude_eta_column')
   feature_names   = names_x[:-1] if exclude_eta else names_x
   num_features    = len(feature_names)
   sample_size     = len(learning_x)
@@ -1432,6 +1433,8 @@ def _load_sample_from_hdf5(self, filename):
   except AssertionError:
     logger.error('_load_sample_from_hdf5: Mismatch in row numbers')
     sys.exit(1)
+
+  self.set('learning_done', True)
 
   logger.info('_load_sample_from_hdf5: done')
 

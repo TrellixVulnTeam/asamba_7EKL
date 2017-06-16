@@ -200,6 +200,30 @@ def recarray_to_ndarray(rec):
   return rec.view(np.float32).reshape(rec.shape + (-1, ))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def prepend_with_0(vector):
+  """
+  Add a float of value zero, 0.0, to the input vector of length m, so that the return vector will
+  eventually have m+1 elements, witht the zeroth element being now 0.0
+  @param vector: The generic ndarray vector of any arbitrary size 
+  @type vector: np.ndarray
+  @return: a ndarray vector of m+1 elements with the zeroth element set to zero
+  @rtype: np.ndarray
+  """
+  return np.concatenate([np.zeros(1), vector])
+  
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def prepend_with_1(vector):
+  """
+  Add a float of value unity, 1.0, to the input vector of length m, so that the return vector will
+  eventually have m+1 elements, witht the zeroth element being now 1.0
+  @param vector: The generic ndarray vector of any arbitrary size 
+  @type vector: np.ndarray
+  @return: a ndarray vector of m+1 elements with the zeroth element set to unity
+  @rtype: np.ndarray
+  """
+  return np.concatenate([np.ones(1), vector])
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def prepend_with_column_1(matrix):
   """
   Add a column of ones to the m-by-n matrix, so that the result is a m-by-n+1 matrix

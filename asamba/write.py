@@ -69,26 +69,29 @@ def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   idrot = ss.get('learning_ids_rot')
 
   x     = ss.get('learning_x')
+  mx, n = x.shape
   y     = ss.get('learning_y')
+  my, K = y.shape
   names = ss.get('feature_names')
   flag  = ss.get('exclude_eta_column')
-  if flag: names.extend(['eta'])
+  if flag: 
+    x   = np.concatenate( [ x, np.zeros((mx, 1)) ], axis=1)
+    n   += 1
+    names.extend(['eta'])
 
-  n_pg  = ss.get('learning_radial_orders')
-  lmt   = ss.get('learning_mode_types')
-
-  log_Teff = self.get('learning_log_Teff')
-  log_g = self.get('learning_log_g')
-
-  # sizes of the data
-  mx, n = x.shape
-  if flag: n += 1
-  my, K = y.shape
+  # consistent sizes of the data
   try: 
     assert mx == my
   except:
     logger.error('write_sampling_to_h5: The X and Y matrixes have different number of rows!')
     return False
+
+  # other valuable learning data
+  n_pg  = ss.get('learning_radial_orders')
+  lmt   = ss.get('learning_mode_types')
+
+  log_Teff = ss.get('learning_log_Teff')
+  log_g = ss.get('learning_log_g')
 
   f_names = ['f_{0}'.format(k) for k in range(K)]   # for learning_y
   p_names = ['per_{0}'.format(k) for k in range(K)] if include_periods else []
