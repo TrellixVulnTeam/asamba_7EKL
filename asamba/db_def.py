@@ -28,7 +28,7 @@ class grid_db(object):
   The class to interact with the grid, and execute SQL commands/querries
   """
   # ...................................
-  def __init__(self, dbname='grid'):
+  def __init__(self, dbname='asamba'):
     """
     The constructor of the class. Example of use:
 

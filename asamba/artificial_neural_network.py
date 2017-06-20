@@ -219,6 +219,66 @@ class neural_network(object):
 
   ##########################
 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+class neural_training(sampler.sampling):
+  """
+  This class builds up on the sampler.sampling class and has access to the whole learning dataset there.
+  It integrates also with the neural_network class in order to import the architecture of the network from
+  there, and carry out the training one per example at a time.
+  """
+  def __init__(self, n_neurons_per_layer):
+    """
+    Initialize an instance of the neural_training class after providing the architecture of the neural 
+    network (i.e. the number of neurons per each neural layer).
+    """
+    super(neural_training, self).__init__()
+    self.n_neurons_per_layer = n_neurons_per_layer
+
+    #.............................
+    # The learning data to be normalized
+    #.............................
+    self.work_inputs  = []
+    self.work_outputs = []
+
+    #.............................
+    # Cost
+    #.............................
+    self.cost = 0
+
+  ##########################
+  # Setter
+  ##########################
+  def set(self, attr, val):
+    super(neural_training, self).set(attr, val)
+    if not hasattr(self, attr):
+      logger.error('neural_training: does not have the attribute: "{0}"'.format(attr))
+      sys.exit(1)
+
+    setattr(self, attr, val)
+
+  ##########################
+  # Getter
+  ##########################
+  def get(self, attr):
+    super(neural_training, self).get(attr)
+    if not hasattr(self, attr):
+      logger.error('neural_training: get: Attribute "{0}" is unavailable.')
+      sys.exit(1)
+
+    return getattr(self, attr)
+
+  ##########################
+  # Methods
+  ##########################
+  def run_one(self):
+    """
+    Feed the neural network with only one example row from the learning/training dataset, and get the 
+    cost and the weight corrections back from that single example.
+    """
+    _run_one(self)
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -561,17 +621,10 @@ def _adapt_step_size(self):
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# R O U T I N E S   F O R   T H E   N E U R A L   L A Y E R   C L A S S
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# R O U T I N E S   F O R   T H E   N E U R O N   C L A S S
+# R O U T I N E S   F O R   T H E    E P O C H   C L A S S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

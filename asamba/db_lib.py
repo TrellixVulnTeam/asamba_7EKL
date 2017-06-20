@@ -640,7 +640,7 @@ def get_dics_tag_track_attributes(dbname):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_dic_look_up_track_id(dbname_or_dbobj):
   """
-  Retrieve the id, M_ini, fov, Z, and logD from the entire "models" table, and construct a look up
+  Retrieve the id, M_ini, fov, Z, and logD from the entire "tracks" table, and construct a look up
   dictionary with the keys as the (M_ini, fov, Z, logD) tuple, and the values as the id. This gives
   a mapping of track ids to their corresponding attributes, which is very useful for the fastest 
   way to retrieve track ids by their attributes.

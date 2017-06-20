@@ -1,12 +1,15 @@
 -- To Do List
 
--- Questions: 
--- does creating an schema have any added value here? The grid is public anyway
-
 -----------------------------------------------------------
 -- Table Schema
--- create schema grid;
-set search_path to grid, public;
+-- create schema asamba;
+set search_path to asamba, public;
+
+-- Changing the default attributes of this database
+set shared_buffers='2GB';
+set work_mem='10MB';
+set synchronous_commit='off';
+set full_page_writes='off';
 
 -----------------------------------------------------------
 -- Function Definitions and Operator Overloadings
@@ -45,11 +48,11 @@ create table tracks (
 
 );
 
--- create index index_track_id on tracks (id asc);  
-create index index_M_ini on tracks (M_ini asc);
-create index index_fov on tracks (fov asc);
-create index index_Z on tracks (Z asc);
-create index index_log_D on tracks (logD asc);
+-- -- create index index_track_id on tracks (id asc);  
+-- create index index_M_ini on tracks (M_ini asc);
+-- create index index_fov on tracks (fov asc);
+-- create index index_Z on tracks (Z asc);
+-- create index index_log_D on tracks (logD asc);
 
 -----------------------------------------------------------
 create table models (
@@ -129,19 +132,19 @@ create table models (
   --
 
   primary key (id),
-  foreign key (id_track) references tracks (id),
+  -- foreign key (id_track) references tracks (id),
 
   constraint positive_Xc check (Xc >= 0),
   check (model_number >= 0)
 
 );
 
--- create index index_models_id on models (id asc);
-create index index_models_id_track on models (id_track);
-create index index_logTeff_logg on models (log_Teff, log_g);
-create index index_Xc on models (Xc desc);
-create index index_age on models (star_age asc);
-create index index_delta_Pg on models (delta_Pg desc);
+-- -- create index index_models_id on models (id asc);
+-- create index index_models_id_track on models (id_track);
+-- create index index_logTeff_logg on models (log_Teff, log_g);
+-- create index index_Xc on models (Xc desc);
+-- create index index_age on models (star_age asc);
+-- create index index_delta_Pg on models (delta_Pg desc);
 
 -----------------------------------------------------------
 create table rotation_rates (
@@ -153,6 +156,23 @@ create table rotation_rates (
   primary key (id),
   unique (eta),
   constraint positive_eta check (eta >= 0)
+
+);
+
+-----------------------------------------------------------
+create table rotation_frequencies (
+  id              serial,
+  id_model        int not null,
+  id_rot          smallint not null,
+  freq_crit       real not null,     -- Roche critical
+  freq_rot        real not null,
+
+  primary key (id),
+  -- foreign key (id_model) references models (id),
+  -- foreign key (id_rot) references rotation_rates (id),
+
+  constraint positive_rot_crit check (freq_crit >= 0),
+  constraint positive_rot_freq check (freq_rot >= 0)
 
 );
 
@@ -172,31 +192,31 @@ create table mode_types(
 );
 
 -----------------------------------------------------------
-create table modes (
+create unlogged table modes (
 
   id             bigserial, -- should be huge integer
   id_model       int not null,
   id_rot         smallint not null,
   id_type        smallint not null,
-  n              int not null,
-  -- l              int not null,
-  -- m              int not null, 
-  freq           real not null,
+  n_p            int not null,
+  n_g            int not null,
+  n              int not null,     -- n_pg
+  freq           real not null,    -- in inertial frame
 
   --
 
   primary key (id),
-  foreign key (id_model) references models (id),
-  foreign key (id_rot)   references rotation_rates (id),
-  foreign key (id_type)  references mode_types (id),
+  -- foreign key (id_model) references models (id),
+  -- foreign key (id_rot)   references rotation_rates (id),
+  -- foreign key (id_type)  references mode_types (id),
 
   constraint positive_freq check (freq > 0)
 
 );
 
-create index index_modes_id_model on modes (id_model);
-create index index_modes_id_type on modes (id_type);
-create index index_freq_n on modes (n, freq);
+-- create index index_modes_id_model on modes (id_model);
+-- create index index_modes_id_type on modes (id_type);
+-- create index index_freq_n on modes (n, freq);
 
 -----------------------------------------------------------
 -- Static Insertions
@@ -205,27 +225,27 @@ create index index_freq_n on modes (n, freq);
 -- Fill up the rotation_rates table with fixed data
 
 insert into rotation_rates (id, eta)
-  values (1, 0);
+  values (0, 0);
 insert into rotation_rates (id, eta)
-  values (2, 5);
+  values (1, 5);
 insert into rotation_rates (id, eta)
-  values (3, 10);
+  values (2, 10);
 insert into rotation_rates (id, eta)
-  values (4, 15);
+  values (3, 15);
 insert into rotation_rates (id, eta)
-  values (5, 20);
+  values (4, 20);
 insert into rotation_rates (id, eta)
-  values (6, 25);
+  values (5, 25);
 insert into rotation_rates (id, eta)
-  values (7, 30);
+  values (6, 30);
 insert into rotation_rates (id, eta)
-  values (8, 35);
+  values (7, 35);
 insert into rotation_rates (id, eta)
-  values (9, 40);
+  values (8, 40);
 insert into rotation_rates (id, eta)
-  values (10, 45);
+  values (9, 45);
 insert into rotation_rates (id, eta)
-  values (11, 50);
+  values (10, 50);
 
 -----------------------------------------------------------
 -- Fill up the mode_types table with fixed-valued data
@@ -243,10 +263,10 @@ insert into mode_types (id, l, m) values (8, 2, -2);
 -----------------------------------------------------------
 -- Views of different tables
 
-create view view_tracks as select * from tracks;
+-- create view view_tracks as select * from tracks;
 -----------------------------------------------------------
 
--- drop schema grid cascade;
+-- drop schema asamba cascade;
 -- drop table tracks, ages, models, rotation_rates;
 -- drop table rotation_rates restrict;
 -- drop table models_info cascade;

@@ -20,14 +20,12 @@ def main():
 
   NNet.initialize()
 
-  NNet.feedforward()
-  # print(NNet.responses[-1])
-  # print(NNet.weights[-1])
-  # print(NNet.combiners[-1])
-  
+  NNet.feedforward()  
   NNet.backpropagate()
 
-  # print(NNet.get('corrections'))
+  # b_corr = [_[:,0] for _ in NNet.get('corrections')[1:]]
+  # print(b_corr)
+  print(NNet.cost)
 
   return 
 

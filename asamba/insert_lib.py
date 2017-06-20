@@ -6,6 +6,7 @@ from builtins import zip
 from builtins import range
 import sys, os, glob
 import logging
+import time
 
 import numpy as np 
 
@@ -66,6 +67,13 @@ def prepare_insert_models():
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_execute_insert_model_command(tup_vals):
   """
+  Get the execute command for a bulk insertion of values into the "models" table after having
+  prepared a statement for insertion from calling prepare_insert_models()
+  @param tup_vals: the tuple of one row of the values to be inserted. This is needed only to know 
+         the exact number of columns which are going to inserted in the table.
+  @type tup_vals: tuple
+  @return: an execution command to insert models into the database
+  @rtype: str
   """
   n_tup = len(tup_vals)
   cmnd  = 'execute prepare_insert_models ({0})'.format(','.join(['%s'] * n_tup))
@@ -108,6 +116,39 @@ def insert_row_into_models(dbobj, model):
   logger.info('insert_row_into_models: Adding: id_track={0}, Xc={1}'.format(id_track, model.Xc))
 
   return None
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_row_tuple_from_model_object(dbobj, attrs, model):
+  """
+  Convert the attributes of the instance of the "models" class into a tuple which can be later used
+  to insert that row into the "models" table in the database. This function ensures that there is a 
+  correct matching between the column names in the models table, and the attributes of the "models"
+  object, despite the fact that all these columns are ordered differently (non alphabatically) in the 
+  ASCII file used to insert the data into the database. That is the reason we need this function.
+
+  @param dbojb: an instance of the db_def.grid_db class.
+  @type dbobj: object
+  @param attrs: The list of attributes to retrieve from the model object
+  @type attrs: list of strings
+  @param model: an instance of the var_def.model class, which already contains the information of the row
+  @type model: object
+  @return: None
+  @rtype: NoneType
+  """
+  M_ini  = model.M_ini
+  fov    = model.fov
+  Z      = model.Z
+  logD   = model.logD
+  id_track = db_lib.get_track_id(dbname_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+
+  vals   = [id_track]
+  for i, attr in enumerate(attrs[1:]): 
+    val  = getattr(model, attr)
+    vals.append(val)
+
+  tup    = tuple(vals)
+
+  return tup
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def prepare_insert_tracks(include_id=False):
@@ -175,6 +216,40 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# R O U T I N E S   T O   I N S E R T   R O T A T I O N   F R E Q U E N C I E S
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def copy_rotation_frequencies_from_file(dbname, ascii_in):
+  """
+  The rotation_frequencies is a table which maps the model id and the rotation id to the critical 
+  rotation frequency, and the actual rotation frequency of the model. This function uses the COPY 
+  command from SQL to load the contents of the table from an ASCII file into the corresponding table.
+
+  @param dbname: the name of the database
+  @type dbname: str
+  @param ascii_in: the full path to the ascii file to copy the table info from
+
+  """
+
+create table rotation_frequencies (
+  id              serial,
+  id_model        int not null,
+  id_rot          smallint not null,
+  freq_crit       real not null,     -- Roche critical
+  freq_rot        real not null,
+
+  primary key (id),
+  -- foreign key (id_model) references models (id),
+  -- foreign key (id_rot) references rotation_rates (id),
+
+  constraint positive_rot_crit check (freq_crit >= 0),
+  constraint positive_rot_freq check (freq_rot >= 0)
+
+);
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N S E R T   G Y R E   D A T A    I N T O   T H E   D A T A B A S E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
@@ -221,6 +296,9 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
     the_db.execute_one(cmnd_prep, None, commit=True)
     cmnd_exec      = get_execute_insert_modes_command()
 
+    # start a one big transaction for the entire workload (i.e. one patch of h5 files)
+    the_db.execute_one('begin transaction', None, commit=False)
+
     # get the look up dictionary for "mode_types" "id". The ids are the valus of
     # the (l, m) tuple keys
     dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
@@ -265,38 +343,54 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       tup_track    = (M_ini, fov, Z, logD)
       id_track     = dic_tracks_id[tup_track]
 
-      # id_model     = db_lib.get_models_id_by_id_tracks_and_model_number(
-      #                           dbname_or_dbobj=the_db, id_track=id_track, model_number=model_number)
       tup_model    = (id_track, model_number)
       id_model     = dic_models_id[tup_model]
 
-      # ind_rot      = np.argmin(np.abs(rotation_rates - eta))
-      # id_rot       = rotation_rates_id[ind_rot]
       tup_eta      = (eta, )
       id_rot       = dic_rot_rates[tup_eta]
 
       # gyre output data as an object 
       modes = read.gyre_h5(h5_file)
+      n_p   = modes.n_p
+      n_g   = modes.n_g
       n_pg  = modes.n_pg
       l     = modes.l
       m     = modes.m 
-      freq  = np.real(modes.freq)
-      n_modes   = len(freq)
+      f_rot = 0.0 if modes.freq_rot is None else modes.freq_rot
+      f_co  = np.real(modes.freq)
+      # from co-rotating frame (GYRE output frame) to the inertial frame 
+      f_in  = f_co + m * f_rot
+      n_modes   = len(f_in)
 
       # sorted list of unique l and m values in the file
-      avail_l_m = sorted(list(set( [(l[j], m[j]) for j in range(n_modes)] )))
+      # avail_l_m = sorted(list(set( [(l[j], m[j]) for j in range(n_modes)] )))
 
-      for l_m in avail_l_m:
+      for k in range(n_modes):
+        _l      = l[k]
+        _m      = m[k]
+        _n_p    = n_p[k]
+        _n_g    = n_g[k]
+        _n      = n_pg[k]
+        _f_in   = f_in[k]
 
-        id_type  = dic_mode_types[l_m]
-        this_l, this_m = l_m
-        ind_l_m   = np.where((l == this_l) & (m == this_m))[0]
-        this_n_pg = n_pg[ind_l_m]
-        this_freq = freq[ind_l_m]
-        n_this    = len(this_freq)
+        id_type = dic_mode_types[ (_l, _m) ]
 
-        row       =  list([(id_model, id_rot, id_type, int(tup[0]), tup[1]) for tup in zip(this_n_pg, this_freq)] )
+        row = [id_model, id_rot, id_type, _n_p, _n_g, _n, _f_in]
         rows.extend(row)
+
+      # for l_m in avail_l_m:
+
+      #   id_type  = dic_mode_types[l_m]
+      #   this_l, this_m = l_m
+      #   ind_l_m   = np.where((l == this_l) & (m == this_m))[0]
+      #   this_n_p  = n_p[ind_l_m]
+      #   this_n_g  = n_g[ind_l_m]
+      #   this_n_pg = n_pg[ind_l_m]
+      #   this_f_in = f_in[ind_l_m]
+      #   n_this    = len(this_f_co)
+
+      #   row       =  list([(id_model, id_rot, id_type, int(tup[0]), tup[1]) for tup in zip(this_n_pg, this_f_in)] )
+      #   rows.extend(row)
 
       # insert once upon a time
       if i > 0 and i % insert_every == 0:
@@ -307,13 +401,13 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
       else:
         pass
 
-    # commit the remaining rows
+    # insert the remaining rows
     if len(rows) > 0:
       the_db.execute_many(cmnd_exec, rows, commit=True)
     else:
       the_db.commit()
 
-  logger.info('insert_gyre_output_into_modes_table: Successfully exits.')
+  logger.info('insert_gyre_output_into_modes_table: done ({0} insertions).'.format(i_insert))
 
   return None 
 
@@ -337,12 +431,10 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
   >>>insert_lib.insert_models_from_models_parameter_file(dbname='grid', ascii_in=param_file)
 
-  @param dbname: the name of the database which contains the "models" table. Normally, it is called
-         "grid"
+  @param dbname: the name of the database which contains the "models" table. 
   @type dbname: string
   @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
-         columns. Only the unique M_ini, fov, Z and logD attributes are extracted from the rows, and 
-         inserted into distinct rows into the "tracks" table.
+         columns. 
   @type ascii_in: string
   """
   if not os.path.exists(ascii_in):
@@ -370,8 +462,9 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
   # open the file, and get the file handle
   handle   = open(ascii_in, 'r')
   tups     = []
+  attrs    = ['id_tracks', 'Xc', 'model_number'] + var_lib.get_model_other_attrs()
 
-  # walk over the input file, and insert each row one after the other
+  # walk over the input file, and insert the rows in one go!
   i        = -1
   with db_def.grid_db(dbname=dbname) as the_db:
 
@@ -388,15 +481,20 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
 
       line   = handle.readline()
       if not line: break     # exit by the End-of-File (EOF)
-      # row    = line.rstrip('\r\n').split()
 
       with model_line_to_model_object(line) as model:
-        insert_row_into_models(the_db, model)
+        tups.append(get_row_tuple_from_model_object(dbobj=the_db,
+                    attrs=attrs, model=model))
 
       # progress bar on the stdout
       sys.stdout.write('\r')
       sys.stdout.write('progress = {0:.2f} % '.format(100. * float(i)/n_rows))
       sys.stdout.flush()
+
+    cmnd  = get_execute_insert_model_command(tup_vals=tups[0])
+    trans = convert_command_to_transaction(cmnd)
+    the_db.execute_many(trans, tups)
+    the_db.commit()
 
   handle.close()
   logger.info('insert_models_from_models_parameter_file: "{0}" rows inserted into models table'.format(i-1))
@@ -405,15 +503,14 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
 def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   """
   Insert distinct track rows into the *tracks* table in the grid database. The four track attributes
-  are taken from 
+  are taken from the history file names. The data are imported from the ASCII input file.
   This routine is protected agains *Injection Attacks*. Example of use is:
 
   >>>from asamba import insert_lib
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
   >>>insert_lib.insert_tracks_from_models_parameter_file(dbname='grid', ascii_in=param_file)
 
-  @param dbname: the name of the database which contains the "tracks" table. Normally, it is called
-         "grid"
+  @param dbname: the name of the database which contains the "tracks" table. 
   @type dbname: string
   @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
          columns. Only the unique M_ini, fov, Z and logD attributes are extracted from the rows, and 
@@ -492,9 +589,12 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     # execute many and commit
     logger.info('insert_tracks_from_models_parameter_file: "{0}" tracks recognized'.format(n_values))
     cmnd   = 'execute prepare_insert_tracks ({0})'.format( ','.join( ['%s'] * 4 ))
-    the_db.execute_many(cmnd=cmnd, values=tups)
-    # the_db.execute_one(cmnd, tups[0])
-    logger.info('insert_tracks_from_models_parameter_file: Insertion completed.')
+    trans  = convert_command_to_transaction(cmnd)
+    t0     = time.time()
+    the_db.execute_many(cmnd=trans, values=tups)
+    dt     = time.time() - t0
+
+    logger.info('insert_tracks_from_models_parameter_file: Insertion completed in {0:.2f} sec'.format(dt))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -563,7 +663,21 @@ def model_line_to_model_object(line):
   return model
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def convert_command_to_transaction(cmnd):
+  """
+  In PostgreSQL, the transaction block starts with the BEGIN statement, and ends with the COMMIT 
+  statement. This function, basically prepends a BEGIN statement and appends a COMMIT statement to the
+  input SQL query command, cmnd.
+  @param cmnd: The command to be executed
+  @type cmnd: str
+  @return: the transaction block, to be executed
+  @rtype: str
+  """
+  if cmnd[-1] != ';': cmnd += ';'
 
+  return 'begin transaction; ' + cmnd + ' commit;'
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

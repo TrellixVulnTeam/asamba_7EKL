@@ -6,7 +6,7 @@ import logging
 import numpy as np 
 import h5py
 
-from asamba import var_lib, read, utils
+from asamba import var_lib, db_lib, read, utils
 
 import time
 
@@ -15,6 +15,80 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
+  """
+  This routine receives the names of HDF5 GYRE files as input, and collects the following attributes
+  from the file header, if available (else it quits). Then, the whole information is collected for
+  output as an ASCII file. This is useful to COPY the contents of the created file into the corresponding
+  table rotation_frequencies in the database.
+
+  @param dbname: the name of the database to connect to (and retrieve the look up dictionaries)
+  @type dbname: str
+  @param h5_files: the full path to the whole h5 files to add to the output file
+  @type h5_files: list of strings
+  @param ascii_out: the full path to the location of the created file
+  @type ascii_out: str
+  @return: True if successful, and False, otherwise.
+  @rtype: bool
+  """
+  n_h5 = len(h5_files)
+  if n_h5 == 0:
+    logger.error('write_rotation_frequencies_to_ascii: The input file is empty')
+    sys.exit(1)
+
+  # make sure the attributes that we need are available
+  first = h5_files[0]
+  with h5py.File(first, 'r') as h5:
+    keys  = h5.attrs.keys()
+  if 'freq_rot' not in keys or 'freq_crit' not in keys:
+    logger.warning('write_rotation_frequencies_to_ascii: the extra rotation attributes unavailable')
+    return False
+
+  dic_tracks_id = db_lib.get_dic_look_up_track_id(dbname)
+  dic_models = db_lib.get_dic_look_up_models_id(dbname)
+  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(dbname)
+
+  id_nonrot  = dic_rot[ (0.0, ) ]
+
+  lines      = ['id_model,id_rot,freq_crit,freq_rot\n']
+  for k, f in enumerate(h5_files):
+    # Retrieve the id_model and id_rot from the filename
+    params       = var_lib.get_model_parameters_from_gyre_out_filename(filename=h5_file)
+    M_ini        = params[0]
+    fov          = params[1]
+    Z            = params[2]
+    logD         = params[3]
+    Xc           = params[4]
+    model_number = params[5]
+    eta          = params[6]
+
+    tup_track    = (M_ini, fov, Z, logD)
+    id_track     = dic_tracks_id[tup_track]
+
+    tup_model    = (id_track, model_number)
+    id_model     = dic_models_id[tup_model]
+
+    tup_eta      = (eta, )
+    id_rot       = dic_rot_rates[tup_eta]
+
+    # Retrieve the rotation and break up frequencies from the file attributes
+    if id_rot == id_nonrot:
+      freq_rot   = 0.0
+      freq_crit  = 0.0           # a nonrotating model has a critical break up, but it is not stored
+    else:
+      with h5py.File(f, 'r') as h5: 
+        freq_rot = h5.attrs['freq_rot']
+        freq_crit= h5.attrs['freq_crit']
+
+    line         = '{0},{1},{2:.6e},{3:.6e}\n'.format(id_model, id_rot, freq_crit, freq_rot)
+    lines.append(line)
+
+  with open(ascii_out, 'w') as w: w.writelines(lines)
+
+  logger.info('write_rotation_frequencies_to_ascii: done')
+
+  return True
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def write_sampling_to_h5(self_sampling, h5_out, include_periods=False):
   """
