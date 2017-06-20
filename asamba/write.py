@@ -84,6 +84,13 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
     line         = '{0},{1},{2:.6e},{3:.6e}\n'.format(id_model, id_rot, freq_crit, freq_rot)
     lines.append(line)
 
+    # progress bar
+    if k % 1000 == 0:
+      sys.stdout.write('\r')
+      sys.stdout.write('progress = {0:.2f} % '.format(100*float(k)/n_h5)) 
+      sys.stdout.flush()
+
+
   with open(ascii_out, 'w') as w: w.writelines(lines)
 
   logger.info('write_rotation_frequencies_to_ascii: done')
