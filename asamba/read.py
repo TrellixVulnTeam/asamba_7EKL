@@ -14,7 +14,7 @@ import logging
 import numpy as np 
 import h5py
 
-from asamba import var_def
+from asamba import var_def, utils
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 logger = logging.getLogger(__name__)
@@ -320,6 +320,43 @@ def read_mesa_ascii(filename):
   data = np.core.records.fromarrays(np.array(data, float).transpose(), dtype=dtypes)
 
   return header, data
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def read_rotation_frequencies_from_ascii(ascii_in):
+  """
+  This routine reads the ASCII file that contains the rotation frequency and break up frequency of 
+  the whole database. It is useful for reading and COPYing the contents of the file to the columns
+  of the "rotation_frequencies" table. The ASCII file is created by calling the function: 
+  write.write_rotation_frequencies_to_ascii()
+
+  @param ascii_in: full path to the ASCII file to be read
+  @type ascii_in: str
+  @return: array containing the whole data; the column names are taken from the file header, and are
+         id_model, id_rot, freq_crit, and freq_rot. The last two frequency values are in Hz.
+  @rtype: np.recarray
+  """
+  if not os.path.exists(ascii_in):
+    logger.error('read_rotation_frequencies_from_ascii: {0} does not exist'.format(ascii_in))
+    sys.exit(1)
+
+  with open(ascii_in, 'r') as r: lines = r.readlines()
+  n_lines = len(lines)
+  header  = lines.pop(0)
+  header  = header.rstrip('\r\n').split(',')
+  types   = [int, np.int8, np.float32, np.float32]
+  dtypes  = list(zip(header, types))
+
+  rows    = []
+  for k, line in enumerate(lines):
+    line  = line.rstrip('\r\n').split(',')
+    id_model  = int(line[0])
+    id_rot    = int(line[1])
+    freq_crit = float(line[2])
+    freq_rot  = float(line[3])
+    row       = (id_model, id_rot, freq_crit, freq_rot)
+    rows.append(row)
+
+  return utils.list_to_recarray(rows, dtypes) 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def read_models_parameters_from_ascii(ascii_in):

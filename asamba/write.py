@@ -21,6 +21,7 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
   from the file header, if available (else it quits). Then, the whole information is collected for
   output as an ASCII file. This is useful to COPY the contents of the created file into the corresponding
   table rotation_frequencies in the database.
+  To read the created file, you may use read.read_rotation_frequencies_from_ascii().
 
   @param dbname: the name of the database to connect to (and retrieve the look up dictionaries)
   @type dbname: str
