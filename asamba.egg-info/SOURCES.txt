@@ -5,12 +5,12 @@ asamba/backend.py
 asamba/db_def.py
 asamba/db_lib.py
 asamba/frontend.py
-asamba/frontend_orig.py
 asamba/insert_def.py
 asamba/insert_lib.py
 asamba/interpolator.py
-asamba/plot_ann.py
+asamba/machine_learning.py
 asamba/plot_interpolator.py
+asamba/plot_ml.py
 asamba/plot_sampler.py
 asamba/query.py
 asamba/read.py
@@ -30,4 +30,5 @@ test_suite/test_unit.py
 test_suite/test_unit_ann.py
 test_suite/test_unit_backend.py
 test_suite/test_unit_interp.py
+test_suite/test_unit_ml.py
 test_suite/test_unit_sampling.py

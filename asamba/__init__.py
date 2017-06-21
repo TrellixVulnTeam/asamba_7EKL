@@ -14,7 +14,7 @@ __all__       = ('__author__', '__copyright__', '__email__', '__license__', '__s
                  '__summary__', '__title__', '__url__', '__version__')
 
 __title__     = 'asamba'
-__version__   = '1.0.7'
+__version__   = '1.0.8'
 __summary__   = 'Python interface to peform asteroseismic modelling with the asamba grid'
 # __url__       = 'https://pypi.python.org/pypi/asamba'
 # __url__       = 'git@github.com:moravveji/asamba.git'
