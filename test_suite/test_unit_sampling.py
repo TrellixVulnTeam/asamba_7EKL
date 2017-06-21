@@ -59,7 +59,7 @@ def main():
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
   # Set the maximum of returned sample size
-  # TheSample.set('max_sample_size', 5000)
+  TheSample.set('max_sample_size', 5000)
   # search plan for matching frequencies
   TheSample.set('sampling_shuffle', False)
   TheSample.set('search_from_lowest_frequency', True)
@@ -71,7 +71,7 @@ def main():
   # Now, build the learning sets
   if True: 
     TheSample.build_learning_set()
-    TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set.h5', include_periods=False)
+    TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set_temp.h5', include_periods=False)
   else:
     TheSample.load_sample_from_hdf5(filename='/Users/ehsan/Desktop/learning_set.h5')
 

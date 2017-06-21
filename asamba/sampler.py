@@ -147,8 +147,10 @@ class sampling(star.star):
     self.search_function        = None
     # Liberal search without any restriction
     self.search_for_closest_frequencies = False
-    # Find closest to lowest frequency, and trim N modes from there
-    self.search_from_lowest_frequency = False
+    # Find closest to lowest frequency, and trim N next modes
+    self.search_from_lowest_frequency   = False
+    # Find closest to highest frequency, and trim previous N modes 
+    self.search_from_highest_frequency  = False
     # Strict search for period spacings
     self.search_strictly_for_dP = False
     # Strict search for frequency spacings
@@ -451,8 +453,8 @@ class sampling(star.star):
   ##########################
   def trim_from_lowest_frequency(modes, rec_gyre, dic_mode_types):
     """
-    Trim the sampling frequencies by finding the closest model frequency to the lowest
-    observed frequency, and use that as the starting anchor. Then, the next K number of modes will
+    Trim the sampling frequencies by finding the closest model frequency to the *lowest*
+    observed frequency, and use that as the starting anchor. Then, the *next* K number of modes will
     be trimmed off, where K is the number of observed modes. Note that this is only useful when the
     entire observed modes have the same mode identification (l, m). Compered to (some of) other trimming
     methods, if successful, this one returns the same number of training examples as it starts with. 
@@ -472,6 +474,31 @@ class sampling(star.star):
     @rtype: np.recarray or bool
     """
     _trim_from_lowest_frequency(modes, rec_gyre, dic_mode_types)
+
+  ##########################
+  def trim_from_highest_frequency(modes, rec_gyre, dic_mode_types):
+    """
+    Trim the sampling frequencies by finding the closest model frequency to the *highest*
+    observed frequency, and use that as the starting anchor. Then, the *previous* K number of modes will
+    be trimmed off, where K is the number of observed modes. Note that this is only useful when the
+    entire observed modes have the same mode identification (l, m). Compered to (some of) other trimming
+    methods, if successful, this one returns the same number of training examples as it starts with. 
+    In other words, one does not loose any example.
+
+    @param modes: The observed modes, where each mode in the list is an instance of the "star.mode" class
+    @type modes: list of star.mode
+    @param rec_gyre: The numpy record array from GYRE frequency list coming from one GYRE output file
+    @type rec_gyre: np.recarray
+    @param dic_mode_types: Look up dictionary to match the modes identification (l, m) with the modes.id_type
+          attribute in the database. This dictionary is fetched from db_lib.get_dic_look_up_mode_types_id(). 
+          However, we pass it as an argument instead of fetching it internally to speed up this function.
+    @type dic_mode_types: dict
+    @return: False if, for one among many reasons, it is not possible to trim the GYRE list based on the lowest
+          observed modes. If it succeeds, the input GYRE list will be trimmed to match the size of the input
+          modes, and then it will be returned.
+    @rtype: np.recarray or bool
+    """
+    _trim_from_highest_frequency(modes, rec_gyre, dic_mode_types)
 
   ##########################
   def trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
@@ -513,6 +540,7 @@ class sampling(star.star):
     requests of the user, i.e. based on the following attributes of the sampling object: 
     - search_for_closest_frequencies (Default = False)
     - search_from_lowest_frequency  (Default = False)
+    - search_from_highest_frequency (Default = False)
     - search_strictly_for_dP (Default = False)
     - search_strictly_for_df (Default = False)
     - match_lowest_frequency (Default = True)
@@ -886,16 +914,6 @@ def _build_learning_sets(self):
   self.set('sample_size', len(mtrx_rows))
   self.set('learning_ids_models', np.array( model_keep ))
   self.set('learning_ids_rot', np.array( rot_keep ))
-  # for _rec in rec_keep:
-  #   _n = len(_rec)
-  #   if _n != 19:
-  #     print(_rec.dtype.names)
-  #     print(_rec['freq'])
-  #     print(_rec['n'])
-  #     print(_rec['id_type'])
-  #     print(len(_rec))
-  #     print('id_model=', _rec['id_model'])
-  #   sys.exit()
 
   # and packing the frequencies (cycles per day) and friends
   rec_freq   = utils.list_to_ndarray([rec_['freq'] for rec_ in rec_keep]) 
@@ -1052,6 +1070,7 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
   """
   bool_arr = np.array([self.search_for_closest_frequencies, 
                        self.search_from_lowest_frequency,
+                       self.search_from_highest_frequency,
                        self.search_strictly_for_dP, 
                        self.search_strictly_for_df])
   n_True   = np.sum( bool_arr * 1 )
@@ -1066,6 +1085,10 @@ def _trim_modes(self, rec_gyre, dic_mode_types):
   elif self.search_from_lowest_frequency:
     self.set('search_function', self.trim_from_lowest_frequency)
     return _trim_from_lowest_frequency(self.get('modes'), rec_gyre, dic_mode_types)
+
+  elif self.search_from_highest_frequency:
+    self.set('search_function', self.trim_from_highest_frequency)
+    return _trim_from_highest_frequency(self.get('modes'), rec_gyre, dic_mode_types)
 
   elif self.search_strictly_for_dP:
     self.set('search_function', self.trim_modes_by_dP)
@@ -1140,9 +1163,6 @@ def _trim_from_lowest_frequency(modes, rec_gyre, dic_mode_types):
 
   # From observations, we have ...
   obs_freq = np.array([mode.freq for mode in modes]) # unit: per day
-  # d_freq   = obs_freq[1:] - obs_freq[:-1]
-  # d_freq_lo= d_freq[0]  
-  # d_freq_hi= d_freq[-1] 
   obs_freq_lo = obs_freq[0]
   obs_l    = np.array([mode.l for mode in modes])
   obs_m    = np.array([mode.m for mode in modes])
@@ -1178,6 +1198,57 @@ def _trim_from_lowest_frequency(modes, rec_gyre, dic_mode_types):
     return trimmed
   else:
     return False
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def _trim_from_highest_frequency(modes, rec_gyre, dic_mode_types):
+  """
+  For detailed documentation, please refer to the trim_from_highest_frequency() method
+  """
+  n_modes = len(modes)
+  n_rec   = len(rec_gyre)
+  if n_rec < n_modes:
+    # logger.warning('_trim_from_highest_frequency: The number of observed modes is greater than the GYRE frequency list')
+    return False
+
+  freq_unit= modes[0].freq_unit
+  if freq_unit != 'cd':
+    logger.error('_trim_from_highest_frequency: The observed frequencies must be in "per day (cd)" unit')
+    sys.exit(1)
+
+  # From observations, we have ...
+  obs_freq = np.array([mode.freq for mode in modes]) # unit: per day
+  obs_freq_hi = obs_freq[-1]
+  obs_l    = np.array([mode.l for mode in modes])
+  obs_m    = np.array([mode.m for mode in modes])
+  obs_n    = np.array([mode.n for mode in modes])
+
+  the_l    = list(set(obs_l))[0]
+  the_m    = list(set(obs_m))[0]
+  the_key  = (the_l, the_m)
+  obs_id   = dic_mode_types[the_key]
+
+  # From the GYRE output, we also have ...
+  rec_types= rec_gyre['id_type']
+
+  ind_l_m  = np.where(rec_types == obs_id)[0]
+  n_ind    = len(ind_l_m)
+  if n_ind == 0:
+    logger.error('_trim_from_highest_frequency: No match between (l,m) of observed and model modes list')
+    return False
+
+  rec_gyre = rec_gyre[ind_l_m]
+  rec_freq = rec_gyre['freq']
+  n_rec    = len(rec_gyre)
+  if n_rec < n_modes:
+    logger.error('_trim_from_highest_frequency: Frequency list is too short for this observations')
+    return False
+ 
+  ind_to    = np.argmin(np.abs(rec_freq - obs_freq_hi))
+  ind_from  = ind_to - n_modes
+  if ind_from < 0:
+    return False
+  else:
+    return rec_gyre[ind_from : ind_to]
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def _trim_modes_by_dP(modes, rec_gyre, dic_mode_types, trim_delta_freq_factor):
