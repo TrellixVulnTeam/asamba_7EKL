@@ -41,9 +41,6 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
   first = h5_files[0]
   with h5py.File(first, 'r') as h5:
     keys  = h5.attrs.keys()
-  if 'freq_rot' not in keys or 'freq_crit' not in keys:
-    logger.warning('write_rotation_frequencies_to_ascii: the extra rotation attributes unavailable')
-    return False
 
   dic_tracks_id = db_lib.get_dic_look_up_track_id(dbname)
   dic_models = db_lib.get_dic_look_up_models_id(dbname)
