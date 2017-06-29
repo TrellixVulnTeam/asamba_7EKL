@@ -101,7 +101,7 @@ def insert_row_into_models(dbobj, model):
   fov    = model.fov
   Z      = model.Z
   logD   = model.logD
-  id_track = db_lib.get_track_id(dbname_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+  id_track = db_lib.get_track_id(loc_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
   # print id_track
 
   vals   = [id_track]
@@ -139,7 +139,7 @@ def get_row_tuple_from_model_object(dbobj, attrs, model):
   fov    = model.fov
   Z      = model.Z
   logD   = model.logD
-  id_track = db_lib.get_track_id(dbname_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
+  id_track = db_lib.get_track_id(loc_or_dbobj=dbobj, M_ini=M_ini, fov=fov, Z=Z, logD=logD)
 
   vals   = [id_track]
   for i, attr in enumerate(attrs[1:]): 
@@ -175,12 +175,12 @@ def prepare_insert_tracks(include_id=False):
   return cmnd
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
+def insert_row_into_tracks(loc_or_dbobj, id, M_ini, fov, Z, logD):
   """
   Inset one row into the "tracks" table of the database
 
-  @param dbname_or_dbobj: The name of the database, or an instance of the database connection
-  @type dbname_or_dbobj: string or object
+  @param loc_or_dbobj: The location of the database, or an instance of the database connection
+  @type loc_or_dbobj: string or object
   @param id: track id (declared serial in the SQL schema). If None, then its value is assigned by 
          SQL internally. If set to an integer, the passed value is enforced.
   @type id: int or None
@@ -204,13 +204,13 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
     logger.error('insert_row_into_tracks: Input argument id has unexpected type')
     sys.exit(1)
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(location=loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, tup)
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, tup)
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd, tup)
   else:
-    logger.error('insert_row_into_tracks: Input argument dbname_or_dbobj has a wrong type!')
+    logger.error('insert_row_into_tracks: Input argument loc_or_dbobj has a wrong type!')
     sys.exit(1)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,33 +218,33 @@ def insert_row_into_tracks(dbname_or_dbobj, id, M_ini, fov, Z, logD):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N S E R T   R O T A T I O N   F R E Q U E N C I E S
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def copy_rotation_frequencies_from_file(dbname, ascii_in):
+def copy_rotation_frequencies_from_file(location, ascii_in):
   """
   The rotation_frequencies is a table which maps the model id and the rotation id to the critical 
   rotation frequency, and the actual rotation frequency of the model. This function uses the COPY 
   command from SQL to load the contents of the table from an ASCII file into the corresponding table.
 
-  @param dbname: the name of the database
-  @type dbname: str
+  @param location: the location of the database, e.g. 'laptop', 'ivs', or 'https'
+  @type location: str
   @param ascii_in: the full path to the ascii file to copy the table info from
-
+  @type ascii_in: str
   """
 
-create table rotation_frequencies (
-  id              serial,
-  id_model        int not null,
-  id_rot          smallint not null,
-  freq_crit       real not null,     -- Roche critical
-  freq_rot        real not null,
+# create table rotation_frequencies (
+#   id              serial,
+#   id_model        int not null,
+#   id_rot          smallint not null,
+#   freq_crit       real not null,     -- Roche critical
+#   freq_rot        real not null,
 
-  primary key (id),
-  -- foreign key (id_model) references models (id),
-  -- foreign key (id_rot) references rotation_rates (id),
+#   primary key (id),
+#   -- foreign key (id_model) references models (id),
+#   -- foreign key (id_rot) references rotation_rates (id),
 
-  constraint positive_rot_crit check (freq_crit >= 0),
-  constraint positive_rot_freq check (freq_rot >= 0)
+#   constraint positive_rot_crit check (freq_crit >= 0),
+#   constraint positive_rot_freq check (freq_rot >= 0)
 
-);
+# );
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -252,19 +252,20 @@ create table rotation_frequencies (
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   T O   I N S E R T   G Y R E   D A T A    I N T O   T H E   D A T A B A S E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
+def insert_gyre_output_into_modes_table(location, list_h5, insert_every=10000):
   """
   Insert GYRE output data (mode order "n" and frequency "freq") into the "modes" table, using the 
   list of HDF5 GYRE output files. Since this is a massive and time consuming operation, this the 
   insertions are committed occasionally.
 
-  @param dbname: the name of the database which contains the "models" table. Normally, it is called
-         "grid"
+  @param location: the location of the database which contains the "models" table. 
   @type dbname: string
   @param list_h5: list of full path to each individual GYRE HDF5 file which will be inserted into 
          the database. Each file is read internally.
   @type list_h5: list of string
   """
+  dbname = db_def.assign_dbname(location)
+
   try:
     assert db_def.exists(dbname=dbname) == True
     logger.info('insert_gyre_output_into_modes_table: database "{0}" exists.'.format(dbname))
@@ -277,7 +278,7 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
     logger.error('insert_gyre_output_into_modes_table: input list_h5 is empty')
     sys.exit(1)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     try:
       assert the_db.has_table('modes')
     except AssertionError:
@@ -421,7 +422,7 @@ def insert_gyre_output_into_modes_table(dbname, list_h5, insert_every=10000):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_models_from_models_parameter_file(dbname, ascii_in):
+def insert_models_from_models_parameter_file(location, ascii_in):
   """
   This function starts from an ASCII input file (which is most probably prepared by calling 
   write.write_model_parameters_to_ascii), and insert each line as a row into the "models" table of 
@@ -429,10 +430,10 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
 
   >>>from asamba import insert_lib
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
-  >>>insert_lib.insert_models_from_models_parameter_file(dbname='grid', ascii_in=param_file)
+  >>>insert_lib.insert_models_from_models_parameter_file(location='ivs', ascii_in=param_file)
 
-  @param dbname: the name of the database which contains the "models" table. 
-  @type dbname: string
+  @param location: the location with the database which contains the "models" table. 
+  @type location: string
   @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
          columns. 
   @type ascii_in: string
@@ -444,6 +445,8 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
     n_rows = sum((1 for i in open(ascii_in, 'rb'))) - 1
     handle = open(ascii_in, 'r')
 
+  dbname = db_def.assign_dbname(location)
+
   try:
     assert db_def.exists(dbname=dbname) == True
     logger.info('insert_models_from_models_parameter_file: database "{0}" exists.'.format(dbname))
@@ -451,12 +454,12 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
     logger.error('insert_models_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
     sys.exit(1)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     try:
       assert the_db.has_table('models')
     except AssertionError:
       logger.error('insert_models_from_models_parameter_file: \
-                    Table "{0}" not found in the database "{1}"'.format('models', dbname))
+                    Table "{0}" not found in the location "{1}"'.format('models', location))
       sys.exit(1)
 
   # open the file, and get the file handle
@@ -466,7 +469,7 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
 
   # walk over the input file, and insert the rows in one go!
   i        = -1
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
 
     # prepare the database to receive a lot of insertions
     cmnd   = prepare_insert_models()
@@ -500,7 +503,7 @@ def insert_models_from_models_parameter_file(dbname, ascii_in):
   logger.info('insert_models_from_models_parameter_file: "{0}" rows inserted into models table'.format(i-1))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def insert_tracks_from_models_parameter_file(dbname, ascii_in):
+def insert_tracks_from_models_parameter_file(location, ascii_in):
   """
   Insert distinct track rows into the *tracks* table in the grid database. The four track attributes
   are taken from the history file names. The data are imported from the ASCII input file.
@@ -508,10 +511,10 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
 
   >>>from asamba import insert_lib
   >>>param_file = '/home/user/my-projects/grid-models-parameters.txt'
-  >>>insert_lib.insert_tracks_from_models_parameter_file(dbname='grid', ascii_in=param_file)
+  >>>insert_lib.insert_tracks_from_models_parameter_file(location='ivs', ascii_in=param_file)
 
-  @param dbname: the name of the database which contains the "tracks" table. 
-  @type dbname: string
+  @param location: the location of the database which contains the "tracks" table. 
+  @type location: string
   @param ascii_in: The full path to the ASCII file containing the models parameters, and the additional
          columns. Only the unique M_ini, fov, Z and logD attributes are extracted from the rows, and 
          inserted into distinct rows into the "tracks" table.
@@ -521,6 +524,8 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     logger.error('insert_tracks_from_models_parameter_file: "{0}" does not exist'.format(ascii_in))
     sys.exit(1)
 
+  dbname = db_def.assign_dbname(location)
+
   try:
     assert db_def.exists(dbname=dbname) == True
     logger.info('insert_tracks_from_models_parameter_file: database "{0}" exists.'.format(dbname))
@@ -528,12 +533,12 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
     logger.error('insert_tracks_from_models_parameter_file: failed to instantiate database "{0}".'.format(dbname))
     sys.exit(1)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     try:
       assert the_db.has_table('tracks')
     except AssertionError:
       logger.error('insert_tracks_from_models_parameter_file: \
-                    Table "{0}" not found in the database "{1}"'.format('tracks', dbname))
+                    Table "{0}" not found in the location "{1}"'.format('tracks', location))
       sys.exit(1)
 
   # open the file, and get the file handle
@@ -580,7 +585,7 @@ def insert_tracks_from_models_parameter_file(dbname, ascii_in):
   tups     = sorted(list(unique))
 
   n_values = len(tups)
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     
     # prepare an insertion statement into the tracks table
     cmnd   = prepare_insert_tracks(include_id=False)

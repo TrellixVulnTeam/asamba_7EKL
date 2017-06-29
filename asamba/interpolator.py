@@ -322,11 +322,11 @@ def _collect_inputs_around_anchor(self):
   types   = self.get('anchor_mode_types')
 
   # Get the entire grid attributes of the "tracks" table (>12,000 records)
-  dbname  = self.get('dbname')
-  q_tracks= query.without_constraint(dbname=dbname, table='tracks', 
+  location= self.get('location')
+  q_tracks= query.without_constraint(location=location, table='tracks', 
                                      returned_columns=['id', 'M_ini', 'fov', 'Z', 'logD'])
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     the_db.execute_one(q_tracks, None)
     tup_tracks = the_db.fetch_all()
     dtype_     = [('id', int), ('M_ini', 'f4'), ('fov', 'f4'), ('Z', 'f4'), ('logD', 'f4')]
@@ -377,7 +377,7 @@ def _collect_inputs_around_anchor(self):
 
   # Query the database to get all unique (M_ini, logD) values from tracks table.
   q_tracks     = query.get_tracks_distinct_M_ini_logD()
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     the_db.execute_one(q_tracks, None)
     tup_M_logD = the_db.fetch_all()
     dtype_     = [('M_ini', 'f4'), ('logD', 'f4')]
@@ -389,7 +389,7 @@ def _collect_inputs_around_anchor(self):
 
   # Now, we have to constrain the Xc range
   # First, we find the id of the anchor track 
-  anc_track_id = db_lib.get_track_id(dbname_or_dbobj=dbname, M_ini=anc_M_ini, fov=anc_fov, Z=anc_Z, logD=anc_logD)
+  anc_track_id = db_lib.get_track_id(loc_or_dbobj=location, M_ini=anc_M_ini, fov=anc_fov, Z=anc_Z, logD=anc_logD)
   if isinstance(anc_track_id, int):
     logger.info('_collect_inputs_around_anchor: tracks.id for the anchor model is "{0}"'.format(anc_track_id))
   elif isinstance(anc_track_id, bool):
@@ -397,10 +397,10 @@ def _collect_inputs_around_anchor(self):
     sys.exit(1)
 
   # Second, find all Xcs from this track
-  q_Xc         = query.with_constraints(dbname=dbname, table='models', returned_columns=['Xc'], 
+  q_Xc         = query.with_constraints(location=location, table='models', returned_columns=['Xc'], 
                        constraints_keys=['id_track'], constraints_ranges=[[anc_track_id, anc_track_id]])
   # Get all Xcs now
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     the_db.execute_one(q_Xc, None)
     tup_Xcs    = the_db.fetch_all()
     tup_Xcs    = [tup[0] for tup in tup_Xcs]
@@ -412,7 +412,7 @@ def _collect_inputs_around_anchor(self):
   Xc_range     = [neighb_Xc.min(), neighb_Xc.max()]
 
   # Then, find the appropriate rotation rates
-  dic_rot      = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
+  dic_rot      = db_lib.get_dic_look_up_rotation_rates_id(self.location)
   ids_etas     = list(dic_rot.values())
   eta_vals     = list(dic_rot.keys())
   n_etas       = len(ids_etas)
@@ -474,7 +474,7 @@ def _collect_inputs_by_range(self):
                               logD_range=logD_range, Xc_range=Xc_range)
 
   # Now, get the models.id
-  with db_def.grid_db(dbname=self.dbname) as the_db:
+  with db_def.grid_db(self.location) as the_db:
     the_db.execute_one(q_models_id, None)
     tup_ids    = the_db.fetch_all()
     models_ids = np.array([ tup[0] for tup in tup_ids ], dtype=int)
@@ -496,7 +496,7 @@ def _collect_inputs_by_range(self):
   # Figure out whether or not to include the eta column
   if self.exclude_eta_column:
     models_ids_= models_ids
-    dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
+    dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.location)
     ids_etas   = list(dic_rot.values())
     rot_ids_   = [min(ids_etas)] * n_features
     rows_names = ['M_ini', 'fov', 'Z', 'logD', 'Xc']
@@ -566,8 +566,8 @@ def _collect_inputs(self):
   """
   if self.interp_inputs_OK: return 
 
-  if self.dbname == '':
-    logger.error('_collect_inputs: You must specify the dbname.')
+  if self.location == '':
+    logger.error('_collect_inputs: You must specify the location.')
     sys.exit(1)
     
   flags  = np.array([self.inputs_around_anchor, self.inputs_by_range])

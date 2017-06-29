@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
+def rotation_frequencies_to_ascii(location, h5_files, ascii_out):
   """
   This routine receives the names of HDF5 GYRE files as input, and collects the following attributes
   from the file header, if available (else it quits). Then, the whole information is collected for
@@ -23,8 +23,8 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
   table rotation_frequencies in the database.
   To read the created file, you may use read.read_rotation_frequencies_from_ascii().
 
-  @param dbname: the name of the database to connect to (and retrieve the look up dictionaries)
-  @type dbname: str
+  @param location: the location of the database to connect to (and retrieve the look up dictionaries)
+  @type location: str
   @param h5_files: the full path to the whole h5 files to add to the output file
   @type h5_files: list of strings
   @param ascii_out: the full path to the location of the created file
@@ -34,7 +34,7 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
   """
   n_h5 = len(h5_files)
   if n_h5 == 0:
-    logger.error('write_rotation_frequencies_to_ascii: The input file is empty')
+    logger.error('rotation_frequencies_to_ascii: The input file is empty')
     sys.exit(1)
 
   # make sure the attributes that we need are available
@@ -42,9 +42,9 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
   with h5py.File(first, 'r') as h5:
     keys  = h5.attrs.keys()
 
-  dic_tracks_id = db_lib.get_dic_look_up_track_id(dbname)
-  dic_models = db_lib.get_dic_look_up_models_id(dbname)
-  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(dbname)
+  dic_tracks_id = db_lib.get_dic_look_up_track_id(location)
+  dic_models = db_lib.get_dic_look_up_models_id(location)
+  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(location)
 
   id_nonrot  = dic_rot[ (0.0, ) ]
 
@@ -90,7 +90,7 @@ def write_rotation_frequencies_to_ascii(dbname, h5_files, ascii_out):
 
   with open(ascii_out, 'w') as w: w.writelines(lines)
 
-  logger.info('write_rotation_frequencies_to_ascii: done')
+  logger.info('rotation_frequencies_to_ascii: done')
 
   return True
 

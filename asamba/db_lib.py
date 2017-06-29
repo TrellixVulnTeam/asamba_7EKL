@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_tag_Xc(dbname):
+def get_dic_tag_Xc(location):
   """
   The models in the database start from ZAMS (Xc~0.7), and are evolved up to TAMS (Xc~0.002). However,
   the timesteps in MESA are dynamically determined, and are non-uniform. Therefore, no two tracks 
@@ -69,23 +69,23 @@ def get_dic_tag_Xc(dbname):
 
   To access the Xc tag for a model in the grid, one can do the following:
   >>>from asamba import db_lib
-  >>>dic_tag_Xc  = db_lib.get_dic_tag_Xc('grid')
+  >>>dic_tag_Xc  = db_lib.get_dic_tag_Xc('ivs')
   >>>key_model   = '12.099,0.035,0.014,01.29,0.2314'
   >>>this_Xc_tag = dic_tag_Xc[key_model]
 
-  @param dbname: The name of the database to connect to, and fetch data from
-  @type dbname: str
+  @param location: The location of the database to connect to, and fetch data from
+  @type location: str
   @return: the tagging dictionary, where the tuple of the attributes of each model (as a dictionary 
       key) is mapped to a unique Xc integer-valued tag (see example above).
   @rtype: dict
   """
   # Get the contents of the tracks table as a record array
-  tracks_vals = get_tracks(dbname=dbname)
+  tracks_vals = get_tracks(location)
   tracks_ids  = [tup[0] for tup in tracks_vals]
   arr_ids     = np.array(tracks_ids)  # only for fast indexing
 
   # Get all Xc values and their corresponding track_id from the models table
-  dic_Xc      = get_dic_look_up_Xc(dbname_or_dbobj=dbname)
+  dic_Xc      = get_dic_look_up_Xc(loc_or_dbobj=dbname)
   Xc_keys     = list(dic_Xc.keys())
   Xc_ids      = np.array([tup[0] for tup in Xc_keys])
   Xc_vals     = [tup[1] for tup in Xc_keys]
@@ -123,7 +123,7 @@ def get_dic_tag_Xc(dbname):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   M O D E _ T Y P E S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_look_up_mode_types_id(dbname_or_dbobj):
+def get_dic_look_up_mode_types_id(loc_or_dbobj):
   """
   Create a look up dictionary for the "mode_types" table, to speed up fetching the mode types  ids 
   through dictionary look up.
@@ -134,7 +134,7 @@ def get_dic_look_up_mode_types_id(dbname_or_dbobj):
   >>>print dic_mode_type[(0,0)]
   >>>0
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -144,18 +144,18 @@ def get_dic_look_up_mode_types_id(dbname_or_dbobj):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @return: a look up dictionary that contains the mode_type tuples as keys, and the mode_type "id"s
         as values. 
   @rtype: dict
   """
   # fetch the "mode_types" table
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
       mode_types = the_db.get_mode_types()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    mode_types   = dbname_or_dbobj.get_mode_types()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    mode_types   = loc_or_dbobj.get_mode_types()
   #
   else:
     logger.error('get_dic_look_up_mode_types_id: Input type not string or db_def.grid_db!')
@@ -185,7 +185,7 @@ def get_dic_look_up_mode_types_id(dbname_or_dbobj):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # R O U T I N E S   F O R   R O T A T I O N _ R A T E S   T A B L E
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
+def get_dic_look_up_rotation_rates_id(loc_or_dbobj):
   """
   Create a look up dictionary for the "rotation_rates" table, to speed up fetching the mode types ids 
   through dictionary look up.
@@ -198,7 +198,7 @@ def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
   >>>print dic_rot_rates[tup_rot]
   >>>7
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -208,18 +208,18 @@ def get_dic_look_up_rotation_rates_id(dbname_or_dbobj):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @return: a look up dictionary that contains the rotation_rate tuples as keys, and the rotation_rate "id"s
         as values. 
   @rtype: dict
   """
   # fetch the "rotation_rates" table
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
       rot_rates = the_db.get_rotation_rates()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    rot_rates   = dbname_or_dbobj.get_rotation_rates()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    rot_rates   = loc_or_dbobj.get_rotation_rates()
   #
   else:
     logger.error('get_dic_look_up_rotation_rates_id: Input type not string or db_def.grid_db!')
@@ -358,12 +358,12 @@ def find_missing_gyre_task(dbname, eta, h5_prefix='ad-sum'):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_look_up_models_id(dbname_or_dbobj):
+def get_dic_look_up_models_id(loc_or_dbobj):
   """
   Retrieve the id, id_track and model_number from the entire "models" table, and construct a look up
   dictionary with the keys as the (id_track, model_number) tuple, and the values as the id. 
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -373,21 +373,21 @@ def get_dic_look_up_models_id(dbname_or_dbobj):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @return: look up dictinary with keys as a tuple with the two elements "(id_track, model_number)" and 
         the value as the "models.id"
   @rtype: dict
   """
   cmnd = 'select id, id_track, model_number from models'
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, None)
       result = the_db.fetch_all()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, None)
-    result   = dbname_or_dbobj.fetch_all()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd, None)
+    result   = loc_or_dbobj.fetch_all()
   #
   else:
     logger.error('get_dic_look_up_models_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
@@ -412,12 +412,12 @@ def get_dic_look_up_models_id(dbname_or_dbobj):
   return dic
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_look_up_Xc(dbname_or_dbobj):
+def get_dic_look_up_Xc(loc_or_dbobj):
   """
   Retrieve the id, id_track and Xc (core hydrogen mass fraction) from the entire "models" table, and 
   construct a look up dictionary with the keys as the (id_track, Xc) tuple, and the values as the id. 
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -427,21 +427,21 @@ def get_dic_look_up_Xc(dbname_or_dbobj):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @return: look up dictinary with keys as a tuple with the two elements "(id_track, Xc)" and the value
         as the "models.id"
   @rtype: dict
   """
   cmnd = 'select id, id_track, Xc from models'
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, None)
       result = the_db.fetch_all()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, None)
-    result   = dbname_or_dbobj.fetch_all()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd, None)
+    result   = loc_or_dbobj.fetch_all()
   #
   else:
     logger.error('get_dic_look_up_Xc: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
@@ -468,9 +468,9 @@ def get_dic_look_up_Xc(dbname_or_dbobj):
   return dic
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model_number):
+def get_models_id_by_id_tracks_and_model_number(loc_or_dbobj, id_track, model_number):
   """
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -480,7 +480,7 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @param id_track: the track id of the model. This must be already provided by calling e.g. the 
          db_lib.get_track_id() routine. For that, we must provide the four track attributes (knowing 
          them by heart! or from the model filename).
@@ -496,8 +496,8 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
   cmnd_id  = 'select id from models where id_track=%s and model_number=%s'
   tup      = (id_track, model_number)
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd_min, None)
       min_id = the_db.fetch_one()[0]
       the_db.execute_one(cmnd_max, None)
@@ -506,14 +506,14 @@ def get_models_id_by_id_tracks_and_model_number(dbname_or_dbobj, id_track, model
       the_db.execute_one(cmnd_id, tup)
       result = the_db.fetch_one()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd_min, None)
-    min_id   = dbname_or_dbobj.fetch_one()[0]
-    dbname_or_dbobj.execute_one(cmnd_max, None)
-    max_id   = dbname_or_dbobj.fetch_one()[0]
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd_min, None)
+    min_id   = loc_or_dbobj.fetch_one()[0]
+    loc_or_dbobj.execute_one(cmnd_max, None)
+    max_id   = loc_or_dbobj.fetch_one()[0]
 
-    dbname_or_dbobj.execute_one(cmnd_id, tup)
-    result   = dbname_or_dbobj.fetch_one()
+    loc_or_dbobj.execute_one(cmnd_id, tup)
+    result   = loc_or_dbobj.fetch_one()
   #
   else:
     logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
@@ -638,14 +638,14 @@ def get_dics_tag_track_attributes(dbname):
   return (dic_tag_M_ini, dic_tag_fov, dic_tag_Z, dic_tag_logD)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dic_look_up_track_id(dbname_or_dbobj):
+def get_dic_look_up_track_id(loc_or_dbobj):
   """
   Retrieve the id, M_ini, fov, Z, and logD from the entire "tracks" table, and construct a look up
   dictionary with the keys as the (M_ini, fov, Z, logD) tuple, and the values as the id. This gives
   a mapping of track ids to their corresponding attributes, which is very useful for the fastest 
   way to retrieve track ids by their attributes.
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -655,19 +655,19 @@ def get_dic_look_up_track_id(dbname_or_dbobj):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
 
   """
   cmnd = 'select id, M_ini, fov, Z, logD from tracks;'
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, None)
       result = the_db.fetch_all()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, None)
-    result   = dbname_or_dbobj.fetch_all()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd, None)
+    result   = loc_or_dbobj.fetch_all()
   #
   else:
     logger.error('get_dic_look_up_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
@@ -694,7 +694,7 @@ def get_dic_look_up_track_id(dbname_or_dbobj):
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_track_by_id(dbname, id):
+def get_track_by_id(location, id):
   """
   Retrieve the four basic track attributes, M_ini, fov, Z, logD, respectively by the requested id.
   if the id exceeds the minimum and maximum id range in the database, an exception is raised, and
@@ -707,7 +707,7 @@ def get_track_by_id(dbname, id):
   @return: a tuple with (M_ini, fov, Z, logD), respectively
   @rtype: tuple
   """
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
 
     cmnd = 'select %s between (select min(id) from tracks) and (select max(id) from tracks)'
     the_db.execute_one(cmnd, (id, ))
@@ -722,11 +722,11 @@ def get_track_by_id(dbname, id):
   return result
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
+def get_track_id(loc_or_dbobj, M_ini, fov, Z, logD):
   """
   Retrieve the id for a track given the four basic parameters (attributes) the distinguish the track.
 
-  @param dbname_or_dbobj: The first argument of this function can have two possible types. The reason 
+  @param loc_or_dbobj: The first argument of this function can have two possible types. The reason 
         is that Python does not really support function overloading. Instead, it is careless about the
         type of the input argument, which we benefit from here. The reason behind this choice of 
         development is to avoid creating/closing a connection/cursor to the database everytime one 
@@ -736,7 +736,7 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
         - dbname: string which specifies the name of the dataase. This is used to instantiate the 
                   db_def.grid_db(dbname) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
-  @type dbname_or_dbobj: string or db_def.grid_db object
+  @type loc_or_dbobj: string or db_def.grid_db object
   @param M_ini: initial mass (in solar mass)
   @type M_ini: float
   @param fov: exponential overshoot parameter
@@ -752,14 +752,14 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
   cmnd = 'select id from tracks where M_ini~%s and fov~%s and Z~%s and logD~%s'
   tup  = (M_ini, fov, Z, logD)
 
-  if isinstance(dbname_or_dbobj, str):
-    with db_def.grid_db(dbname=dbname_or_dbobj) as the_db:
+  if isinstance(loc_or_dbobj, str):
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, tup)
       result = the_db.fetch_one()
   #
-  elif isinstance(dbname_or_dbobj, db_def.grid_db):
-    dbname_or_dbobj.execute_one(cmnd, tup)
-    result   = dbname_or_dbobj.fetch_one()
+  elif isinstance(loc_or_dbobj, db_def.grid_db):
+    loc_or_dbobj.execute_one(cmnd, tup)
+    result   = loc_or_dbobj.fetch_one()
   #
   else:
     logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
@@ -772,18 +772,18 @@ def get_track_id(dbname_or_dbobj, M_ini, fov, Z, logD):
     return result[0]
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tracks(dbname):
+def get_tracks(location):
   """
   This function retrieves the entire content of the "tracks" table. Each record in that table is an
   item (tuple) in the returned list.
 
-  @param dbname: name of the database to connect to, and fetch the data from.
-  @type dbname: str
+  @param location: location of the database to connect to, and fetch the data from, e.g. 'laptop'
+  @type location: str
   @return: list of tuples where each tuple has this form: (id, M_ini, fov, Z, logD)
   @rtype: list of tuples
   """
   # Construct a recarray of the tracks table with: (id, M_ini, fov, Z, logD) as column names
-  tracks_dic  = get_dic_look_up_track_id(dbname_or_dbobj=dbname)
+  tracks_dic  = get_dic_look_up_track_id(loc_or_dbobj=location)
   tracks_keys = list(tracks_dic.keys())
   tracks_id   = list(tracks_dic.values())
   tracks_rows = len(tracks_id)
@@ -792,7 +792,7 @@ def get_tracks(dbname):
   return tracks_vals
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tracks_as_recarray(dbname):
+def get_tracks_as_recarray(location):
   """
   This function retrieves the entire content of the "tracks" table, and returns it back as a numpy
   record array, with the record names being the tracks attributes, i.e. id, M_ini, fov, Z, and logD.
@@ -809,7 +809,7 @@ def get_tracks_as_recarray(dbname):
         array stands for one track in the grid
   @rtype: np.recarray
   """
-  tracks_vals = get_tracks(dbname=dbname)
+  tracks_vals = get_tracks(location
   tracks_cols = 1 + 4
   f32         = np.float32
   dtype       = [('id', np.int16), ('M_ini', f32), ('fov', f32), ('Z', f32), ('logD', f32)]
@@ -826,7 +826,7 @@ def get_tracks_as_recarray(dbname):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_tables_info(dbname):
+def get_tables_info(location):
   """
   Retrieve the information of the tables in the database passed by its name (as dbname). The following
   informations are retrieved, and used as the key of the returned dictionary:
@@ -845,8 +845,8 @@ def get_tables_info(dbname):
   Note that the value corresponding to each key is a list of strings, and the length of all these returned
   lists are identical.
 
-  @param dbname: the database name
-  @type dbname: string
+  @param location: the location where the database resides
+  @type location: string
   @return: a dictionary with the entire information, accessed through 11 keys listed above. The associated
       value of each key is a list of strings
   @rtype: dict
@@ -878,7 +878,7 @@ def get_tables_info(dbname):
         WHERE NOT nspname LIKE %s; -- Excluding system tables'
   val  = ('pg%', )
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     the_db.execute_one(cmnd, val)
     result = the_db.fetch_all()
 

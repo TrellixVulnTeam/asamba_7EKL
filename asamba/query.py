@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def without_constraint(dbname, table, returned_columns=[]):
+def without_constraint(location, table, returned_columns=[]):
   """
   Prepare a query to retrieve specific columns (from "returned_columns" argument). This is a generic
   routine that can be used on any table to retrive all rows from the table. A subset of columns can 
@@ -41,8 +41,8 @@ def without_constraint(dbname, table, returned_columns=[]):
   where the "*" can be optionally replaced with a user-specified list of strings giving the desired
   column names of the table to retrieve.
 
-  @param dbname: the name of the database to connect to
-  @type dbname: str
+  @param location: the location of the database to connect to, e.g. 'laptop'
+  @type location: str
   @param table: The name of the table where the query is going to be prepaired, and will be imosed on.
   @type table: str
   @param returned_columns: the list of column names that we require the values for in the output.
@@ -61,7 +61,9 @@ def without_constraint(dbname, table, returned_columns=[]):
   else:
     str_cols = ','.join(returned_columns)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  dbname     = db_def.assign_dbname(location)
+
+  with db_def.grid_db(location) as the_db:
     # check if the table exists in the database
     if not the_db.has_table(table):
       logger.error('without_constraint: Database "{0}" does not have the \
@@ -84,7 +86,7 @@ def without_constraint(dbname, table, returned_columns=[]):
   return the_query
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], constraints_ranges=[]):
+def with_constraints(location, table, returned_columns=[], constraints_keys=[], constraints_ranges=[]):
   """
   Prepare a query to retrieve specific columns (from "returned_columns" argument) subject to the 
   "WHERE" constraints specified by the "constraints_keys" argument, within the ranges specified in
@@ -92,11 +94,11 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
   database, with any table therein.
 
   E.g. 
-  >>>my_query = with_constraints(dbname = 'grid', table = 'models',
+  >>>my_query = with_constraints(location = 'laptop', table = 'models',
                         returned_columns = ['id', 'Xc'], 
                         constraints_keys = ['log_Teff', 'log_g'], 
                         constraints_ranges = [[4,4.1], [3.4, 3.5]])
-  >>>with db_def.grid_db(dbname) as my_db: 
+  >>>with db_def.grid_db(location) as my_db: 
   >>>  my_db.execute_one(my_query, None)
   >>>  result = my_db.fetch_all()
   >>>print len(results) > 0
@@ -104,8 +106,8 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
   Note: The order of items in the input arguments "constraints_keys" and "constraints_ranges" must 
   match, because they are merged into a single SQL query in the same order as passed.
 
-  @param dbname: the name of the database to connect to
-  @type dbname: str
+  @param location: the location of the database to connect to
+  @type location: str
   @param table: The name of the table where the query is going to be prepaired, and will be imosed on.
   @type table: str
   @param returned_columns: the list of column names that we require the values for in the output.
@@ -152,7 +154,8 @@ def with_constraints(dbname, table, returned_columns=[], constraints_keys=[], co
     logger.error('with_constraints: Mismatch between the number of keys and ranges')
     sys.exit(1)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  dbname    = db_def.assign_dbname(location)
+  with db_def.grid_db(location) as the_db:
     # check if the table exists in the database
     if not the_db.has_table(table):
       logger.error('with_constraints: Database "{0}" does not have the \

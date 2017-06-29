@@ -28,26 +28,37 @@ class grid_db(object):
   The class to interact with the grid, and execute SQL commands/querries
   """
   # ...................................
-  def __init__(self, dbname='asamba'):
+  def __init__(self, location):
     """
     The constructor of the class. Example of use:
 
-    >>>my_job = db_def.grid_db()
+    >>>my_job = db_def.grid_db('ivs')
     >>>cursor = my_job.get_cursor()
-    >>>
 
-    @param dbname: the name of the running database server. By default, it is called "grid" too.
-    @type dbname: string
+    @param location: the location where the database server is setup and is running. 
+                 Note: this "location" is different from "dbaname" used by psycopg2 to connect to 
+                 the database. The dbname is set internally, based on the provided location for 
+                 the database. Currently, the available names are the following:
+                 - laptop: which connects to a copy of the database on my own laptop
+                 - ivs: which connects to a copy of the databse at the Institute of Astronomy, 
+                        KULeuven
+                 - https: which connects to a copy of the database openly hosted online
+    @type location: string
     """
-    if not is_py3x: dbname = dbname.encode('ascii') # to avoid unicode conflicts
+    if not is_py3x: loc = loc.encode('ascii') # to avoid unicode conflicts
+    self.location = location
+    self.dbname   = ''
 
-    if exists(dbname) is False:
-      logger.error('grid_db.__init__: Database "{0}" does not exist'.format(dbname))
+    conn_string = self._prepare_connection()
+    if conn_string == '':
+      logger.error('__init__: Failed to prepare the connection. Check the connection name again')
       sys.exit(1)
 
-    self.dbname = dbname
+    if exists(self.dbname) is False:
+      logger.error('__init__: Database "{0}" does not exist'.format(self.dbname))
+      sys.exit(1)
 
-    connection  = psycopg2.connect('dbname={0}'.format(dbname))
+    connection  = psycopg2.connect(conn_string)
     cursor      = connection.cursor()
 
     self.connection = connection
@@ -62,8 +73,9 @@ class grid_db(object):
 
   # Setters
   # ...................................
-  def set_dbname(self, dbname):
-    if not is_py3x: dbname = dbname.encode('ascii')
+  def set_dbname(self):
+    loc      = self.location
+    dbname   = assign_dbname(loc)
     self.dbname = dbname
 
   # Getters
@@ -80,6 +92,25 @@ class grid_db(object):
     return self.cursor
 
   # Methods
+  # ...................................
+  def _prepare_connection(self):
+    loc         = self.location
+    if loc      == 'laptop':  # must go obsolete after other options come online
+      string    = 'dbname=grid'
+    elif loc    == 'asamba_dev':
+      string    = 'dbname=asamba_dev'
+    elif loc    == 'ivs':
+      string    = 'dbname=asamba user=asamba host=fs1'
+    elif loc    == 'https': # Not ready yet
+      string    = ''
+    else:
+      logger.error('_prepare_connection: location="{0}" is unavailable'.format(loc ))
+      string    = ''
+
+    self.set_dbname()
+
+    return string
+
   # ...................................
   def get_table_columns(self, table):
     cmnd = 'select column_name from information_schema.columns where table_name = %s'
@@ -205,12 +236,37 @@ class grid_db(object):
   # ...................................
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def assign_dbname(location):
+  """
+  Assign a unique (hard-coded) name to the database, based on where it is hosted
+  This function can be used by external calls, or by any instance of the grid_db()
+  class.
+  @param location: The location where the database is hosted, e.g. 'laptop'
+  @type location: str
+  @return: the assigned name of the database
+  @rtype: str
+  """
+  loc = location  
+  if loc   == 'laptop': 
+    dbname = 'asamba_dev'
+  elif loc == 'ivs':
+    dbname = 'asamba'
+  elif loc == 'https':
+    dbname = ''
+  else:
+    logger.error('assign_dbname: location="{0}" is undefined'.format(loc))
+    sys.exit(1)
+
+  return dbname
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def exists(dbname):
   """
   Check if the database already exists.
   Returns True if the database exists, and False otherwise.
   """
-  cmnd   = 'psql -lqt | cut -d \| -f 1 | grep -w {0}'.format(dbname)
+  cstr   = '-d asamba -U asamba -h fs1' if dbname == 'asamba' else ''
+  cmnd   = 'psql -lqt {0} | cut -d \| -f 1 | grep -w {1}'.format(cstr, dbname)
   exe    = subprocess.Popen(cmnd, shell=True, universal_newlines=True, 
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   err    = exe.returncode

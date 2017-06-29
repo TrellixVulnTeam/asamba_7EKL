@@ -61,25 +61,24 @@ class ModellingSession(interp.interpolation, ml.learner, smpl.sampling, star.sta
 ####################################################################################
 
 ####################################################################################
-def do_connect(dbname):
+def do_connect(location):
   """
-  Make a trial attempt to the connection port, passed as "dbname", and assert if the 
+  Make a trial attempt to the connection ported on the "location", and assert if the 
   connection is possible (returns True) or not (returns False). If successful, we set
   the connection name in the backend instance of the sampling() class.
 
-  @param dbname: The full name of the connection port, e.g. 'grid' for local machine. 
-         This value is passed by the frontend.GUI.dbname attribute
-  @type dbname: str
+  @param location: The full name of the connection port, e.g. 'ivs' to access the database. 
+         This value is passed by the frontend.GUI.location attribute
+  @type location: str
   @return: True if the connection is possible, and False, otherwise
   @rtype: bool
   """
-  if not isinstance(dbname, str):
+  if not isinstance(location, str):
     logger.error('do_connect: The input argument must be a string')
     sys.exit(1)
 
-  if db_def.exists(dbname):
-    # bk_sample.set('dbname', dbname)
-    BackEndSession.set('dbname', dbname)
+  if db_def.exists(location):
+    BackEndSession.set('location', location)
     return True
   else:
     return False

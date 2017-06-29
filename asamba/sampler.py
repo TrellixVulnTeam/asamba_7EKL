@@ -55,7 +55,7 @@ class sampling(star.star):
     # The basic search constraints
     #.............................
     # The database to retrieve samples from
-    self.dbname = ''
+    self.location = ''
     # which sampling function? Two options are:
     self.use_6D_feature_box       = False
     self.use_constrained_sampling = False
@@ -162,6 +162,8 @@ class sampling(star.star):
     # the lowest and highest modes to keep the mode?
     # This cannot exceed 0.5
     self.trim_delta_freq_factor = 0.25
+    # Trash the examples whose n_pg is non-contiguous
+    self.exclude_n_pg_non_contiguous = True
 
     #.............................
     # Sizes of different learning sets
@@ -240,7 +242,7 @@ class sampling(star.star):
       sys.exit(1)
 
     # Some attributes require extra care/check
-    if attr == 'dbname' and not is_py3x:
+    if attr == 'location' and not is_py3x:
       val = val.encode('ascii')          # to handle unicode encoding for Python v2.7
     if attr == 'range_log_g' and val:
       if not isinstance(val, list) or len(val) != 2:
@@ -321,8 +323,8 @@ class sampling(star.star):
   def build_learning_set(self):
     """
     This routine prepares a learning (training + cross-validation + test) set from the "tracks", "models",
-    and "rotation_rates" table from the database "dbname". The sampling method of the data (constrained or
-    unconstrained) is specified by passing the function name as "sampling_func", with the function arguments
+    and "rotation_rates" table from the database at "location". The sampling method of the data (constrained 
+    or unconstrained) is specified by passing the function name as "sampling_func", with the function arguments
     "sampling_args".
 
     The result from this function can be used to randomly build training, cross-validation, and/or test
@@ -575,6 +577,27 @@ class sampling(star.star):
     _trim_modes(self, rec_gyre, dic_mode_types)
 
   ##########################
+  def check_n_pg_contiguous(self, arr_n_pg):
+    """
+    This method checks that the input n_pg vector is contiguous, i.e. the difference between consecutive
+    elements is no other than unity
+
+    @param arr_n_pg: an array containing the n_pg for any selection of modes
+    @type arr_n_pg: ndarray
+    @return: True if contiguous, and False, otherwise
+    @rtype: bool
+    """
+    if arr_n_pg[-1] < arr_n_pg[0]:
+      # logger.warning('check_n_pg_contiguous: Input array must be monotonically increasing')
+      return False
+
+    diffs = arr_n_pg[1:] - arr_n_pg[:-1]
+    flag  = np.mean(diffs) == 1
+    # print(flag)
+
+    return flag
+
+  ##########################
   def write_sample_to_h5(self, filename, include_periods=False):
     """
     This function saves the sampling features together with the frequenices per each row (optionally including
@@ -820,8 +843,8 @@ def _build_learning_sets(self):
   Refer to the documentation of the public method build_learning_set().
   """
   # Sanity checks ...
-  if not self.dbname:
-    logger.error('_build_learning_sets: specify "dbname" attribute of the class')
+  if not self.location:
+    logger.error('_build_learning_sets: specify "location" attribute of the class')
     sys.exit(1)
 
   choices   = [self.use_6D_feature_box, self.use_constrained_sampling, self.use_random_sampling]
@@ -870,7 +893,7 @@ def _build_learning_sets(self):
   self.set('sample_size', len(self.ids_models) )
 
   # convert the rotation ids to actual eta values through the look up dictionary
-  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.dbname)
+  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(self.location)
 
   # reverse the key/values of the dic, so that the id_rot be the key, and eta the values
   # also, the eta values are floats which are improper to compare. Instead, we convert
@@ -947,7 +970,7 @@ def _learning_log_Teff_log_g(self):
   arr_log_Teff = np.empty(n_keep, dtype=np.float64)
   arr_log_g    = np.empty(n_keep, dtype=np.float64)
 
-  with db_def.grid_db(dbname=self.dbname) as the_db:
+  with db_def.grid_db(self.location) as the_db:
     for i in range(n_keep):
       id_model = int(model_keep[i])
       q_models = query.get_log_Teff_log_g_from_models_id(id_model)
@@ -969,7 +992,7 @@ def _get_M_ini_fov_Z_logD_Xc_from_models_id(self, list_ids_models):
   """
   the_query  = query.get_M_ini_fov_Z_logD_Xc_from_models_id(list_ids_models)
 
-  with db_def.grid_db(dbname=self.dbname) as the_db:
+  with db_def.grid_db(self.location) as the_db:
     the_db.execute_one(the_query, None)
     params   = the_db.fetch_all()
     n_par    = len(params)
@@ -1007,7 +1030,7 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
   modes_dtype= [('id_model', np.int32), ('id_rot', np.int16), ('n', np.int16), 
                 ('id_type', np.int16), ('freq', np.float32)]
 
-  with db_def.grid_db(dbname=self.dbname) as the_db:
+  with db_def.grid_db(self.location) as the_db:
     
     # Get the mode_types look up dictionary
     dic_mode_types = db_lib.get_dic_look_up_mode_types_id(the_db)
@@ -1024,6 +1047,9 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
     the_db.execute_one(prepared_statement, None)
 
     # Now, query the database iteratively for all sampling ids
+    i_bad_trim = 0
+    i_bad_n_pg = 0
+
     for k, row in enumerate(list_rows):
       id_model = int(list_ids_models[k]) # self.ids_models[k]
       id_rot   = int(list_ids_rot[k])    # self.ids_rot[k]
@@ -1052,14 +1078,23 @@ def _extract_gyre_modes_from_id_model_id_rot(self, list_ids_models, list_ids_rot
 
       # Decide whether or not to keep this (k-th) row based on the result of trimming
       if isinstance(rec_trim, bool) and rec_trim == False:
+        i_bad_trim += 1
         continue            # skip this row
-      else:
-        rows_keep.append(row)
-        model_keep.append(id_model)
-        rot_keep.append(id_rot)
-        rec_keep.append(rec_trim)
 
-    logger.info('_extract_gyre_modes_from_id_model_id_rot: "{0}" models extracted\n'.format(len(rows_keep)))
+      if self.exclude_n_pg_non_contiguous:
+        keep   = self.check_n_pg_contiguous(rec_trim['n'])
+        if not keep: 
+          i_bad_n_pg += 1
+          continue
+
+      rows_keep.append(row)
+      model_keep.append(id_model)
+      rot_keep.append(id_rot)
+      rec_keep.append(rec_trim)
+
+    logger.info('\n_extract_gyre_modes_from_id_model_id_rot: "{0}" models extracted'.format(len(rows_keep)))
+    logger.info('   "{0}" models trashed by trimming'.format(i_bad_trim))
+    logger.info('   "{0}" models had non-contiguous n_pg\n'.format(i_bad_n_pg))
 
     return rows_keep, model_keep, rot_keep, rec_keep
 
@@ -1349,7 +1384,7 @@ def pick_from_6D_feature_box(self):
   @return: None
   @rtype: None  
   """
-  dbname      = self.get('dbname')
+  location    = self.get('location')
   n           = self.get('max_sample_size')
   range_M_ini = self.get('range_M_ini')
   range_fov   = self.get('range_fov')
@@ -1373,13 +1408,13 @@ def pick_from_6D_feature_box(self):
                       logD_range=range_logD, 
                       Xc_range=range_Xc)
 
-  q_rot_id    = query.with_constraints(dbname=dbname, table='rotation_rates',
+  q_rot_id    = query.with_constraints(location=location, table='rotation_rates',
                             returned_columns=['id'], 
                             constraints_keys=['eta'],
                             constraints_ranges=[range_eta])
 
   # Execute the queries and fetch the relevant models
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     the_db.execute_one(q_models_id, None)
     ids_models = [tup[0] for tup in the_db.fetch_all()]
     n_models   = len(ids_models)
@@ -1427,7 +1462,7 @@ def constrained_pick_models_and_rotation_ids(self):
   @return: None
   @rtype: None
   """
-  dbname         = self.get('dbname')
+  location       = self.get('location')
   n              = self.get('max_sample_size')
   range_log_Teff = self.get('range_log_Teff')
   range_log_g    = self.get('range_log_g')
@@ -1442,18 +1477,18 @@ def constrained_pick_models_and_rotation_ids(self):
     sys.exit(1)
 
   # Get proper queries for each table
-  q_models   = query.with_constraints(dbname=dbname, table='models',
+  q_models   = query.with_constraints(location=location, table='models',
                             returned_columns=['id'], 
                             constraints_keys=['log_Teff', 'log_g'], 
                             constraints_ranges=[range_log_Teff, range_log_g])
 
-  q_rot      = query.with_constraints(dbname=dbname, table='rotation_rates',
+  q_rot      = query.with_constraints(location=location, table='rotation_rates',
                             returned_columns=['id'], 
                             constraints_keys=['eta'],
                             constraints_ranges=[range_eta])
 
   # Now, execute the queries, and fetch the data
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     # Execute the query for models
     the_db.execute_one(q_models, None)
     ids_models = [tup[0] for tup in the_db.fetch_all()]
@@ -1495,17 +1530,13 @@ def randomly_pick_models_and_rotation_ids(self):
   id. Then, this list is shuffled using the numpy.random.shuffle method, and only the subset of this
   whole list is returned, with the size specified by "n".
 
-  @param dbname: The name of the database
-  @type dbname: grid
-  @param n: the size of the randomly-selected combinations of model id and rotation ids
-  @type n: int
   @return: list of tuples where each tuple consists of two integers: 
      - the model id
      - the rotaiton id
   @rtype: list of tuples
   """
-  dbname = self.get('dbname')
-  n      = self.get('max_sample_size')
+  location = self.get('location')
+  n        = self.get('max_sample_size')
 
   # if n < 1:
   #   logger.error('randomly_pick_models_and_rotation_ids: Specify n > 1')
@@ -1513,8 +1544,8 @@ def randomly_pick_models_and_rotation_ids(self):
 
   # Retrieve two look up dictionaries for the models table and the rotation table
   t1         = time.time()
-  dic_models = db_lib.get_dic_look_up_models_id(dbname_or_dbobj=dbname)
-  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(dbname_or_dbobj=dbname)
+  dic_models = db_lib.get_dic_look_up_models_id(loc_or_dbobj=location)
+  dic_rot    = db_lib.get_dic_look_up_rotation_rates_id(loc_or_dbobj=location)
   t2         = time.time()
   # print('Fetching two look up dictionaries took {0:.2f} sec'.format(t2-t1))
 
@@ -1627,8 +1658,8 @@ def _convert_features_to_tags(self):
   logger.info('_convert_features_to_tags: Starting ...')
 
   # Fetch the tagging dictionaries; this will be pretty slow for Xc
-  dbname    = self.get('dbname')
-  dics_tags = db_lib.get_dics_tag_track_attributes(dbname=dbname)
+  location  = self.get('location')
+  dics_tags = db_lib.get_dics_tag_track_attributes(location=location)
   dic_M_ini = dics_tags[0]
   dic_fov   = dics_tags[1]
   dic_Z     = dics_tags[2]
@@ -1644,10 +1675,10 @@ def _convert_features_to_tags(self):
     dic_Xc  = read.Xc_tags_from_ascii(filename=Xc_file)
   else:
     logger.info('_convert_features_to_tags: Fetching Xc tags from db_lib (slow)')
-    dic_Xc  = db_lib.get_dic_tag_Xc(dbname=dbname)
+    dic_Xc  = db_lib.get_dic_tag_Xc(location=location)
   logger.info('_convert_features_to_tags: Fetching Xc tags done ')
   
-  dic_eta   = db_lib.get_dic_look_up_rotation_rates_id(dbname_or_dbobj=dbname)
+  dic_eta   = db_lib.get_dic_look_up_rotation_rates_id(loc_or_dbobj=location)
 
   # Bookkeeping of all tagging dictinaries for all other future reference/use
   self.set('dic_tag_M_ini', dic_M_ini)

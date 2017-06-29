@@ -2,7 +2,6 @@
 
 -----------------------------------------------------------
 -- Table Schema
--- create schema asamba;
 set search_path to asamba, public;
 
 -- Changing the default attributes of this database

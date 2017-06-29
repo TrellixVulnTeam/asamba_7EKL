@@ -39,7 +39,7 @@ def main():
   # TheSample.set('modes', modes)
   TheSample.load_modes_from_file(filename=mode_file, delimiter=',')
 
-  TheSample.set('dbname', 'grid')
+  TheSample.set('dbname', 'grid')  # other names: 'asamba_dev', 'asamba'
 
   TheSample.set('use_6D_feature_box', True)
   # TheSample.set('use_constrained_sampling', True)
@@ -52,17 +52,17 @@ def main():
   TheSample.set('range_fov', [0, 0.04])
   TheSample.set('range_Z', [0.009, 0.02])
   TheSample.set('range_logD', [0, 7])
-  TheSample.set('range_Xc', [0.0, 0.71])
+  TheSample.set('range_Xc', [0.01, 0.71])
   TheSample.set('range_eta', [0, 0])
 
   # seismic constraints
   TheSample.set('modes_id_types', [2])   # for l=1, m=0: dipole zonal modes  
 
   # Set the maximum of returned sample size
-  TheSample.set('max_sample_size', 5000)
+  # TheSample.set('max_sample_size', 5000)
   # search plan for matching frequencies
   TheSample.set('sampling_shuffle', False)
-  TheSample.set('search_from_lowest_frequency', True)
+  TheSample.set('search_from_highest_frequency', True)
   TheSample.set('trim_delta_freq_factor', 0.25)
 
   # For non-rotating models, exclude eta column (which is just 0.0) to avoid singular X matrix
@@ -71,7 +71,7 @@ def main():
   # Now, build the learning sets
   if True: 
     TheSample.build_learning_set()
-    TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set_temp.h5', include_periods=False)
+    TheSample.write_sample_to_h5(filename='/Users/ehsan/Desktop/learning_set.h5', include_periods=False)
   else:
     TheSample.load_sample_from_hdf5(filename='/Users/ehsan/Desktop/learning_set.h5')
 

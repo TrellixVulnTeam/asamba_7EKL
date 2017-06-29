@@ -91,7 +91,7 @@ class GUI(object):
     self.conn_ivs_str = 'IvS'
     self.conn_https   = 3   # 'https://'
     self.conn_https_str = 'asamba-test' # password: ASAMBA%USER0
-    self.dbname       = ''  # The final user's choice
+    self.location     = ''  # The final user's choice
     self.conn_status  = BooleanVar()
     self.conn_status.set(False)
 
@@ -342,27 +342,27 @@ class GUI(object):
       self.update_status_bar('The connection choice is not made yet. Please choose one option.')
       self.conn_status.set(False)
     else:    # attempt a connection test
-      if choice == self.conn_loc: self.dbname   = self.conn_loc_str
-      if choice == self.conn_ivs: self.dbname   = self.conn_ivs_str
-      if choice == self.conn_https: self.dbname = self.conn_https_str
+      if choice == self.conn_loc: self.location   = self.conn_loc_str
+      if choice == self.conn_ivs: self.location   = self.conn_ivs_str
+      if choice == self.conn_https: self.location = self.conn_https_str
       self.do_connect()
     self.update_connection_state()
 
   def do_connect(self):
     """ The backend will connect based on the user's connecton choice """
-    stat = bk.do_connect(self.dbname)
+    stat = bk.do_connect(self.location)
     self.conn_status.set(stat) 
 
   def update_connection_state(self):
     """ Update the label in the connection frame based on the connection test """
     if self.conn_status.get():
-      self.update_status_bar('Connection to {0} is active'.format(self.dbname))
+      self.update_status_bar('Connection to {0} is active'.format(self.location))
       self.conn_lbl_str.set('Active')
       self.conn_lbl['background'] = 'green'
       self.conn_lbl['relief'] = 'sunken'
       # self.conn_lbl['image'] = self.handle_OK
     else:
-      self.update_status_bar('The port {0} is unreachable'.format(self.dbname))
+      self.update_status_bar('The port {0} is unreachable'.format(self.location))
       self.conn_lbl_str.set('Unreachable')
       self.conn_lbl['background'] = 'red'
       self.conn_lbl['relief'] = 'raised'
