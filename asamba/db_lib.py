@@ -85,7 +85,7 @@ def get_dic_tag_Xc(location):
   arr_ids     = np.array(tracks_ids)  # only for fast indexing
 
   # Get all Xc values and their corresponding track_id from the models table
-  dic_Xc      = get_dic_look_up_Xc(loc_or_dbobj=dbname)
+  dic_Xc      = get_dic_look_up_Xc(loc_or_dbobj=location)
   Xc_keys     = list(dic_Xc.keys())
   Xc_ids      = np.array([tup[0] for tup in Xc_keys])
   Xc_vals     = [tup[1] for tup in Xc_keys]
@@ -141,8 +141,8 @@ def get_dic_look_up_mode_types_id(loc_or_dbobj):
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @return: a look up dictionary that contains the mode_type tuples as keys, and the mode_type "id"s
@@ -151,7 +151,7 @@ def get_dic_look_up_mode_types_id(loc_or_dbobj):
   """
   # fetch the "mode_types" table
   if isinstance(loc_or_dbobj, str):
-    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       mode_types = the_db.get_mode_types()
   #
   elif isinstance(loc_or_dbobj, db_def.grid_db):
@@ -205,8 +205,8 @@ def get_dic_look_up_rotation_rates_id(loc_or_dbobj):
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the location of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @return: a look up dictionary that contains the rotation_rate tuples as keys, and the rotation_rate "id"s
@@ -215,7 +215,7 @@ def get_dic_look_up_rotation_rates_id(loc_or_dbobj):
   """
   # fetch the "rotation_rates" table
   if isinstance(loc_or_dbobj, str):
-    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       rot_rates = the_db.get_rotation_rates()
   #
   elif isinstance(loc_or_dbobj, db_def.grid_db):
@@ -249,20 +249,20 @@ def get_dic_look_up_rotation_rates_id(loc_or_dbobj):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def find_missing_models(dbname, eta):
+def find_missing_models(location, eta):
   """
   For a given rotation rate, eta, find the models.id that do not have a corresponding row in the 
   modes.id_model list. These are models which the GYRE computation has either failed, or for some
   reason, they are not still inserted into the "modes" table yet.
   
-  @param dbname: The name of the database, e.g. "grid"
-  @type dbname: string
+  @param location: The location of the database, e.g. "ivs"
+  @type location: string
   @return: list of models.id where the GYRE computaiton shall be either repeated, or the data must
         be inserted into the modes table.
   @rtype: list of int
   """
   tup_rot  = (eta, )
-  dic_rot  = get_dic_look_up_rotation_rates_id(dbname)
+  dic_rot  = get_dic_look_up_rotation_rates_id(location)
   try: 
     id_rot = dic_rot[tup_rot]
     tup_id_rot = (id_rot, )
@@ -271,7 +271,7 @@ def find_missing_models(dbname, eta):
     logger.error('find_missing_models: eta={0} is invalid, and not supported yet!'.format(eta))
     sys.exit(1)
 
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     cmnd = 'select id from models'
     the_db.execute_one(cmnd, None)
     id_from_models = [tup[0] for tup in the_db.fetch_all()]
@@ -304,14 +304,14 @@ def find_missing_models(dbname, eta):
     return sorted(list(missing))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def find_missing_gyre_task(dbname, eta, h5_prefix='ad-sum'):
+def find_missing_gyre_task(location, eta, h5_prefix='ad-sum'):
   """
   For a given rotation rate, eta, find the names of the GYRE input files, and the missing GYRE output
   files for which the GYRE output file is absent in the database (so, may need to do the GYRE 
   computaitons for these).
 
-  @param dbname: The name of the database to connect to
-  @type dbname: string
+  @param location: The location of the database to connect to
+  @type location: string
   @param eta: the rotation rate in percentage
   @type eta: float
   @param h5_prefix: The prefix which is added at the begining of the HDF5 GYRE output files to 
@@ -324,11 +324,11 @@ def find_missing_gyre_task(dbname, eta, h5_prefix='ad-sum'):
            ad-sum-M35.000-ov0.010-Z0.010-logD00.00-MS-Xc0.6092-00983-eta50.00.h5
   @rtype: tuple of two lists
   """
-  missing = find_missing_models(dbname=dbname, eta=eta)
+  missing = find_missing_models(location=location, eta=eta)
   # tups    = [(val, ) for val in missing]
   cmnd    = 'select M_ini, fov, Z, logD, model_number, Xc from tracks inner join models on tracks.id = models.id_track where models.id=%s'
   result  = []
-  with db_def.grid_db(dbname=dbname) as the_db:
+  with db_def.grid_db(location) as the_db:
     for i, id_model in enumerate(missing):
       tup = (id_model, )
       the_db.execute_one(cmnd, tup)
@@ -370,8 +370,8 @@ def get_dic_look_up_models_id(loc_or_dbobj):
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the location of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @return: look up dictinary with keys as a tuple with the two elements "(id_track, model_number)" and 
@@ -381,7 +381,7 @@ def get_dic_look_up_models_id(loc_or_dbobj):
   cmnd = 'select id, id_track, model_number from models'
 
   if isinstance(loc_or_dbobj, str):
-    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, None)
       result = the_db.fetch_all()
   #
@@ -390,7 +390,7 @@ def get_dic_look_up_models_id(loc_or_dbobj):
     result   = loc_or_dbobj.fetch_all()
   #
   else:
-    logger.error('get_dic_look_up_models_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_dic_look_up_models_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(location)))
     sys.exit(1)
 
   if not isinstance(result, list):
@@ -424,8 +424,8 @@ def get_dic_look_up_Xc(loc_or_dbobj):
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the location of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @return: look up dictinary with keys as a tuple with the two elements "(id_track, Xc)" and the value
@@ -435,7 +435,7 @@ def get_dic_look_up_Xc(loc_or_dbobj):
   cmnd = 'select id, id_track, Xc from models'
 
   if isinstance(loc_or_dbobj, str):
-    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd, None)
       result = the_db.fetch_all()
   #
@@ -444,7 +444,7 @@ def get_dic_look_up_Xc(loc_or_dbobj):
     result   = loc_or_dbobj.fetch_all()
   #
   else:
-    logger.error('get_dic_look_up_Xc: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_dic_look_up_Xc: Input type not string or db_def.grid_db! It is: {0}'.format(type(location)))
     sys.exit(1)
 
   if not isinstance(result, list):
@@ -477,8 +477,8 @@ def get_models_id_by_id_tracks_and_model_number(loc_or_dbobj, id_track, model_nu
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @param id_track: the track id of the model. This must be already provided by calling e.g. the 
@@ -497,7 +497,7 @@ def get_models_id_by_id_tracks_and_model_number(loc_or_dbobj, id_track, model_nu
   tup      = (id_track, model_number)
 
   if isinstance(loc_or_dbobj, str):
-    with db_def.grid_db(dbname=loc_or_dbobj) as the_db:
+    with db_def.grid_db(loc_or_dbobj) as the_db:
       the_db.execute_one(cmnd_min, None)
       min_id = the_db.fetch_one()[0]
       the_db.execute_one(cmnd_max, None)
@@ -516,7 +516,7 @@ def get_models_id_by_id_tracks_and_model_number(loc_or_dbobj, id_track, model_nu
     result   = loc_or_dbobj.fetch_one()
   #
   else:
-    logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(location)))
     sys.exit(1)
 
   if isinstance(result, type(None)):
@@ -547,7 +547,7 @@ def get_models_id_by_id_tracks_and_model_number(loc_or_dbobj, id_track, model_nu
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def get_dics_tag_track_attributes(dbname):
+def get_dics_tag_track_attributes(location):
   """
   This routine returns four tagging dictionaries, each for one of the key attributes from the "tracks"
   table in the grid. Each of these dictionaries map a value into a unique integer tag. This allows to 
@@ -570,8 +570,8 @@ def get_dics_tag_track_attributes(dbname):
   >>>key           = '03.130,02.63'
   >>>tag_logD_2p63 = dic_tag_logD[key]
 
-  @param dbname: the name of the database to connect to, and fetch information from
-  @type dbname: str
+  @param location: the location of the database to connect to, and fetch information from
+  @type location: str
   @return: four dictionaries, each providing a tagging facility to tag the features. Below, we provide
       the key: value example to retrieve data from each dictionary for each feature
       - '{0:06.3f}'.format(M_ini) --> tag
@@ -583,7 +583,7 @@ def get_dics_tag_track_attributes(dbname):
   @type: tuple of dics
   """
   # Get the contents of the tracks table as a record array
-  tracks_vals = get_tracks_as_recarray(dbname)
+  tracks_vals = get_tracks_as_recarray(location)
 
   # Find unique values for each column of the tracks table
   uniq_track_id  = tracks_vals.id
@@ -652,8 +652,8 @@ def get_dic_look_up_track_id(loc_or_dbobj):
         freaking model ID needs be fetched. This avoids connection overheads when thousands to 
         millions of track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the name of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
 
@@ -670,7 +670,7 @@ def get_dic_look_up_track_id(loc_or_dbobj):
     result   = loc_or_dbobj.fetch_all()
   #
   else:
-    logger.error('get_dic_look_up_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_dic_look_up_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(location)))
     sys.exit(1)
 
   if not isinstance(result, list):
@@ -700,8 +700,8 @@ def get_track_by_id(location, id):
   if the id exceeds the minimum and maximum id range in the database, an exception is raised, and
   the function terminates.
 
-  @param dbname: database name, used to instantiate the db_def.grid_db(dbname) object
-  @type dbname: string
+  @param location: database location, used to instantiate the db_def.grid_db(location) object
+  @type location: string
   @param id: the unique id of the grid.tracks table to fetch the corresponding row
   @type id: integer
   @return: a tuple with (M_ini, fov, Z, logD), respectively
@@ -733,8 +733,8 @@ def get_track_id(loc_or_dbobj, M_ini, fov, Z, logD):
         freaking track ID needs be fetched. This gives a nice speedup when thousands to millions of 
         track IDs need be retrieved.
         The two possible inputs are:
-        - dbname: string which specifies the name of the dataase. This is used to instantiate the 
-                  db_def.grid_db(dbname) object. 
+        - location: string which specifies the location of the dataase. This is used to instantiate the 
+                  db_def.grid_db(location) object. 
         - dbobj:  An instance of the db_def.grid_db class. 
   @type loc_or_dbobj: string or db_def.grid_db object
   @param M_ini: initial mass (in solar mass)
@@ -762,7 +762,7 @@ def get_track_id(loc_or_dbobj, M_ini, fov, Z, logD):
     result   = loc_or_dbobj.fetch_one()
   #
   else:
-    logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(dbname)))
+    logger.error('get_track_id: Input type not string or db_def.grid_db! It is: {0}'.format(type(location)))
     sys.exit(1)
 
   if result is None:
@@ -803,13 +803,13 @@ def get_tracks_as_recarray(location):
   >>>all_masses = recarr.M_ini
   >>>uniq_masses = np.unique(all_masses)
 
-  @param dbname: name of the database to connect to, and fetch the data from.
-  @type dbname: str
+  @param location: location of the database to connect to, and fetch the data from.
+  @type location: str
   @return: named record array with five columns: id, M_ini, fov, Z, logD. Each row in the returned 
         array stands for one track in the grid
   @rtype: np.recarray
   """
-  tracks_vals = get_tracks(location
+  tracks_vals = get_tracks(location)
   tracks_cols = 1 + 4
   f32         = np.float32
   dtype       = [('id', np.int16), ('M_ini', f32), ('fov', f32), ('Z', f32), ('logD', f32)]
@@ -828,7 +828,7 @@ def get_tracks_as_recarray(location):
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def get_tables_info(location):
   """
-  Retrieve the information of the tables in the database passed by its name (as dbname). The following
+  Retrieve the information of the tables in the database passed by its name (as location). The following
   informations are retrieved, and used as the key of the returned dictionary:
   - user_name
   - schema_name

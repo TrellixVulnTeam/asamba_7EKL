@@ -407,7 +407,7 @@ def write_model_parameters_to_ascii_obsolete(self_models, ascii_out):
   return lines
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
+def tracks_parameters_to_ascii(self_tracks, ascii_out):
   """
   Store the four parameters of the MESA tracks (mass, overshoot, metallicity and extra mixing) as
   an ascii file on the disk. To do so, the var_def.get_track_parameters() method must have already
@@ -423,7 +423,7 @@ def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
   @type ascii_out: string
   """
   if self_tracks.n_tracks == 0:
-    logger.error('write_tracks_parameters_to_ascii: No track data stored. Call get_track_parameters() first')
+    logger.error('tracks_parameters_to_ascii: No track data stored. Call get_track_parameters() first')
     sys.exit(1)
 
   # add a header
@@ -439,8 +439,8 @@ def write_tracks_parameters_to_ascii(self_tracks, ascii_out):
     lines.append(line)
 
   with open(ascii_out, 'w') as w: w.writelines(lines)
-  logger.info('write_tracks_parameters_to_ascii saved {0}'.format(ascii_out))
-  print(' - write: write_tracks_parameters_to_ascii saved {0}'.format(ascii_out))
+  logger.info('tracks_parameters_to_ascii saved {0}'.format(ascii_out))
+  print(' - write: tracks_parameters_to_ascii saved {0}'.format(ascii_out))
 
   return True
 
